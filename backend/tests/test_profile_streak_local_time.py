@@ -13,6 +13,7 @@ from services.instance_time import INSTANCE_TIMEZONE_KEY
 from services.portal import daily_digest_sources, profile_stats, profile_stats_playback
 from services.portal.play_streak import current_streak, longest_streak
 from services.settings import set_setting
+from services.watch_hours import spread_over_hours
 
 PARIS = ZoneInfo("Europe/Paris")
 NOW = datetime(2026, 10, 16, 18, tzinfo=UTC)
@@ -37,7 +38,7 @@ async def _viewer(db) -> tuple[User, UserProfile]:
     return user, profile
 
 
-def _session(db, started: datetime) -> None:
+def _session(db, started: datetime, seconds: int = 10 * 60) -> None:
     db.add(PlaybackSession(
         session_key=f"alice-{started.timestamp()}",
         user_id="emby-alice",
@@ -47,7 +48,9 @@ def _session(db, started: datetime) -> None:
         item_type="Movie",
         started_at=started,
         last_seen_at=started,
-        ended_at=started + timedelta(minutes=1),
+        ended_at=started + timedelta(seconds=seconds),
+        exclusive_seconds=seconds,
+        watched_by_hour=spread_over_hours(started, seconds),
     ))
 
 
@@ -116,6 +119,24 @@ async def test_the_streak_follows_the_saved_zone(db_session, monkeypatch):
 
     await set_setting(db_session, INSTANCE_TIMEZONE_KEY, "Europe/Paris")
     assert await daily_digest_sources.current_streak(db_session, user, profile) == 2
+
+
+@pytest.mark.asyncio
+async def test_a_film_finished_after_midnight_counts_for_the_next_day(db_session, monkeypatch):
+    """The 15th only holds the end of a film started at 23:00 in Paris: the run still holds."""
+    user, profile = await _viewer(db_session)
+    _session(db_session, datetime(2026, 10, 14, 12, tzinfo=UTC))
+    # 23:00 to 00:15 in Paris, nothing started on the 15th.
+    _session(db_session, datetime(2026, 10, 14, 21, tzinfo=UTC), seconds=75 * 60)
+    _session(db_session, datetime(2026, 10, 16, 12, tzinfo=UTC))
+    await db_session.commit()
+    monkeypatch.setattr(profile_stats_playback, "datetime", _Frozen)
+    await set_setting(db_session, INSTANCE_TIMEZONE_KEY, "Europe/Paris")
+    players = PlaybackSession.user_name == "alice"
+
+    assert await profile_stats_playback.compute_streak(db_session, players, [], UTC) == 1
+    assert await profile_stats_playback.compute_streak(db_session, players, [], PARIS) == 3
+    assert await daily_digest_sources.current_streak(db_session, user, profile) == 3
 
 
 @pytest.mark.asyncio

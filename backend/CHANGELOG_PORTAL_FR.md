@@ -16,7 +16,11 @@ utilisateurs.
 
 ## [Unreleased]
 
+### Changed
+- Jours d'affilée et Régulier — dès 5 min regardées ; musique et livres audio exclus.
+
 ### Fixed
+- Barre d'XP — même pourcentage dans le résumé du jour et le profil.
 - Notifications — barre à la bonne durée, message entier sur petits téléphones.
 - Problèmes — dates du ticket : deux-points à la bonne place en français et en anglais.
 - Quoi de neuf aujourd'hui — Top 3 du mois aligné sur le classement (étiquette « VOUS »).

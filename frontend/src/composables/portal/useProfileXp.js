@@ -30,6 +30,18 @@ export function levelFloorXp(level) {
   return level <= MIN_LEVEL ? 0 : xpForLevel(level)
 }
 
+/**
+ * Level-bar fill in whole percent, halves rounded up (server rule: level_bar_percent).
+ * Integer maths: a float ratio can fall just under a .5 and shift the bar by one point.
+ */
+export function levelBarPercent(level, xp) {
+  if (level >= MAX_LEVEL) return 100
+  const floor = levelFloorXp(level)
+  const span = Math.max(1, xpForLevel(level + 1) - floor)
+  const into = Math.max(0, xp - floor)
+  return Math.min(100, Math.floor((200 * into + span) / (2 * span)))
+}
+
 export function formatTime(minutes, t) {
   if (!minutes) return '0h'
   if (minutes < 60) return `${minutes}m`
@@ -59,15 +71,9 @@ export function useProfileXp(profileData, stats) {
     return xpForLevel(level + 1)
   })
 
-  const xpPercent = computed(() => {
-    const level = profileData.value?.level || MIN_LEVEL
-    if (level >= MAX_LEVEL) return 100
-    const xp = profileData.value?.xp || 0
-    const floor = levelFloorXp(level)
-    const ceiling = xpForLevel(level + 1)
-    const span = Math.max(1, ceiling - floor)
-    return Math.min(100, Math.max(0, Math.round(((xp - floor) / span) * 100)))
-  })
+  const xpPercent = computed(() =>
+    levelBarPercent(profileData.value?.level || MIN_LEVEL, profileData.value?.xp || 0),
+  )
 
   // Bar chart of plays per day of week (Monday → Sunday).
   const weekData = computed(() => {
