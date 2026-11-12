@@ -182,9 +182,11 @@ onBeforeUnmount(() => document.removeEventListener('click', onClickOutside, true
 .pt-fab-main--open svg {
   transform: rotate(45deg);
 }
-.pt-fab-main:hover {
-  background: rgb(79, 70, 229, 0.95);
-  transform: scale(1.06);
+@media (hover: hover) {
+  .pt-fab-main:hover {
+    background: color-mix(in srgb, var(--portal-accent-600) 95%, transparent);
+    transform: scale(1.06);
+  }
 }
 @media (min-width: 640px) {
   .pt-fab-main {
@@ -214,9 +216,16 @@ onBeforeUnmount(() => document.removeEventListener('click', onClickOutside, true
     opacity var(--portal-dur-base);
   position: relative;
 }
-.pt-fab-btn:hover:not(:disabled) {
-  background: rgb(67, 56, 202, 0.85);
-  transform: translateY(-2px);
+@media (hover: hover) {
+  .pt-fab-btn:hover:not(:disabled) {
+    background: rgb(var(--portal-accent-rgb), 0.85);
+    transform: translateY(-2px);
+  }
+}
+.pt-fab-main:focus-visible,
+.pt-fab-btn:focus-visible {
+  outline: var(--portal-focus-ring);
+  outline-offset: var(--portal-focus-ring-offset);
 }
 .pt-fab-btn--disabled {
   opacity: 0.35;

@@ -99,6 +99,9 @@ test.describe('The floating "+" with a keyboard', () => {
       await page.keyboard.press('Tab')
       const focused = page.locator(':focus')
       await expect(focused).toHaveAccessibleName(name)
+      // The portal's focus ring, not the browser's default one.
+      await expect(focused).toHaveCSS('outline-style', 'solid')
+      await expect(focused).toHaveCSS('outline-offset', '2px')
       const top = (await focused.boundingBox()).y
       expect(top, `${name} above the previous stop`).toBeLessThan(previousTop)
       previousTop = top
