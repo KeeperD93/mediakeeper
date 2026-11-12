@@ -6,7 +6,7 @@ unlocked, whatever its progress; the admin drawer keeps the full picture.
 """
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import pytest
 
@@ -36,7 +36,7 @@ async def _set_progress(db, user_id: int, ach_id: str, progress: int, *, unlocke
         achievement_id=ach_id,
         progress=progress,
         unlocked=unlocked,
-        unlocked_at=datetime.now(timezone.utc) if unlocked else None,
+        unlocked_at=datetime.now(UTC) if unlocked else None,
     ))
     await db.commit()
 
