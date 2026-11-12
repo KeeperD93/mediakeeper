@@ -19,6 +19,7 @@ utilisateurs.
 ### Fixed
 - Notifications — barre à la bonne durée, message entier sur petits téléphones.
 - Problèmes — dates du ticket : deux-points à la bonne place en français et en anglais.
+- Quoi de neuf aujourd'hui — Top 3 du mois aligné sur le classement (étiquette « VOUS »).
 
 ## [1.0.0-rc.10] - 2026-11-11
 

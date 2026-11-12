@@ -17,6 +17,7 @@ This section intentionally has no date so it is not shown to users.
 ### Fixed
 - Notifications — bar lasts as long as the message, full message on small phones.
 - Issues — ticket dates: colons placed right in English and French.
+- Today's digest — Top 3 of the month matches the leaderboard ("YOU" label).
 
 ## [1.0.0-rc.10] - 2026-11-11
 

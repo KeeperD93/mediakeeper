@@ -10,6 +10,9 @@ This section intentionally has no date so it is not shown to users.
 
 ## [Unreleased]
 
+### Changed
+- Dashboard — leaderboard widget matches the Leaderboard page.
+
 ### Fixed
 - Notifications — header names the page, bar lasts as long as the message, full message on small phones.
 - Labels — colons placed right in English and French.

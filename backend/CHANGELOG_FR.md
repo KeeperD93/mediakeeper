@@ -10,6 +10,9 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 
 ## [Unreleased]
 
+### Changed
+- Tableau de bord — widget du classement aligné sur la page Classement.
+
 ### Fixed
 - Notifications — en-tête au nom de la page, barre à la bonne durée, message entier sur petits téléphones.
 - Textes — deux-points à la bonne place en français et en anglais.
