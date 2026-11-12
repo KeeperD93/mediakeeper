@@ -31,6 +31,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Connexion — un double appui n'ouvre plus deux sessions, Entrée relance après un refus.
 - Statistiques — temps de visionnage : lecture coupée en début de titre plus comptée jusqu'au bout.
 - Cloche des notifications — message de chat signalé traduit, pastille comprise.
+- À propos — le point suit directement chaque lien.
 
 ## [1.0.0-rc.10] - 2026-11-11
 

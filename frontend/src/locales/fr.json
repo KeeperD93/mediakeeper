@@ -281,10 +281,10 @@
       "backendLabel": "Backend :",
       "frontendLabel": "Frontend :",
       "licensesTitle": "Licences open-source",
-      "ffmpegText": "MediaKeeper utilise des outils du projet FFmpeg sous licence LGPLv2.1+. Voir",
-      "dependenciesText": "Voir requirements.txt et package.json pour l'arborescence complète des dépendances open-source sur",
+      "ffmpegText": "MediaKeeper utilise des outils du projet FFmpeg sous licence LGPLv2.1+. Voir {link}.",
+      "dependenciesText": "Voir requirements.txt et package.json pour l'arborescence complète des dépendances open-source sur {link}.",
       "thirdPartyTitle": "Attributions API tierces",
-      "thirdPartyText": "Les attributions visibles pour TMDB, OpenSubtitles, Emby, Imgur et YouTube sont listées sur"
+      "thirdPartyText": "Les attributions visibles pour TMDB, OpenSubtitles, Emby, Imgur et YouTube sont listées sur {link}."
     },
     "settings": {
       "tmdb": "En utilisant l'API TMDB, vous acceptez leurs CGU.",
