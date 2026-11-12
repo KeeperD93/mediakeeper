@@ -2,6 +2,8 @@
 import logging
 from collections.abc import Iterable
 from datetime import datetime, timezone
+from decimal import ROUND_HALF_UP, Decimal
+
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -15,7 +17,8 @@ def multiplier_at(events: Iterable[XpBoostEvent], action: str, at: datetime) -> 
 
     Overlapping events multiply together; 1.0 when none applies.
     """
-    multiplier = 1.0
+    # Decimal: in floats, 1.15 × 1.5 falls just under 1.725 and a half would round down.
+    multiplier = Decimal(1)
     for ev in events:
         if not ev.enabled or not _parse_dt(ev.starts_at) <= at <= _parse_dt(ev.ends_at):
             continue
@@ -23,13 +26,16 @@ def multiplier_at(events: Iterable[XpBoostEvent], action: str, at: datetime) -> 
             allowed = {a.strip() for a in ev.action_filter.split(",") if a.strip()}
             if action not in allowed:
                 continue
-        multiplier *= ev.multiplier or 1.0
-    return multiplier
+        multiplier *= Decimal(str(ev.multiplier or 1.0))
+    return float(multiplier)
 
 
 def boosted_xp(xp: int, multiplier: float) -> int:
-    """``xp`` with a bonus multiplier applied, as every grant writes it."""
-    return round(xp * multiplier) if multiplier != 1.0 else xp
+    """``xp`` with a bonus multiplier applied, halves rounded up, as every grant writes it."""
+    if multiplier == 1.0:
+        return xp
+    # The multiplier as typed (2.3, not 2.29999…): 25 × 2.3 is 57.5 and pays 58.
+    return int((xp * Decimal(str(multiplier))).quantize(Decimal(1), rounding=ROUND_HALF_UP))
 
 
 async def get_active_multiplier(db: AsyncSession, action: str, at: datetime | None = None) -> float:

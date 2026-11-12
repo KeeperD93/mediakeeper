@@ -117,6 +117,19 @@ async def test_the_bonus_is_the_one_active_when_the_title_counted(db_session):
 
 
 @pytest.mark.asyncio
+@pytest.mark.parametrize(("runtime", "multiplier", "xp"), [(2700, 1.5, 23), (60, 0.4, 1)])
+async def test_a_bonus_rounds_to_the_nearest_and_a_title_still_pays_at_least_1_xp(db_session, runtime, multiplier, xp):
+    db_session.add(XpBoostEvent(
+        name="Test Event", multiplier=multiplier, starts_at=T - timedelta(hours=1), ends_at=T + timedelta(hours=1),
+    ))
+    await account(db_session)
+
+    await pay_watch_xp(db_session, [await watched(db_session, runtime=runtime)])
+
+    assert [paid for _, _, paid in await watch_rows(db_session)] == [xp]
+
+
+@pytest.mark.asyncio
 async def test_a_refused_payment_ends_its_transaction_and_keeps_the_pending_work(db_session):
     alice = await account(db_session)
     done = await db_session.get(PlaybackCompletion, await watched(db_session))

@@ -16,6 +16,7 @@ from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from models.portal.xp_ledger import XpLedger
+from services.portal.xp_boost import boosted_xp, get_active_multiplier
 
 from ._grants import _credit_locked, _refused, account_earns, locked_profile
 
@@ -61,6 +62,12 @@ def watch_xp_amount(runtime_seconds: int) -> int:
     return max(MIN_WATCH_XP, rounded)
 
 
+def boosted_watch_xp(runtime_seconds: int, multiplier: float) -> int:
+    """What a watched title pays under a bonus ``multiplier``: still at least 1 XP,
+    even under an event below ×1."""
+    return max(MIN_WATCH_XP, boosted_xp(watch_xp_amount(runtime_seconds), multiplier))
+
+
 def watch_action(item_type: str) -> str | None:
     """The ledger action of a title type; ``None`` for a type that earns nothing."""
     return WATCH_XP_ACTIONS.get(item_type)
@@ -88,9 +95,7 @@ async def grant_completion_xp(db: AsyncSession, user_id: int, title: WatchedTitl
     if not watch_xp_eligible(title) or not await account_earns(db, user_id):
         return None
     action = watch_action(title.item_type)
-    from services.portal.xp_boost import boosted_xp, get_active_multiplier
-    multiplier = await get_active_multiplier(db, action, title.completed_at)
-    xp = boosted_xp(watch_xp_amount(title.runtime_seconds), multiplier)
+    xp = boosted_watch_xp(title.runtime_seconds, await get_active_multiplier(db, action, title.completed_at))
 
     profile = await locked_profile(db, user_id)
     if profile is None:  # account deleted since ``account_earns``
