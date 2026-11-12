@@ -78,36 +78,39 @@
             {{ errorMsg }}
           </div>
 
-          <div class="login-fields">
+          <!-- The fields have no name: even a native submission could not put
+               them in the URL. Password managers go by autocomplete and type. -->
+          <form class="login-fields" @submit.prevent="doLogin" @keydown.enter="ignoreHeldEnter">
             <div class="login-field">
-              <label class="login-label">{{ t(usernameKey) }}</label>
+              <label class="login-label" :for="usernameId">{{ t(usernameKey) }}</label>
               <div class="login-input-wrap">
                 <User class="login-input-icon" :size="15" :stroke-width="1.8" />
                 <input
+                  :id="usernameId"
                   v-model="username"
                   type="text"
                   :placeholder="t(usernameKey)"
-                  autocomplete="off"
+                  autocomplete="username"
                   autocorrect="off"
                   autocapitalize="off"
                   spellcheck="false"
                   class="login-input"
-                  @keydown.enter="onEnter"
                 />
               </div>
             </div>
 
             <div class="login-field">
-              <label class="login-label">{{ t(passwordKey) }}</label>
+              <label class="login-label" :for="passwordId">{{ t(passwordKey) }}</label>
               <div class="login-input-wrap">
                 <LockKeyhole class="login-input-icon" :size="15" :stroke-width="1.8" />
                 <input
+                  :id="passwordId"
+                  ref="passwordRef"
                   v-model="password"
                   type="password"
                   :placeholder="t(passwordKey)"
-                  autocomplete="new-password"
+                  autocomplete="current-password"
                   class="login-input"
-                  @keydown.enter="onEnter"
                 />
               </div>
             </div>
@@ -117,19 +120,14 @@
               <span>{{ $t('login.remember') }}</span>
             </label>
 
-            <button
-              class="login-submit"
-              :disabled="submitting"
-              @click="doLogin"
-              @keydown.enter.prevent="onEnter"
-            >
+            <button ref="submitRef" type="submit" class="login-submit" :disabled="submitting">
               <MkSpinner v-if="submitting" size="sm" inline />
               <template v-else>
                 <LogIn :size="15" />
               </template>
               {{ submitting ? t('common.loading') : t(submitKey) }}
             </button>
-          </div>
+          </form>
 
           <div class="login-links">
             <a href="https://discord.gg/A2hyNUUn6a" target="_blank" rel="noopener" title="Discord">
@@ -167,14 +165,13 @@
 </template>
 
 <script setup>
-import { computed, ref, onMounted, onUnmounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { computed, ref, onMounted, onUnmounted, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAuth } from '@/composables/useAuth'
 import { signInErrorMessage } from '@/composables/signInErrors'
 import { STORAGE_KEYS } from '@/constants/storage'
 import { useTheme } from '@/composables/useTheme'
-import { initLoginParticles } from '@/composables/useLoginParticles'
+import { useLoginParticles } from '@/composables/useLoginParticles'
 import { useLoginRedirect } from '@/composables/useLoginRedirect'
 import { useMaintenance } from '@/composables/portal/useMaintenance'
 import {
@@ -192,7 +189,6 @@ import MkSpinner from '@/components/common/MkSpinner.vue'
 import '@/assets/styles/login-view.css'
 
 const { t } = useI18n()
-const router = useRouter()
 const { login } = useAuth()
 const { particlesEnabled } = useTheme()
 const { fetchMaintenanceState } = useMaintenance()
@@ -206,16 +202,16 @@ const maintenanceText = ref('')
 const submitting = ref(false)
 const pageRef = ref(null)
 const canvasRef = ref(null)
-let cleanupParticles = null
+const passwordRef = ref(null)
+const submitRef = ref(null)
+const usernameId = useId()
+const passwordId = useId()
+useLoginParticles(canvasRef, pageRef, particlesEnabled)
 const RETRY_PAUSE_MS = 1000
 let refusedAt = 0
 
-const { backendReady, appVersion, getRedirectTarget, start, dispose } = useLoginRedirect({
-  username,
-  remember,
-  errorMsg,
-  loggedOutMsg,
-})
+const { backendReady, appVersion, getRedirectTarget, leaveAfterSignIn, start, dispose } =
+  useLoginRedirect({ username, remember, errorMsg, loggedOutMsg, submitting })
 
 const repoUrl = 'https://github.com/KeeperD93/mediakeeper'
 const logoUrl = '/assets/icons/mediakeeper.png'
@@ -233,25 +229,24 @@ const passwordKey = computed(() =>
 const submitKey = computed(() => (isPortalLogin.value ? 'portalLogin.submit' : 'login.submit'))
 
 onMounted(async () => {
-  if (particlesEnabled.value) cleanupParticles = initLoginParticles(canvasRef.value, pageRef.value)
   await start()
   const m = await fetchMaintenanceState()
   maintenanceText.value = m?.enabled ? m.text || '' : ''
 })
 
 onUnmounted(() => {
-  if (cleanupParticles) cleanupParticles()
   dispose()
 })
 
 // A held key repeats: each quick refusal would let the next repeat use up a try.
-function onEnter(event) {
-  if (!event.repeat) doLogin()
+// Cancelling the repeat stops both the form's implicit submission and the button press.
+function ignoreHeldEnter(event) {
+  if (event.repeat) event.preventDefault()
 }
 
 async function doLogin() {
-  // Enter still fires while the button is disabled: one sign-in at a time. A refusal
-  // comes back fast, so a double press would otherwise reach the server twice.
+  // One sign-in at a time. A refusal comes back fast, so a double press would
+  // otherwise reach the server twice.
   if (submitting.value || Date.now() - refusedAt < RETRY_PAUSE_MS) return
   errorMsg.value = ''
 
@@ -261,30 +256,26 @@ async function doLogin() {
   }
 
   submitting.value = true
+  let data
   try {
-    const data = await login(username.value.trim(), password.value)
-    const redirect = getRedirectTarget()
-    const isPortalRedirect = redirect.startsWith('/portal')
+    data = await login(username.value.trim(), password.value)
 
     if (remember.value) {
       localStorage.setItem(STORAGE_KEYS.SAVED_USERNAME, username.value.trim())
     } else {
       localStorage.removeItem(STORAGE_KEYS.SAVED_USERNAME)
     }
-
-    if (data.scope === 'portal') {
-      router.push(isPortalRedirect ? redirect : '/portal')
-    } else if (data.must_change_password) {
-      router.push('/?force_change_password=1')
-    } else {
-      router.push(redirect || '/')
-    }
   } catch (e) {
     console.error('[LoginView.doLogin]', e)
     refusedAt = Date.now()
     errorMsg.value = signInErrorMessage(e)
-  } finally {
     submitting.value = false
+    // A press on the button can leave the focus on the page, where Enter does nothing:
+    // put it back on the password. Anywhere else, the user moved it there.
+    const lostOn = [document.body, pageRef.value, submitRef.value]
+    if (lostOn.includes(document.activeElement)) passwordRef.value?.focus()
+    return
   }
+  await leaveAfterSignIn(data)
 }
 </script>

@@ -1,4 +1,7 @@
-export function initLoginParticles(canvas, page) {
+import { onMounted, onUnmounted, watch } from 'vue'
+import { usePrefersReducedMotion } from '@/composables/usePrefersReducedMotion'
+
+function initLoginParticles(canvas, page) {
   if (!canvas || !page) return null
 
   const ctx = canvas.getContext('2d')
@@ -53,5 +56,30 @@ export function initLoginParticles(canvas, page) {
   return () => {
     ro.disconnect()
     if (animFrame) cancelAnimationFrame(animFrame)
+    // Stopped by reduced motion, the canvas is left as if they had never started.
+    ctx.clearRect(0, 0, W, H)
   }
+}
+
+/**
+ * The particles behind the sign-in card: drawn while the theme shows them and the
+ * device does not ask for reduced motion, stopped or started again when either changes.
+ */
+export function useLoginParticles(canvasRef, pageRef, enabledRef) {
+  const reducedMotion = usePrefersReducedMotion()
+  let stop = null
+
+  function sync() {
+    const wanted = enabledRef.value && !reducedMotion.value
+    if (wanted && !stop) stop = initLoginParticles(canvasRef.value, pageRef.value)
+    if (!wanted && stop) {
+      stop()
+      stop = null
+    }
+  }
+
+  // Sync: a change made before a pending flush still starts or stops them.
+  watch([enabledRef, reducedMotion], sync, { flush: 'sync' })
+  onMounted(sync)
+  onUnmounted(() => stop?.())
 }
