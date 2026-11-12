@@ -16,7 +16,6 @@ from sqlalchemy import select, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from models.portal.achievement import Achievement, UserAchievement
-from models.portal.profile import UserProfile
 from models.portal.xp_ledger import XpLedger
 from services.portal.admin_users_audit import record_audit
 from services.portal.admin_users_constants import (
@@ -26,18 +25,12 @@ from services.portal.admin_users_constants import (
     ACTION_DEBUG_LEVEL_SET,
     ACTION_DEBUG_XP_GRANTED,
 )
-from services.portal.xp import MAX_LEVEL, MIN_LEVEL, level_floor_xp, level_from_xp
+from services.portal.xp import MAX_LEVEL, MIN_LEVEL, level_floor_xp, level_from_xp, locked_profile
 
 
 logger = logging.getLogger("mediakeeper.portal.admin_debug")
 
 ADMIN_GRANT_ACTION = "admin_grant"
-
-
-async def _get_profile(db: AsyncSession, user_id: int) -> UserProfile | None:
-    return (await db.execute(
-        select(UserProfile).where(UserProfile.user_id == user_id)
-    )).scalar_one_or_none()
 
 
 async def admin_grant_xp(
@@ -52,12 +45,13 @@ async def admin_grant_xp(
     Returns ``{xp, level, leveled_up}`` or ``None`` if the profile is
     missing.
     """
-    profile = await _get_profile(db, user_id)
+    profile = await locked_profile(db, user_id)
     if not profile:
         return None
 
     delta = int(amount)
     if delta == 0:
+        await db.commit()  # releases the lock
         return {"xp": profile.xp or 0, "level": profile.level or MIN_LEVEL, "leveled_up": False}
 
     ref_suffix = (note or uuid.uuid4().hex)[:48]
@@ -101,7 +95,7 @@ async def admin_set_level(
     """Force the user to a specific level. ``profile.xp`` is set to the
     XP at which that level starts (``level_floor_xp``, 0 for level 1),
     up or down, so the level bar starts empty (full at ``MAX_LEVEL``)."""
-    profile = await _get_profile(db, user_id)
+    profile = await locked_profile(db, user_id)
     if not profile:
         return None
 
@@ -244,13 +238,15 @@ async def admin_reset_achievement_for_all(
             UserAchievement.unlocked == True,  # noqa: E712
         )
     )).scalars().all()
-    affected_user_ids = list({uid for uid in ua_rows if uid is not None})
+    affected_user_ids = sorted({uid for uid in ua_rows if uid is not None})
 
     deleted_ua = await db.execute(
         delete(UserAchievement).where(
             UserAchievement.achievement_id == achievement_id,
         )
     )
+    # Profiles before the ledger, in id order, like every other XP writer.
+    profiles = [await locked_profile(db, uid) for uid in affected_user_ids]
     deleted_ledger = await db.execute(
         delete(XpLedger).where(
             XpLedger.action == "achievement_unlocked",
@@ -262,17 +258,14 @@ async def admin_reset_achievement_for_all(
     # ledger sum — the simplest authoritative source of truth.
     from sqlalchemy import func
     rebuilt = 0
-    for uid in affected_user_ids:
+    for profile in filter(None, profiles):
         total = (await db.execute(
             select(func.coalesce(func.sum(XpLedger.xp), 0))
-            .where(XpLedger.user_id == uid)
+            .where(XpLedger.user_id == profile.user_id)
         )).scalar_one()
-        profile = await _get_profile(db, uid)
-        if profile:
-            profile.xp = max(0, int(total or 0))
-            profile.level = level_from_xp(profile.xp)
-            db.add(profile)
-            rebuilt += 1
+        profile.xp = max(0, int(total or 0))
+        profile.level = level_from_xp(profile.xp)
+        rebuilt += 1
 
     # Multi-user mutation → no single target_user_id; the counts in the
     # payload bound the blast radius for after-the-fact review.

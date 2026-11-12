@@ -13,6 +13,7 @@ from ._grants import account_earns as account_earns
 from ._grants import achievement_xp_reference as achievement_xp_reference
 from ._grants import grant_daily_login_xp as grant_daily_login_xp
 from ._grants import grant_xp as grant_xp
+from ._grants import locked_profile as locked_profile
 from ._levels import MAX_LEVEL as MAX_LEVEL
 from ._levels import MIN_LEVEL as MIN_LEVEL
 from ._levels import level_floor_xp as level_floor_xp
@@ -39,5 +40,6 @@ __all__ = [
     "grant_xp",
     "level_floor_xp",
     "level_from_xp",
+    "locked_profile",
     "xp_for_level",
 ]

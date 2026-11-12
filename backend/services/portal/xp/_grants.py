@@ -75,6 +75,26 @@ async def account_earns(db: AsyncSession, user_id: int) -> bool:
     return await db.scalar(stmt.where(User.id == user_id, EARNING_ACCOUNT)) is not None
 
 
+async def locked_profile(db: AsyncSession, user_id: int) -> UserProfile | None:
+    """The profile, row-locked until the caller's transaction ends.
+
+    Every XP writer takes it before touching the ledger, so two writers queue
+    on it instead of deadlocking. ``populate_existing``: the caller often holds
+    this profile already, and the lock alone would leave its older XP to overwrite.
+    """
+    return (await db.execute(
+        select(UserProfile)
+        .where(UserProfile.user_id == user_id)
+        .with_for_update()
+        .execution_options(populate_existing=True)
+    )).scalar_one_or_none()
+
+
+async def _refused(db: AsyncSession) -> None:
+    # Commit, not roll back: it releases the lock and keeps the caller's pending trophy unlock.
+    await db.commit()
+
+
 async def grant_xp(
     db: AsyncSession,
     user_id: int,
@@ -89,7 +109,8 @@ async def grant_xp(
 
     The unique constraint (user_id, action, reference) is the primary
     dedup mechanism — if the exact same grant was already recorded,
-    the INSERT fails silently and we return None.
+    the INSERT fails silently and we return None. Once the profile is
+    locked, every path commits, refusals included.
     """
     base_xp = xp_override if xp_override is not None else XP_TABLE.get(action, 0)
     if base_xp <= 0:
@@ -104,20 +125,18 @@ async def grant_xp(
     multiplier = await get_active_multiplier(db, action)
     xp_amount = round(base_xp * multiplier) if multiplier != 1.0 else base_xp
 
-    # --- Daily caps ---
-    today_start = datetime.now(UTC).replace(
-        hour=0, minute=0, second=0, microsecond=0
-    )
+    # --- Profile first, then the ledger: the caps are read under the lock ---
+    profile = await locked_profile(db, user_id)
+    if profile is None:  # account deleted since ``account_earns``
+        return await _refused(db)
 
     # No daily cap on watch XP — if someone watches 10h of movies,
     # they earned it. Anti-abuse is handled by the 85% runtime check
     # and the 24h cooldown per item in grant_watch_xp().
-
     if action == "request_created":
-        today_req_xp = await _daily_xp_sum(db, user_id, today_start,
-                                            ("request_created",))
-        if today_req_xp >= DAILY_REQUEST_XP_CAP:
-            return None
+        today_start = datetime.now(UTC).replace(hour=0, minute=0, second=0, microsecond=0)
+        if await _daily_xp_sum(db, user_id, today_start, ("request_created",)) >= DAILY_REQUEST_XP_CAP:
+            return await _refused(db)
 
     # --- Insert (dedup via unique constraint) ---
     # The INSERT runs inside a SAVEPOINT so a duplicate (user_id, action,
@@ -135,33 +154,19 @@ async def grant_xp(
             await db.flush()
     except IntegrityError:
         logger.debug("[XP] duplicate blocked: user=%s action=%s ref=%s", user_id, action, reference)
-        return None
+        return await _refused(db)
 
-    # --- Update profile XP + level (row-locked to prevent concurrent-grant loss) ---
-    # populate_existing: the caller often holds this profile already, and the
-    # lock alone would leave its older XP in place to be overwritten.
-    profile = (await db.execute(
-        select(UserProfile)
-        .where(UserProfile.user_id == user_id)
-        .with_for_update()
-        .execution_options(populate_existing=True)
-    )).scalar_one_or_none()
-
-    leveled_up = False
-    if profile:
-        profile.xp = (profile.xp or 0) + xp_amount
-        new_level = level_from_xp(profile.xp)
-        leveled_up = new_level > (profile.level or MIN_LEVEL)
-        profile.level = new_level
-        db.add(profile)
-
+    profile.xp = (profile.xp or 0) + xp_amount
+    new_level = level_from_xp(profile.xp)
+    leveled_up = new_level > (profile.level or MIN_LEVEL)
+    profile.level = new_level
     await db.commit()
 
     result = {
         "action": action,
         "xp": xp_amount,
-        "total_xp": profile.xp if profile else xp_amount,
-        "level": profile.level if profile else MIN_LEVEL,
+        "total_xp": profile.xp,
+        "level": profile.level,
         "leveled_up": leveled_up,
     }
     logger.info("[XP] granted %s XP to user=%s for %s ref=%s", xp_amount, user_id, action, reference)
