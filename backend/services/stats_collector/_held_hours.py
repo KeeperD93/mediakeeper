@@ -8,6 +8,7 @@ session or the row ends normally, dropped when it ends judged lost on a position
 still saved at 0. The seconds are counted as before, except that a held row never
 takes its user's share of a poll from another row of that user.
 """
+import logging
 from collections.abc import Iterable
 from dataclasses import dataclass
 from datetime import datetime
@@ -16,6 +17,8 @@ from models.playback_stats import PlaybackSession
 
 from ._measure import add_to_hour, exclusive_shares
 from ._player_reports import Proof, Verdict
+
+logger = logging.getLogger("mediakeeper.stats.collector")
 
 
 @dataclass(frozen=True)
@@ -84,8 +87,15 @@ class HeldHours:
     def close(self, row: PlaybackSession) -> None:
         """The row ends: what it holds is paid, unless its player was judged lost."""
         held = self._pending.pop(row.session_key, None)
-        if held is not None and not held.lost:
+        if held is None:
+            return
+        if not held.lost:
             _pay(row, held.hours)
+        elif held.hours:
+            logger.info(
+                "Playback row %s: %s s of held hours dropped, its player judged gone",
+                row.id, sum(held.hours.values()),
+            )
 
     def commit(self, active: Iterable[PlaybackSession]) -> None:
         """The pass is saved: keep what it holds for the rows still active."""

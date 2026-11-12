@@ -1,4 +1,5 @@
 """The watched hours of a playback's start wait until its player proves it plays."""
+import logging
 from datetime import UTC, date, datetime, timedelta
 from itertools import cycle
 from unittest.mock import AsyncMock, patch
@@ -85,6 +86,18 @@ async def test_a_player_switched_off_at_the_start_of_a_long_film_fills_no_day(db
     assert row.watched_by_hour == {HOUR: 5}
     assert watch_days([row], UTC) == set()
     assert not held_hours._held
+
+
+async def test_held_hours_dropped_with_their_row_are_logged(db_session, caplog):
+    await known_application(db_session)
+    _library_saves_from(3)
+    at, position = await _real(db_session, BEGIN, 5, 5)
+    at, _ = await _alone(db_session, at, position)
+    with caplog.at_level(logging.INFO, logger="mediakeeper.stats.collector"):
+        await poll(db_session, at)
+    row = await _movie(db_session)
+    dropped = row.exclusive_seconds - 5  # all but the first poll
+    assert f"Playback row {row.id}: {dropped} s of held hours dropped, its player judged gone" in caplog.text
 
 
 async def test_a_player_switched_off_at_the_start_of_a_title_carried_to_its_end_is_dropped(db_session):
