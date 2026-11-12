@@ -105,6 +105,7 @@
                 <LockKeyhole class="login-input-icon" :size="15" :stroke-width="1.8" />
                 <input
                   :id="passwordId"
+                  ref="passwordRef"
                   v-model="password"
                   type="password"
                   :placeholder="t(passwordKey)"
@@ -203,6 +204,7 @@ const maintenanceText = ref('')
 const submitting = ref(false)
 const pageRef = ref(null)
 const canvasRef = ref(null)
+const passwordRef = ref(null)
 const usernameId = useId()
 const passwordId = useId()
 useLoginParticles(canvasRef, pageRef, particlesEnabled)
@@ -284,6 +286,9 @@ async function doLogin() {
     // Only a refusal frees the button: after a success the page is being left,
     // and a press during that navigation would sign in a second time.
     submitting.value = false
+    // After a press on the button, the focus can fall on the page, where Enter does
+    // nothing: put it on the password, unless a field has it.
+    if (!(document.activeElement instanceof HTMLInputElement)) passwordRef.value?.focus()
   }
 }
 </script>

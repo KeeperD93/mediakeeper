@@ -63,14 +63,14 @@ const PAUSE_OVER = 1000
 const NAME = 'input[autocomplete="username"]'
 const PASSWORD = 'input[autocomplete="current-password"]'
 
-async function mountPage() {
-  const w = mount(LoginView)
+async function mountPage(options) {
+  const w = mount(LoginView, options)
   for (let i = 0; i < 10; i++) await flushPromises()
   return w
 }
 
-async function filledForm() {
-  const w = await mountPage()
+async function filledForm(options) {
+  const w = await mountPage(options)
   await w.find(NAME).setValue('someone')
   await w.find(PASSWORD).setValue('not-a-real-password')
   return w
@@ -260,5 +260,53 @@ describe('LoginView — signing in', () => {
     await submit(w)
     await flushPromises()
     expect(loginMock).toHaveBeenCalledTimes(1)
+  })
+})
+
+describe('LoginView — the focus after a refusal', () => {
+  let w
+
+  afterEach(() => {
+    w.unmount()
+  })
+
+  // The focus only moves in a page attached to the document.
+  const attached = () => filledForm({ attachTo: document.body })
+
+  it.each([
+    ['the button', 'button.login-submit'],
+    ['the main area', 'main'],
+    ['the page', null],
+  ])('puts it on the password when %s had it', async (_, selector) => {
+    loginMock.mockRejectedValueOnce(wrongPassword())
+    w = await attached()
+    const start = selector ? w.find(selector).element : document.body
+    if (selector) start.focus()
+    else document.activeElement.blur()
+    expect(document.activeElement).toBe(start)
+
+    await submit(w)
+    await flushPromises()
+
+    expect(document.activeElement).toBe(w.find(PASSWORD).element)
+    expect(w.find('.login-error').attributes('role')).toBe('alert')
+  })
+
+  it('leaves it on a field the user went to while waiting', async () => {
+    let refuse
+    loginMock.mockReturnValueOnce(
+      new Promise((_, reject) => {
+        refuse = reject
+      }),
+    )
+    w = await attached()
+    w.find('button.login-submit').element.focus()
+
+    await submit(w)
+    w.find(NAME).element.focus()
+    refuse(wrongPassword())
+    await flushPromises()
+
+    expect(document.activeElement).toBe(w.find(NAME).element)
   })
 })
