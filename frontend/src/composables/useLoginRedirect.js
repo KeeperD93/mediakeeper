@@ -1,5 +1,5 @@
 import { ref } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { NavigationFailureType, isNavigationFailure, useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useAuth } from '@/composables/useAuth'
 import { fetchApiResponse } from '@/composables/useApi'
@@ -10,10 +10,11 @@ import { STORAGE_KEYS } from '@/constants/storage'
  * already-valid session. An authenticated admin/portal visitor is redirected
  * straight to their destination; everyone else stays on the form with the
  * saved username pre-filled and the logged-out / session-expired banners
- * surfaced. Owns only the startup-flow state — the form inputs stay in the
- * component, which passes the refs this flow writes into.
+ * surfaced. After a sign-in, it leaves for the same destinations. Owns only the
+ * startup-flow state — the form inputs stay in the component, which passes the
+ * refs this flow writes into.
  */
-export function useLoginRedirect({ username, remember, errorMsg, loggedOutMsg }) {
+export function useLoginRedirect({ username, remember, errorMsg, loggedOutMsg, submitting }) {
   const route = useRoute()
   const router = useRouter()
   const { t } = useI18n()
@@ -25,6 +26,50 @@ export function useLoginRedirect({ username, remember, errorMsg, loggedOutMsg })
 
   function getRedirectTarget() {
     return typeof route.query.redirect === 'string' ? route.query.redirect : ''
+  }
+
+  // Where a signed-in visitor goes: a member to the portal, an admin back where the
+  // sign-in was asked for.
+  function destination(isMember) {
+    const redirect = getRedirectTarget()
+    if (isMember) return redirect.startsWith('/portal') ? redirect : '/portal'
+    return redirect || '/'
+  }
+
+  // A temporary password is changed on the dashboard first.
+  function targetAfterSignIn(data) {
+    if (data.scope === 'portal') return destination(true)
+    if (data.must_change_password) return '/?force_change_password=1'
+    return destination(false)
+  }
+
+  // The redirect comes from the address bar: a full load never leaves this site.
+  function loadInFull(target) {
+    const url = new URL(router.resolve(target).href, window.location.origin)
+    window.location.assign(url.origin === window.location.origin ? url.href : '/')
+  }
+
+  /**
+   * Leaves for where a sign-in leads. `submitting` stays true while the page is
+   * left: a press during that navigation would sign in a second time. Only a
+   * navigation that ends back here frees it.
+   */
+  async function leaveAfterSignIn(data) {
+    const target = targetAfterSignIn(data)
+    const stopWatching = router.afterEach((to, from, failure) => {
+      // Cancelled: a newer navigation took over, and its own end decides.
+      if (isNavigationFailure(failure, NavigationFailureType.cancelled)) return
+      stopWatching()
+      if (router.currentRoute.value.name === 'login') submitting.value = false
+    })
+    try {
+      await router.push(target)
+    } catch (err) {
+      // Signed in, but the next page could not load here (its files replaced by an
+      // update): load it from the server, the session is open.
+      console.error('[useLoginRedirect.leaveAfterSignIn]', err)
+      loadInFull(target)
+    }
   }
 
   async function waitForAuth() {
@@ -124,7 +169,7 @@ export function useLoginRedirect({ username, remember, errorMsg, loggedOutMsg })
           /* best-effort — page-level guard will still surface a fresh 401 */
         }
       }
-      router.replace(redirect || '/')
+      router.replace(destination(false))
       return
     }
 
@@ -132,7 +177,7 @@ export function useLoginRedirect({ username, remember, errorMsg, loggedOutMsg })
       const { usePortalAuth } = await import('@/composables/portal/usePortalAuth')
       const ok = await usePortalAuth().checkPortalAuth()
       if (ok) {
-        router.replace(isPortalRedirect ? redirect : '/portal')
+        router.replace(destination(true))
         return
       }
     } catch {
@@ -155,5 +200,5 @@ export function useLoginRedirect({ username, remember, errorMsg, loggedOutMsg })
     }
   }
 
-  return { backendReady, appVersion, getRedirectTarget, start, dispose }
+  return { backendReady, appVersion, getRedirectTarget, leaveAfterSignIn, start, dispose }
 }

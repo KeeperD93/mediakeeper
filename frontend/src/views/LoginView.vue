@@ -166,7 +166,6 @@
 
 <script setup>
 import { computed, ref, onMounted, onUnmounted, useId } from 'vue'
-import { NavigationFailureType, isNavigationFailure, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useAuth } from '@/composables/useAuth'
 import { signInErrorMessage } from '@/composables/signInErrors'
@@ -190,7 +189,6 @@ import MkSpinner from '@/components/common/MkSpinner.vue'
 import '@/assets/styles/login-view.css'
 
 const { t } = useI18n()
-const router = useRouter()
 const { login } = useAuth()
 const { particlesEnabled } = useTheme()
 const { fetchMaintenanceState } = useMaintenance()
@@ -212,12 +210,8 @@ useLoginParticles(canvasRef, pageRef, particlesEnabled)
 const RETRY_PAUSE_MS = 1000
 let refusedAt = 0
 
-const { backendReady, appVersion, getRedirectTarget, start, dispose } = useLoginRedirect({
-  username,
-  remember,
-  errorMsg,
-  loggedOutMsg,
-})
+const { backendReady, appVersion, getRedirectTarget, leaveAfterSignIn, start, dispose } =
+  useLoginRedirect({ username, remember, errorMsg, loggedOutMsg, submitting })
 
 const repoUrl = 'https://github.com/KeeperD93/mediakeeper'
 const logoUrl = '/assets/icons/mediakeeper.png'
@@ -250,21 +244,6 @@ function ignoreHeldEnter(event) {
   if (event.repeat) event.preventDefault()
 }
 
-// A member goes to the portal, an admin with a temporary password to the dashboard
-// to change it, anyone else back where the sign-in was asked for.
-function targetAfterSignIn(data) {
-  const redirect = getRedirectTarget()
-  if (data.scope === 'portal') return redirect.startsWith('/portal') ? redirect : '/portal'
-  if (data.must_change_password) return '/?force_change_password=1'
-  return redirect || '/'
-}
-
-// The redirect comes from the address bar: a full load never leaves this site.
-function loadInFull(target) {
-  const url = new URL(router.resolve(target).href, window.location.origin)
-  window.location.assign(url.origin === window.location.origin ? url.href : '/')
-}
-
 async function doLogin() {
   // One sign-in at a time. A refusal comes back fast, so a double press would
   // otherwise reach the server twice.
@@ -277,34 +256,17 @@ async function doLogin() {
   }
 
   submitting.value = true
-  let target = ''
+  let data
   try {
-    const data = await login(username.value.trim(), password.value)
+    data = await login(username.value.trim(), password.value)
 
     if (remember.value) {
       localStorage.setItem(STORAGE_KEYS.SAVED_USERNAME, username.value.trim())
     } else {
       localStorage.removeItem(STORAGE_KEYS.SAVED_USERNAME)
     }
-
-    target = targetAfterSignIn(data)
-    // The button stays busy while the page is left: a press during that navigation
-    // would sign in a second time. Only a navigation that ends back here frees it.
-    const stopWatching = router.afterEach((to, from, failure) => {
-      // Cancelled: a newer navigation took over, and its own end decides.
-      if (isNavigationFailure(failure, NavigationFailureType.cancelled)) return
-      stopWatching()
-      if (router.currentRoute.value.name === 'login') submitting.value = false
-    })
-    await router.push(target)
   } catch (e) {
     console.error('[LoginView.doLogin]', e)
-    if (target) {
-      // Signed in, but the next page could not load here (its files replaced by an
-      // update): load it from the server, the session is open.
-      loadInFull(target)
-      return
-    }
     refusedAt = Date.now()
     errorMsg.value = signInErrorMessage(e)
     submitting.value = false
@@ -312,6 +274,8 @@ async function doLogin() {
     // put it back on the password. Anywhere else, the user moved it there.
     const lostOn = [document.body, pageRef.value, submitRef.value]
     if (lostOn.includes(document.activeElement)) passwordRef.value?.focus()
+    return
   }
+  await leaveAfterSignIn(data)
 }
 </script>
