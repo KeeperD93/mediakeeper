@@ -1,6 +1,7 @@
 """The ruff baseline tolerates old issues and stops any increase."""
 import json
 import subprocess
+import tomllib
 
 import pytest
 
@@ -157,3 +158,14 @@ def test_update_refuses_a_partial_rewrite(baseline, fake_ruff):
     with pytest.raises(SystemExit):
         ruff_baseline.main(["--update", EXAMPLE])
     assert fake_ruff.commands == []
+
+
+def test_the_commit_hook_only_compares_with_the_baseline():
+    # A hook task that rewrites files lets lint-staged reapply unstaged edits at the wrong lines.
+    package = json.loads((ruff_baseline.REPO_ROOT / "frontend" / "package.json").read_text(encoding="utf-8"))
+    assert package["lint-staged"]["../backend/**/*.py"] == ["python ../backend/scripts/ruff_baseline.py"]
+
+
+def test_unreadable_files_and_bare_noqa_fail_the_check():
+    config = tomllib.loads((ruff_baseline.REPO_ROOT / "ruff.toml").read_text(encoding="utf-8"))
+    assert {"E902", "PGH004"} <= set(config["lint"]["select"])
