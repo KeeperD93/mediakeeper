@@ -6,7 +6,9 @@ import { useToast } from '@/composables/useToast'
 import { TOAST_TYPE } from '@/constants/toast'
 import { SIDEBAR_SUB_TABS } from '@/constants/sidebarSubTabs'
 import {
+  FEEDBACK_BLOCK_OVERHEAD,
   FEEDBACK_MAX,
+  FEEDBACK_MAX_AUTHOR,
   FEEDBACK_MAX_CHARS,
   FEEDBACK_PAGES,
   FEEDBACK_PLATFORMS,
@@ -16,9 +18,9 @@ import {
 } from '@/constants/feedback'
 import { locationFromRoute } from '@/utils/feedbackLocation'
 
-// Roughly the fixed block overhead (delimiters + labels + meta line) so the
-// whole-message total stays conservative vs the backend's 2000-char truncation.
-const OVERHEAD = 170
+// Worst case of what the server adds to the typed fields: the author is not
+// known here, so its longest form is counted and the server never has to cut.
+const OVERHEAD = FEEDBACK_BLOCK_OVERHEAD + FEEDBACK_MAX_AUTHOR
 
 function detectResolution() {
   const dpr = window.devicePixelRatio || 1
@@ -88,7 +90,7 @@ export function useFeedbackForm({ endpoint, showLocation }) {
       [...selectedTags.value].join(', ').length,
   )
   // Shown under the description: the field's own limit, the one its maxlength
-  // enforces. The whole-message total above only shows past the Discord cap.
+  // enforces. The whole-message total above only shows past the block cap.
   const descriptionCount = computed(() => ({
     used: description.value.length,
     max: FEEDBACK_MAX.description,

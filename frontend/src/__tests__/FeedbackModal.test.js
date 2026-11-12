@@ -210,23 +210,35 @@ describe('FeedbackModal — sending', () => {
     await field.setValue('x'.repeat(FEEDBACK_MAX.description))
     const full = FEEDBACK_MAX.description
     expect(counter.text()).toContain(`"used":${full},"max":${full}`)
-    // Under the Discord cap, the whole-message total stays out of sight.
+    // Under the block cap, the whole-message total stays out of sight.
     expect(w.findAll('.fbk-budget')).toHaveLength(1)
   })
 
-  it('blocks a report over the Discord cap and says why', async () => {
+  it('blocks a report over the block cap and says why', async () => {
     const w = await openModal()
     await w.findAll('.fbk-chips')[1].find('.fbk-chip').trigger('click') // "urgent" tag
     await titleInput(w).setValue('Sample title')
     await w.findAll('textarea')[0].setValue('x'.repeat(FEEDBACK_MAX.description))
     await w.findAll('textarea')[1].setValue('x'.repeat(FEEDBACK_MAX.reproduction))
 
-    // Fixed block (170) + zone and module of Statistiques + the tab label (t() returns
-    // keys in these tests, so "stats.users") + the tag + title, description, reproduction.
+    // Fixed block (194) + longest author (208) + zone and module of Statistiques + the tab
+    // label (t() returns keys here, so "stats.users") + the tag + the three typed fields.
     const over = w.find('.fbk-budget.over')
     expect(over.text()).toContain('feedback.modal.tooLong')
-    expect(over.text()).toContain('"used":2242,"max":2000')
+    expect(over.text()).toContain('"used":2474,"max":1990')
     expect(w.find('button[type="submit"]').attributes('disabled')).toBeDefined()
+  })
+
+  it('lets a report through up to the block cap, not one character more', async () => {
+    const w = await openModal()
+    const submit = () => w.find('button[type="submit"]')
+    await titleInput(w).setValue('Sample title')
+    await w.findAll('textarea')[0].setValue('x'.repeat(FEEDBACK_MAX.description))
+    // 194 + 208 + 54 (location) + 12 (title) + 1500 + 22 = 1990, the server's block cap.
+    await w.findAll('textarea')[1].setValue('x'.repeat(22))
+    expect(submit().attributes('disabled')).toBeUndefined()
+    await w.findAll('textarea')[1].setValue('x'.repeat(23))
+    expect(submit().attributes('disabled')).toBeDefined()
   })
 
   it('sends portal reports to the portal endpoint without a location', async () => {
