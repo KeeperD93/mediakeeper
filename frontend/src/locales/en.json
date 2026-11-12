@@ -3778,7 +3778,7 @@
       "rewardFilterHint": "Show only trophies that grant a title",
       "masterCrown": "{count} mastery unlocked",
       "titleHowToUnlock": "How to unlock each title",
-      "secretTrophy": "Secret trophy — find it yourself",
+      "secretDescription": "Secret trophy",
       "noTrophiesInCategory": "No trophies in this category",
       "ofPlayers": "of players",
       "unlockedOn": "Unlocked on",

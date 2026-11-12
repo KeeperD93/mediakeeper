@@ -92,15 +92,7 @@ async def get_achievements_for_profile(
 
         pct = round(100 * (rarity_map.get(ach.id, 0) / total_users))
         rarity = _rarity_label(ach.tier)
-
-        if is_unlocked:
-            status = "unlocked"
-        elif ach.secret and progress == 0:
-            status = "secret"
-        elif progress > 0:
-            status = "progress"
-        else:
-            status = "locked"
+        status = _status(is_unlocked, ach.secret, progress)
 
         item = {
             "id": ach.id,
@@ -129,9 +121,16 @@ async def get_achievements_for_profile(
             ),
             "seasonal_years": seasonal_years.get(ach.id, []),
         }
+        if ach.secret and not is_unlocked:
+            # Until unlocked, a secret shows its name and icon only: nothing
+            # that hints at how it is earned or how close the user is.
+            item.update(
+                description_key=None, progress=None, threshold=None,
+                secret_theme=None, seasonal_years=[],
+            )
         items.append(item)
 
-        if not is_unlocked and progress > 0 and ach.threshold > 0:
+        if not is_unlocked and not ach.secret and progress > 0 and ach.threshold > 0:
             fill_pct = progress / ach.threshold
             if best_next is None or fill_pct > best_next["_fill"]:
                 best_next = {**item, "_fill": fill_pct}
@@ -145,6 +144,15 @@ async def get_achievements_for_profile(
         "total_count": len(all_achs),
         "next_achievement": best_next,
     }
+
+
+def _status(is_unlocked: bool, secret: bool, progress: int) -> str:
+    """Display status; an unearned secret stays "secret" whatever its progress."""
+    if is_unlocked:
+        return "unlocked"
+    if secret:
+        return "secret"
+    return "progress" if progress > 0 else "locked"
 
 
 def _rarity_label(tier: int) -> str:

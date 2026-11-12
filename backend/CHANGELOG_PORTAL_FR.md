@@ -18,6 +18,7 @@ utilisateurs.
 
 ### Changed
 - Jours d'affilée et Régulier — dès 5 min regardées ; musique et livres audio exclus.
+- Trophées secrets — nom et icône visibles, description et progression cachées jusqu'au déblocage.
 
 ### Fixed
 - Barre d'XP — même pourcentage dans le résumé du jour et le profil.

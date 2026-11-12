@@ -3778,7 +3778,7 @@
       "rewardFilterHint": "N'afficher que les trophées qui donnent un titre",
       "masterCrown": "{count} maîtrise(s) débloquée(s)",
       "titleHowToUnlock": "Comment débloquer chaque titre",
-      "secretTrophy": "Trophée secret — à vous de le découvrir",
+      "secretDescription": "Trophée secret",
       "noTrophiesInCategory": "Aucun trophée dans cette catégorie",
       "ofPlayers": "des joueurs",
       "unlockedOn": "Débloqué le",
