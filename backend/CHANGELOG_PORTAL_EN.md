@@ -36,6 +36,7 @@ This section intentionally has no date so it is not shown to users.
 - Sign-in — animations stop with "Reduce motion".
 - Sign-in — a double press no longer opens two sessions, Enter retries after a refusal.
 - Report form — description counter shows its real limit (1,500), sending stops before any cut.
+- Credits — the full stop follows the link directly.
 
 ## [1.0.0-rc.10] - 2026-11-11
 

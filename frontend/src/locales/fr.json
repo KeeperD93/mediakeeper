@@ -263,7 +263,7 @@
       "logoAlt": "TMDB"
     },
     "opensubtitles": {
-      "text": "Sous-titres fournis par OpenSubtitles. Visitez"
+      "text": "Sous-titres fournis par OpenSubtitles. Visitez {link}."
     },
     "emby": {
       "text": "Emby est une marque déposée d'Emby LLC. MediaKeeper n'est ni affilié ni approuvé par Emby LLC."

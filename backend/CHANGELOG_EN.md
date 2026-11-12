@@ -32,6 +32,7 @@ This section intentionally has no date so it is not shown to users.
 - Statistics — watch time: playback cut off early in a title no longer counted to the end.
 - Notification bell — reported chat messages translated, tag included.
 - About — the full stop follows each link directly.
+- Portal — Credits: the full stop follows the link directly.
 - Report form — description counter shows its real limit (1,500), sending stops before any cut.
 - Users — XP history: removals shown as "-20 XP", no line when XP stays the same.
 

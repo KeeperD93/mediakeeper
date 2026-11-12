@@ -32,6 +32,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Statistiques — temps de visionnage : lecture coupée en début de titre plus comptée jusqu'au bout.
 - Cloche des notifications — message de chat signalé traduit, pastille comprise.
 - À propos — le point suit directement chaque lien.
+- Portail — Crédits : le point suit directement le lien.
 - Signalement — compteur de la description sur sa vraie limite (1 500), envoi bloqué avant toute coupure.
 - Utilisateurs — historique XP : retraits en « -20 XP », aucune ligne si l'XP ne bouge pas.
 
