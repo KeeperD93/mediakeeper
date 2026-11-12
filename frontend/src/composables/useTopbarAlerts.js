@@ -35,7 +35,9 @@ export function useTopbarAlerts() {
       const chatItems = ((chatData && chatData.items) || []).map(r => ({
         kind: 'chat_report',
         id: `chat_report_${r.id}`,
-        name: `Reported message: ${(r.message_content || '').slice(0, 80)}`,
+        // Excerpt only: AppTopbar wraps it in the translated label, so a
+        // language switch applies at once.
+        name: (r.message_content || '').slice(0, 80),
         date: r.created_at,
         report_id: r.id,
         message_id: r.message_id,

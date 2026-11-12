@@ -6,6 +6,9 @@ import { useToast } from '@/composables/useToast'
 import { TOAST_TYPE } from '@/constants/toast'
 import { SIDEBAR_SUB_TABS } from '@/constants/sidebarSubTabs'
 import {
+  FEEDBACK_BLOCK_OVERHEAD,
+  FEEDBACK_MAX,
+  FEEDBACK_MAX_AUTHOR,
   FEEDBACK_MAX_CHARS,
   FEEDBACK_PAGES,
   FEEDBACK_PLATFORMS,
@@ -14,10 +17,11 @@ import {
   FEEDBACK_RES_PRESETS,
 } from '@/constants/feedback'
 import { locationFromRoute } from '@/utils/feedbackLocation'
+import { localizedNumber } from '@/utils/localizedNumber'
 
-// Roughly the fixed block overhead (delimiters + labels + meta line) so the
-// counter stays conservative vs the backend's 2000-char truncation.
-const OVERHEAD = 170
+// Worst case of what the server adds to the typed fields: the author is not
+// known here, so its longest form is counted and the server never has to cut.
+const OVERHEAD = FEEDBACK_BLOCK_OVERHEAD + FEEDBACK_MAX_AUTHOR
 
 function detectResolution() {
   const dpr = window.devicePixelRatio || 1
@@ -86,6 +90,17 @@ export function useFeedbackForm({ endpoint, showLocation }) {
       tabLabel.value.length +
       [...selectedTags.value].join(', ').length,
   )
+  // Shown under the description: the field's own limit, the one its maxlength
+  // enforces. The whole-message total above only shows past the block cap.
+  // Both counters read their numbers in the app's language (« 1 500 », « 1,500 »).
+  const descriptionCount = computed(() => ({
+    used: localizedNumber(description.value.length),
+    max: localizedNumber(FEEDBACK_MAX.description),
+  }))
+  const totalCount = computed(() => ({
+    used: localizedNumber(used.value),
+    max: localizedNumber(FEEDBACK_MAX_CHARS),
+  }))
   const canSubmit = computed(
     () => !!title.value.trim() && !!description.value.trim() && used.value <= FEEDBACK_MAX_CHARS,
   )
@@ -195,6 +210,8 @@ export function useFeedbackForm({ endpoint, showLocation }) {
     busy,
     tabOptions,
     used,
+    descriptionCount,
+    totalCount,
     canSubmit,
     canUseCurrentPage,
     toggleTag,

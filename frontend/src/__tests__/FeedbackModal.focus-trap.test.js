@@ -8,6 +8,8 @@ import { mount, flushPromises } from '@vue/test-utils'
 
 const h = vi.hoisted(() => ({ apiPost: vi.fn() }))
 
+// Counters format their numbers in the app's language: English here.
+vi.mock('@/i18n', () => ({ getLocale: () => 'en' }))
 vi.mock('vue-i18n', () => ({ useI18n: () => ({ t: k => k }) }))
 vi.mock('vue-router', () => ({
   useRoute: () => ({ name: 'stats', query: {} }),

@@ -23,27 +23,35 @@
       <section class="ab-section" data-test="ab-licenses">
         <h2 class="ab-h2">{{ t('attribution.about.licensesTitle') }}</h2>
         <p data-test="ab-ffmpeg">
-          {{ t('attribution.about.ffmpegText') }}
-          <a :href="links.ffmpegLegal" target="_blank" rel="noopener noreferrer">
-            ffmpeg.org/legal.html
-          </a>
-          .
+          <i18n-t keypath="attribution.about.ffmpegText" tag="span" scope="global">
+            <template #link>
+              <a :href="links.ffmpegLegal" target="_blank" rel="noopener noreferrer">
+                {{ linkLabels.ffmpegLegal }}
+              </a>
+            </template>
+          </i18n-t>
         </p>
-        <p>
-          {{ t('attribution.about.dependenciesText') }}
-          <a :href="repoUrl" target="_blank" rel="noopener noreferrer">GitHub</a>
-          .
+        <p data-test="ab-dependencies">
+          <i18n-t keypath="attribution.about.dependenciesText" tag="span" scope="global">
+            <template #link>
+              <a :href="repoUrl" target="_blank" rel="noopener noreferrer">
+                {{ linkLabels.repo }}
+              </a>
+            </template>
+          </i18n-t>
         </p>
       </section>
 
       <section class="ab-section" data-test="ab-credits-link">
         <h2 class="ab-h2">{{ t('attribution.about.thirdPartyTitle') }}</h2>
         <p>
-          {{ t('attribution.about.thirdPartyText') }}
-          <router-link :to="{ name: 'portal-credits' }" target="_blank">
-            /portal/credits
-          </router-link>
-          .
+          <i18n-t keypath="attribution.about.thirdPartyText" tag="span" scope="global">
+            <template #link>
+              <router-link :to="{ name: 'portal-credits' }" target="_blank">
+                {{ linkLabels.credits }}
+              </router-link>
+            </template>
+          </i18n-t>
         </p>
       </section>
     </div>
@@ -51,7 +59,8 @@
 </template>
 
 <script setup>
-import { useI18n } from 'vue-i18n'
+// Local import: vue-i18n is installed without its global components (fullInstall off).
+import { useI18n, I18nT } from 'vue-i18n'
 
 const { t } = useI18n()
 
@@ -64,6 +73,14 @@ const stack = {
 
 const links = {
   ffmpegLegal: 'https://ffmpeg.org/legal.html',
+}
+
+// Shown through {{ }}: the line breaks Prettier puts around an interpolation
+// vanish, around raw text they become a space before the full stop.
+const linkLabels = {
+  ffmpegLegal: 'ffmpeg.org/legal.html',
+  repo: 'GitHub',
+  credits: '/portal/credits',
 }
 </script>
 

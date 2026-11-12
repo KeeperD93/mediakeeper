@@ -27,10 +27,15 @@ export const FEEDBACK_TAGS = Object.freeze([
 ] as const)
 export type FeedbackTag = (typeof FEEDBACK_TAGS)[number]
 
-// Discord caps a webhook message at 2000 chars; the live counter keeps the
-// whole block (delimiters + labels + meta + fields) under this, mirroring the
-// backend guard in services/feedback.py.
-export const FEEDBACK_MAX_CHARS = 2000
+// The relayed block, mirrored from services/feedback.py so the form blocks a
+// report before the server cuts the end of its description with "…"
+// (backend/tests/test_feedback_budget.py keeps the three numbers in step).
+// Block cap: _MAX_BLOCK (under Discord's 2000 once wrapped in its code fence).
+export const FEEDBACK_MAX_CHARS = 1990
+// Fixed part of build_report_block at its longest (every label, "-" for an empty location).
+export const FEEDBACK_BLOCK_OVERHEAD = 194
+// Longest "Signalé par" author: _CAP_AUTHOR (two pseudos and " (via )").
+export const FEEDBACK_MAX_AUTHOR = 208
 
 // Per-field input caps — mirror backend/constants/feedback.py (must stay <= the
 // feedback_reports DB column widths).

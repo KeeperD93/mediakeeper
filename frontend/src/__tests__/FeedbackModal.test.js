@@ -13,6 +13,8 @@ const h = vi.hoisted(() => ({ apiPost: vi.fn(), showToast: vi.fn(), push: vi.fn(
 const routeName = ref('stats')
 const routeTab = ref('users')
 
+// Counters format their numbers in the app's language: English here.
+vi.mock('@/i18n', () => ({ getLocale: () => 'en' }))
 vi.mock('vue-i18n', () => ({ useI18n: () => ({ t: k => k }) }))
 vi.mock('vue-router', () => ({
   useRoute: () => ({
@@ -200,20 +202,44 @@ describe('FeedbackModal — sending', () => {
     expect(h.apiPost.mock.calls[0][1].platform).toBe('mobile')
   })
 
-  it('counts the report against the Discord budget and blocks an oversized one', async () => {
+  it('counts the description against the same limit as its field', async () => {
     const w = await openModal()
-    const budget = () => w.find('.fbk-budget')
-    // Fixed block (170) + zone and module of Statistiques + the tab label (t() returns
-    // keys in these tests, so "stats.users"); no resolution under jsdom.
-    expect(budget().text()).toContain('"used":224')
-    await w.findAll('.fbk-chips')[1].find('.fbk-chip').trigger('click')
-    expect(budget().text()).toContain('"used":230')
+    const field = w.findAll('textarea')[0]
+    const counter = w.find(`[id="${field.attributes('aria-describedby')}"]`)
+    expect(field.attributes('maxlength')).toBe(String(FEEDBACK_MAX.description))
+    expect(counter.text()).toContain('"used":"0","max":"1,500"')
 
+    await field.setValue('x'.repeat(FEEDBACK_MAX.description))
+    expect(counter.text()).toContain('"used":"1,500","max":"1,500"')
+    // Under the block cap, the whole-message total stays out of sight.
+    expect(w.findAll('.fbk-budget')).toHaveLength(1)
+  })
+
+  it('blocks a report over the block cap and says why', async () => {
+    const w = await openModal()
+    await w.findAll('.fbk-chips')[1].find('.fbk-chip').trigger('click') // "urgent" tag
     await titleInput(w).setValue('Sample title')
     await w.findAll('textarea')[0].setValue('x'.repeat(FEEDBACK_MAX.description))
     await w.findAll('textarea')[1].setValue('x'.repeat(FEEDBACK_MAX.reproduction))
-    expect(budget().classes()).toContain('over')
+
+    // Fixed block (194) + longest author (208) + zone and module of Statistiques + the tab
+    // label (t() returns keys here, so "stats.users") + the tag + the three typed fields.
+    const over = w.find('.fbk-budget.over')
+    expect(over.find('[role="alert"]').text()).toBe('feedback.modal.tooLong')
+    expect(over.text()).toContain('"used":"2,474","max":"1,990"')
     expect(w.find('button[type="submit"]').attributes('disabled')).toBeDefined()
+  })
+
+  it('lets a report through up to the block cap, not one character more', async () => {
+    const w = await openModal()
+    const submit = () => w.find('button[type="submit"]')
+    await titleInput(w).setValue('Sample title')
+    await w.findAll('textarea')[0].setValue('x'.repeat(FEEDBACK_MAX.description))
+    // 194 + 208 + 54 (location) + 12 (title) + 1500 + 22 = 1990, the server's block cap.
+    await w.findAll('textarea')[1].setValue('x'.repeat(22))
+    expect(submit().attributes('disabled')).toBeUndefined()
+    await w.findAll('textarea')[1].setValue('x'.repeat(23))
+    expect(submit().attributes('disabled')).toBeDefined()
   })
 
   it('sends portal reports to the portal endpoint without a location', async () => {

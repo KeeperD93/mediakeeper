@@ -30,8 +30,13 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Connexion — animations coupées avec « Réduire les animations ».
 - Connexion — un double appui n'ouvre plus deux sessions, Entrée relance après un refus.
 - Statistiques — temps de visionnage : lecture coupée en début de titre plus comptée jusqu'au bout.
+- Statistiques — série de jours : un appareil éteint au début d'un titre non vu ne compte plus.
+- Cloche des notifications — message de chat signalé traduit, pastille comprise.
+- À propos — le point suit directement chaque lien.
+- Portail — Crédits : le point suit directement le lien.
+- Signalement — compteur de la description sur sa vraie limite (1 500), envoi bloqué avant toute coupure.
+- Utilisateurs — historique XP : retraits en « -20 XP », l'XP vraiment retirée, aucune ligne si l'XP ne bouge pas.
 - Événements bonus — XP arrondie au plus proche, les moitiés vers le haut.
-- Outils de debug — historique XP : un retrait n'inscrit que l'XP vraiment retirée.
 - Outils de debug — « Réinitialiser pour tous » ne reprend que l'XP donnée par le trophée.
 
 ## [1.0.0-rc.10] - 2026-11-11

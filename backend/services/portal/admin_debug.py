@@ -35,7 +35,6 @@ from services.portal.xp import (
     locked_profile,
 )
 
-
 logger = logging.getLogger("mediakeeper.portal.admin_debug")
 
 ADMIN_GRANT_ACTION = "admin_grant"
@@ -113,7 +112,7 @@ async def admin_set_level(
     target_xp_floor = level_floor_xp(target)
     delta = target_xp_floor - (profile.xp or 0)
 
-    if delta:  # nothing to record when the player already sits at the start of that level
+    if delta:  # an unchanged XP total leaves nothing for the XP history
         db.add(XpLedger(
             user_id=user_id,
             action=ADMIN_GRANT_ACTION,

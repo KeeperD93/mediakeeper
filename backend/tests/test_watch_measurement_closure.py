@@ -4,7 +4,6 @@ from unittest.mock import AsyncMock
 
 import pytest
 
-from services.stats_collector import _player_reports as reports
 from services.stats_collector._measure import as_utc
 from tests._watch_measurement_helpers import (
     STEP,
@@ -19,15 +18,6 @@ from tests._watch_measurement_helpers import (
 )
 
 pytestmark = pytest.mark.asyncio
-
-
-@pytest.fixture(autouse=True)
-def _reset_player_reports():
-    reports._writers.clear()
-    reports._last_stored.clear()
-    yield
-    reports._writers.clear()
-    reports._last_stored.clear()
 
 
 async def test_a_row_ends_at_its_last_real_second_after_thirty_minutes(db_session):
