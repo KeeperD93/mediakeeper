@@ -12,6 +12,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 
 ### Changed
 - Tableau de bord — widget du classement aligné sur la page Classement.
+- Statistiques — série de jours dès 5 min regardées ; musique et livres audio exclus.
 
 ### Fixed
 - Barre d'XP — même pourcentage dans le résumé du jour et le profil.
