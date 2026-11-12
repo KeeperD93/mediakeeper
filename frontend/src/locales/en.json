@@ -736,6 +736,7 @@
     "exclusionModeLabel": "Match type",
     "exclusionTitleLabel": "Title to exclude",
     "exclusionsLoadError": "Couldn't load the exclusions.",
+    "playbackLoadError": "Couldn't load the playback statistics.",
     "retry": "Try again",
     "importing": "Importing…",
     "playsImported": "{n} play imported | {n} plays imported",

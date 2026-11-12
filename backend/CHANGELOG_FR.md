@@ -18,6 +18,8 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Textes — deux-points à la bonne place en français et en anglais.
 - Carrousels, défilements et compteurs — instantanés avec « Réduire les animations ».
 - Planificateur et alertes — erreurs résumées par leur type, le détail reste dans les journaux.
+- Statistiques — Outils : supprimer une exclusion retire bien celle affichée.
+- Statistiques — un chargement raté est signalé, les cartes de lecture proposent de réessayer.
 
 ## [1.0.0-rc.10] - 2026-11-11
 

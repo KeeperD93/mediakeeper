@@ -48,11 +48,14 @@ async def create_exclusion(
     return await add_exclusion(db, req.mode, req.value)
 
 
-@router.delete("/exclusions/{index}")
+@router.delete("/exclusions")
 async def delete_exclusion(
-    index: int,
+    req: ExclusionRequest,
     db: AsyncSession = Depends(get_db),
     _: User = Depends(get_current_user),
 ):
-    """Remove an exclusion by index."""
-    return await remove_exclusion(db, index)
+    """Remove the exclusion named by ``mode`` and ``value``, not by its position.
+
+    Answers with the whole list, unchanged when that entry was already gone.
+    """
+    return await remove_exclusion(db, req.mode, req.value)

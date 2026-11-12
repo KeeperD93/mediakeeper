@@ -18,6 +18,8 @@ This section intentionally has no date so it is not shown to users.
 - Labels — colons placed right in English and French.
 - Carousels, scrolling and counters — instant with "Reduce motion".
 - Scheduler and alerts — errors summed up by their type, details stay in the logs.
+- Statistics — Tools: removing an exclusion removes the one shown.
+- Statistics — a failed load is reported, the playback cards offer to try again.
 
 ## [1.0.0-rc.10] - 2026-11-11
 
