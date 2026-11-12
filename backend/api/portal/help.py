@@ -22,6 +22,7 @@ Admin surface:
 """
 from __future__ import annotations
 
+import logging
 from typing import Optional
 
 from fastapi import APIRouter, Body, Depends, HTTPException, Query, status
@@ -34,12 +35,19 @@ from models.portal.profile import UserProfile
 from models.user import User
 from services.portal import help as help_service
 
+logger = logging.getLogger("mediakeeper.portal.help")
 
 router = APIRouter(prefix="/help", tags=["portal-help"])
 admin_router = APIRouter(
     prefix="/admin/help", tags=["portal-help-admin"],
     dependencies=[Depends(require_admin)],
 )
+
+
+def _rejected(action: str, exc: help_service.HelpInputError) -> HTTPException:
+    """A 400 carrying only the input's code; the error stays in the server log."""
+    logger.warning("[help] %s rejected: %s", action, exc)
+    return HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=exc.code)
 
 
 def _resolve_lang(requested: Optional[str], profile: UserProfile) -> str:
@@ -51,7 +59,7 @@ def _resolve_lang(requested: Optional[str], profile: UserProfile) -> str:
     return help_service.DEFAULT_LANG
 
 
-# ─────────────────────────── User read ───────────────────────────
+# User read
 
 
 @router.get("/articles")
@@ -82,7 +90,7 @@ async def get_article_user(
     return article
 
 
-# ─────────────────────────── Admin payloads ───────────────────────────
+# Admin payloads
 
 
 class ArticleCreatePayload(BaseModel):
@@ -110,7 +118,7 @@ class TranslationPayload(BaseModel):
     body_html: str = Field(default="", max_length=100_000)
 
 
-# ─────────────────────────── Admin endpoints ───────────────────────────
+# Admin endpoints
 
 
 @admin_router.get("/articles")
@@ -150,8 +158,8 @@ async def create_article(
             sort_order=payload.sort_order,
             is_draft=payload.is_draft,
         )
-    except ValueError as exc:
-        raise HTTPException(status_code=400, detail=str(exc))
+    except help_service.HelpInputError as exc:
+        raise _rejected("create", exc) from exc
     await db.commit()
     await db.refresh(article)
     return help_service.serialize(article, lang=payload.lang,
@@ -175,8 +183,8 @@ async def patch_article(
             sort_order=payload.sort_order,
             is_draft=payload.is_draft,
         )
-    except ValueError as exc:
-        raise HTTPException(status_code=400, detail=str(exc))
+    except help_service.HelpInputError as exc:
+        raise _rejected("metadata update", exc) from exc
     await db.commit()
     await db.refresh(article)
     return help_service.serialize(article, with_admin_meta=True)
@@ -197,8 +205,8 @@ async def put_translation(
             db, article,
             lang=lang, title=payload.title, body_html=payload.body_html,
         )
-    except ValueError as exc:
-        raise HTTPException(status_code=400, detail=str(exc))
+    except help_service.HelpInputError as exc:
+        raise _rejected("translation save", exc) from exc
     await db.commit()
     await db.refresh(article)
     return help_service.serialize(article, lang=lang, with_admin_meta=True)

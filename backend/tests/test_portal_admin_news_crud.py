@@ -7,9 +7,17 @@ trips the suite before it ships.
 """
 from __future__ import annotations
 
-import pytest
+import logging
 
+import pytest
+from fastapi import HTTPException
+
+from api.portal import news as news_routes
+from services.portal import news as news_svc
 from tests._portal_profile_helpers import PORTAL_COOKIE, portal_token, make_portal_user
+
+# An inverted publication window: it ends before it starts.
+INVERTED_WINDOW = {"start_at": "2030-01-02T00:00:00Z", "end_at": "2030-01-01T00:00:00Z"}
 
 
 async def _seed_admin(db_session) -> str:
@@ -103,3 +111,92 @@ async def test_update_missing_news_returns_404(client, db_session):
         json={"title": "Whatever"},
     )
     assert resp.status_code == 404
+
+
+@pytest.mark.asyncio
+async def test_inverted_window_answers_its_code_on_create_and_update(client, db_session, caplog):
+    _auth(client, await _seed_admin(db_session))
+    news_id = (await client.post("/api/portal/news", json={"title": "Test", "content": "Body"})).json()["id"]
+
+    with caplog.at_level(logging.WARNING, logger="mediakeeper.portal.news"):
+        created = await client.post("/api/portal/news", json={
+            "title": "Test", "content": "Body", **INVERTED_WINDOW,
+        })
+        updated = await client.put(f"/api/portal/news/{news_id}", json=INVERTED_WINDOW)
+
+    for resp in (created, updated):
+        assert resp.status_code == 400
+        assert resp.json() == {"detail": "start_at_must_precede_end_at"}
+    assert caplog.text.count("start_at_must_precede_end_at") == 2  # both stay visible server-side
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("service_fn, method", [("create_news", "post"), ("update_news", "put")])
+async def test_an_unexpected_error_text_never_reaches_the_client(
+    client, db_session, monkeypatch, service_fn, method,
+):
+    """Only the known input code becomes a 400: any other error reaches the
+    global handler (generic 500) instead of echoing its message."""
+    _auth(client, await _seed_admin(db_session))
+    news_id = (await client.post("/api/portal/news", json={"title": "Test", "content": "Body"})).json()["id"]
+
+    async def _boom(*_args, **_kwargs):
+        raise ValueError("internal detail")
+
+    monkeypatch.setattr(news_svc, service_fn, _boom)
+    url = "/api/portal/news" if method == "post" else f"/api/portal/news/{news_id}"
+    with pytest.raises(ValueError, match="internal detail"):
+        await getattr(client, method)(url, json={"title": "Test", "content": "Body"})
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("route", ["create", "update"])
+async def test_rejection_keeps_the_service_error_as_cause(db_session, route):
+    user, profile = await make_portal_user(db_session, username="news-admin", role="admin")
+    admin = (user, profile)
+    if route == "create":
+        call = news_routes.create_news(
+            news_routes.CreateNews(title="Test", content="Body", **INVERTED_WINDOW),
+            admin=admin, db=db_session,
+        )
+    else:
+        created = await news_svc.create_news(
+            db_session, user.id, news_routes.CreateNews(title="Test", content="Body").model_dump(),
+        )
+        call = news_routes.update_news(
+            created["id"], news_routes.UpdateNews(**INVERTED_WINDOW), admin=admin, db=db_session,
+        )
+
+    with pytest.raises(HTTPException) as caught:
+        await call
+
+    assert caught.value.status_code == 400
+    assert isinstance(caught.value.__cause__, news_svc.NewsInputError)
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("start_at, end_at, status", [
+    ("2030-01-02T00:00:00", "2030-01-01T00:00:00Z", 400),
+    ("2030-01-01T00:00:00", "2030-01-02T00:00:00Z", 200),
+])
+async def test_a_window_mixing_times_with_and_without_a_zone_is_checked(
+    client, db_session, start_at, end_at, status,
+):
+    """A time without a zone is read as UTC instead of failing the comparison."""
+    _auth(client, await _seed_admin(db_session))
+    r = await client.post("/api/portal/news", json={
+        "title": "Test", "content": "Body", "start_at": start_at, "end_at": end_at,
+    })
+    assert r.status_code == status, r.text
+
+
+@pytest.mark.asyncio
+async def test_one_bound_is_checked_against_the_stored_one_whatever_its_zone(client, db_session):
+    _auth(client, await _seed_admin(db_session))
+    news_id = (await client.post("/api/portal/news", json={
+        "title": "Test", "content": "Body", "start_at": "2030-01-02T00:00:00",
+    })).json()["id"]
+
+    r = await client.put(f"/api/portal/news/{news_id}", json={"end_at": "2030-01-01T00:00:00Z"})
+    assert r.status_code == 400
+    assert r.json() == {"detail": "start_at_must_precede_end_at"}

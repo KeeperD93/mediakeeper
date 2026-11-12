@@ -17,7 +17,7 @@ class _FakeResponse:
 
 
 @pytest.mark.asyncio
-async def test_run_healthcheck_keeps_previous_results_when_scan_fails(monkeypatch, db_session):
+async def test_run_healthcheck_keeps_previous_results_when_scan_fails(monkeypatch, db_session, caplog):
     db_session.add(HealthCheckResult(
         item_id="existing",
         item_name="Existing",
@@ -57,7 +57,10 @@ async def test_run_healthcheck_keeps_previous_results_when_scan_fails(monkeypatc
 
     result = await health_scan.run_healthcheck(db_session)
 
-    assert result["error"] == "scan exploded"
+    # The admin status and the result carry a code; the message stays in the log.
+    assert result == {"error": "scan_failed"}
+    assert health_scan.get_scan_status()["error"] == "scan_failed"
+    assert "scan exploded" in caplog.text
 
     rows = (await db_session.execute(
         select(HealthCheckResult).order_by(HealthCheckResult.id)

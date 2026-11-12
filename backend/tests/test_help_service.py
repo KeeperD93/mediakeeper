@@ -1,11 +1,15 @@
-"""Help Center service tests — CRUD, soft-delete, restore, purge."""
+"""Help Center service tests — CRUD, soft-delete, restore, purge, admin route errors."""
+import logging
 from datetime import datetime, timedelta, timezone
 
 import pytest
+from fastapi import HTTPException
 from sqlalchemy import select
 
+from api.portal import help as help_routes
 from models.portal.help import HelpArticle
 from services.portal import help as help_service
+from tests._portal_profile_helpers import PORTAL_COOKIE, make_portal_user, portal_token
 
 
 @pytest.mark.asyncio
@@ -151,3 +155,86 @@ def test_help_admin_payloads_forbid_extra():
         ArticlePatchPayload(category="general", bogus=1)
     with pytest.raises(ValidationError):
         TranslationPayload(title="t", bogus=1)
+
+
+# Admin routes — a rejected input answers 400 with its code and nothing else
+
+ADMIN_ARTICLES = "/api/portal/admin/help/articles"
+
+
+async def _as_admin(client, db_session) -> int:
+    """Log the client in as a portal admin; return the id of a saved article."""
+    admin, _ = await make_portal_user(db_session, username="help-admin", role="admin")
+    client.cookies.set(PORTAL_COOKIE, portal_token(admin.username))
+    article = await help_service.create_article(
+        db_session, category="general", title="Test Article", body_html="",
+    )
+    await db_session.commit()
+    return article.id
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("method, path, body, code", [
+    ("post", "", {"category": "bogus", "title": "Test"}, "invalid_category"),
+    ("post", "", {"category": "general", "title": "Test", "lang": "xx"}, "invalid_lang"),
+    ("patch", "/{id}", {"category": "bogus"}, "invalid_category"),
+    ("put", "/{id}/translations/xx", {"title": "Test"}, "invalid_lang"),
+])
+async def test_admin_route_rejects_input_with_its_code(
+    client, db_session, caplog, method, path, body, code,
+):
+    article_id = await _as_admin(client, db_session)
+
+    with caplog.at_level(logging.WARNING, logger="mediakeeper.portal.help"):
+        resp = await getattr(client, method)(ADMIN_ARTICLES + path.format(id=article_id), json=body)
+
+    assert resp.status_code == 400
+    assert resp.json() == {"detail": code}
+    assert code in caplog.text  # the rejection stays visible server-side
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("service_fn, method, path, body", [
+    ("create_article", "post", "", {"category": "general", "title": "Test"}),
+    ("update_metadata", "patch", "/{id}", {"category": "general"}),
+    ("upsert_translation", "put", "/{id}/translations/fr", {"title": "Test"}),
+])
+async def test_admin_route_never_sends_an_unexpected_error_text(
+    client, db_session, monkeypatch, service_fn, method, path, body,
+):
+    """Only known input codes become a 400: any other error reaches the
+    global handler (generic 500) instead of echoing its message."""
+    article_id = await _as_admin(client, db_session)
+
+    async def _boom(*_args, **_kwargs):
+        raise ValueError("internal detail")
+
+    monkeypatch.setattr(help_service, service_fn, _boom)
+    with pytest.raises(ValueError, match="internal detail"):
+        await getattr(client, method)(ADMIN_ARTICLES + path.format(id=article_id), json=body)
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("route", ["create", "metadata update", "translation save"])
+async def test_admin_route_rejection_keeps_the_service_error_as_cause(db_session, route):
+    article = await help_service.create_article(
+        db_session, category="general", title="Test Article", body_html="",
+    )
+    await db_session.commit()
+    calls = {
+        "create": lambda: help_routes.create_article(
+            help_routes.ArticleCreatePayload(category="bogus", title="Test"), db=db_session,
+        ),
+        "metadata update": lambda: help_routes.patch_article(
+            article.id, help_routes.ArticlePatchPayload(category="bogus"), db=db_session,
+        ),
+        "translation save": lambda: help_routes.put_translation(
+            article.id, "xx", help_routes.TranslationPayload(title="Test"), db=db_session,
+        ),
+    }
+
+    with pytest.raises(HTTPException) as caught:
+        await calls[route]()
+
+    assert caught.value.status_code == 400
+    assert isinstance(caught.value.__cause__, help_service.HelpInputError)

@@ -17,6 +17,7 @@ from constants.zone_correction import (
     ZONE_NOT_CHOSEN,
     ZONE_SAVED_AT_UNKNOWN,
 )
+from core.errors import CodedError
 from models.playback_stats import PlaybackSession
 from models.portal.achievement import Achievement
 from models.portal.audit import AdminAuditLog
@@ -38,12 +39,8 @@ from services.portal.playback_overlap import has_distinct_user_universe
 type Month = tuple[int, int]
 
 
-class ZoneCorrectionRefused(Exception):
+class ZoneCorrectionRefused(CodedError):
     """The run cannot go on; ``code`` tells the client why."""
-
-    def __init__(self, code: str) -> None:
-        super().__init__(code)
-        self.code = code
 
 
 @dataclass(frozen=True)

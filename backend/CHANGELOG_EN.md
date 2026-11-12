@@ -17,6 +17,7 @@ This section intentionally has no date so it is not shown to users.
 - Notifications — header names the page, bar lasts as long as the message, full message on small phones.
 - Labels — colons placed right in English and French.
 - Carousels, scrolling and counters — instant with "Reduce motion".
+- Scheduler and alerts — errors summed up by their type, details stay in the logs.
 
 ## [1.0.0-rc.10] - 2026-11-11
 
