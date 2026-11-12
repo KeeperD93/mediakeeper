@@ -6,9 +6,11 @@
  */
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { localizedDate } from '@/utils/datetime'
+import { capitalize } from '@/utils/formatIntlLabel'
 
-const DAY_LABELS = ['L', 'M', 'M', 'J', 'V', 'S', 'D']
-const DAY_NAMES = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche']
+// Day 0 is Monday, as in day_stats: 2018-01-01 was a Monday.
+const weekdayName = (index, weekday) => localizedDate(new Date(2018, 0, 1 + index), { weekday })
 const TITLE_TIER_MAP = {
   1: 'common',
   2: 'uncommon',
@@ -22,13 +24,13 @@ export function xpForLevel(n) {
   return 50 * n * (n + 1)
 }
 
-export function formatTime(minutes) {
+export function formatTime(minutes, t) {
   if (!minutes) return '0h'
   if (minutes < 60) return `${minutes}m`
   const h = Math.floor(minutes / 60)
   if (h < 24) return `${h}h`
   const d = Math.floor(h / 24)
-  return `${d}j ${h % 24}h`
+  return `${d}${t('stats.daysShort')} ${h % 24}h`
 }
 
 export function useProfileXp(profileData, stats) {
@@ -72,12 +74,16 @@ export function useProfileXp(profileData, stats) {
         0,
       )
       return ds.map((d, i) => ({
-        label: DAY_LABELS[i],
+        label: weekdayName(i, 'narrow'),
         pct: Math.round(((d.count || 0) / maxVal) * 100),
         top: i === topIdx,
       }))
     }
-    return DAY_LABELS.map(label => ({ label, pct: 0, top: false }))
+    return Array.from({ length: 7 }, (_, i) => ({
+      label: weekdayName(i, 'narrow'),
+      pct: 0,
+      top: false,
+    }))
   })
 
   const topDay = computed(() => {
@@ -87,7 +93,7 @@ export function useProfileXp(profileData, stats) {
         (best, d, i) => ((d.count || 0) > (ds[best].count || 0) ? i : best),
         0,
       )
-      if (ds[topIdx].count > 0) return DAY_NAMES[topIdx]
+      if (ds[topIdx].count > 0) return capitalize(weekdayName(topIdx, 'long'))
     }
     return '—'
   })
@@ -111,6 +117,6 @@ export function useProfileXp(profileData, stats) {
     weekData,
     topDay,
     funTimeComparison,
-    formatTime,
+    formatTime: minutes => formatTime(minutes, t),
   }
 }

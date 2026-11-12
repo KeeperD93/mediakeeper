@@ -10,6 +10,7 @@ import {
 } from './portal-auth-mocks.js'
 
 const PROFILE_ROUTE = '/api/portal/catalog/profile-full'
+const DIGEST_ROUTE = '/api/portal/daily-digest'
 const TOP = 15
 
 const player = (index, xp, extra = {}) => ({
@@ -55,10 +56,13 @@ export const menu = page => card(page).locator('select')
 export const tab = (page, period) => card(page).getByRole('tab', { name: LABELS[period] })
 export const firstXp = page => card(page).locator('.gc-lb-v').first()
 
-/** Opens "My profile" and returns the list of the rankings it asked for. */
+/**
+ * Opens "My profile" and returns the list of the rankings it asked for. With a `digest`,
+ * the daily digest opens over the page.
+ */
 export async function openProfile(
   page,
-  { width, locale = 'fr', byPeriod = BY_PERIOD, month = MONTH, delays = {} } = {},
+  { width, locale = 'fr', byPeriod = BY_PERIOD, month = MONTH, delays = {}, digest = null } = {},
 ) {
   await page.setViewportSize({ width, height: 800 })
   await page.emulateMedia({ reducedMotion: 'reduce' })
@@ -71,6 +75,15 @@ export async function openProfile(
     profile,
     pageHandlers: portalSettingsHandlers({ profile }),
     extraOverrides: [
+      ...(digest
+        ? [
+            {
+              name: 'portal-daily-digest-open',
+              match: url => url.pathname === DIGEST_ROUTE,
+              handler: jsonResponse({ dismissed: false, digest }),
+            },
+          ]
+        : []),
       {
         name: 'portal-catalog-profile-full-ranking',
         match: url => url.pathname === PROFILE_ROUTE,

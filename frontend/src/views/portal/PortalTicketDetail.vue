@@ -61,12 +61,12 @@
     <section class="ptd-toolbar">
       <div class="ptd-timestamps">
         <span>
-          {{ $t('portal.tickets.detail.openedAt') }}: {{ formatDate(currentTicket.created_at) }}
+          {{ $t('portal.tickets.detail.openedAt') }} {{ formatDate(currentTicket.created_at) }}
         </span>
         <span
           v-if="currentTicket.updated_at && currentTicket.updated_at !== currentTicket.created_at"
         >
-          · {{ $t('portal.tickets.detail.updatedAt') }}: {{ formatDate(currentTicket.updated_at) }}
+          · {{ $t('portal.tickets.detail.updatedAt') }} {{ formatDate(currentTicket.updated_at) }}
         </span>
       </div>
       <div v-if="isAdmin" class="ptd-status-control">

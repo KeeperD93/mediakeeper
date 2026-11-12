@@ -73,7 +73,11 @@
           </div>
         </div>
 
-        <div v-if="!toast.persistent" class="mk-toast-progress" />
+        <div
+          v-if="!toast.persistent"
+          class="mk-toast-progress"
+          :style="{ '--toast-duration': `${toast.duration}ms` }"
+        />
       </div>
     </TransitionGroup>
   </Teleport>

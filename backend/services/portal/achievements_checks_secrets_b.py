@@ -38,11 +38,14 @@ async def check_secrets_b(
     playback_rows: list | None,
     all_achs: list,
     zone: tzinfo,
+    unlocks: list[dict],
     pause_user_filter=None,
     pause_excl_filters: list | None = None,
-) -> list[dict]:
-    """Run second half of secret checks + ultimate_collector. Returns newly unlocked list."""
-    unlocks: list[dict] = []
+) -> None:
+    """Run second half of secret checks + ultimate_collector.
+
+    Appends each new unlock to ``unlocks``.
+    """
 
     async def _apply(cond_type: str, value: int):
         if cond_type not in by_type:
@@ -159,7 +162,7 @@ async def check_secrets_b(
             await _apply("secret_sync", 0)
         else:
             emby_uids = (await db.execute(
-                select(distinct(PlaybackSession.user_id)).where(user_filter)
+                select(PlaybackSession.user_id).where(user_filter).distinct()
             )).scalars().all()
             if not emby_uids:
                 await _apply("secret_sync", 0)
@@ -170,7 +173,7 @@ async def check_secrets_b(
     # --- secret_allnight: chain of sessions covers 22:00 → 06:00 on the local clock ---
     if "secret_allnight" in by_type:
         emby_uids = (await db.execute(
-            select(distinct(PlaybackSession.user_id)).where(user_filter)
+            select(PlaybackSession.user_id).where(user_filter).distinct()
         )).scalars().all()
         if not emby_uids:
             await _apply("secret_allnight", 0)
@@ -181,7 +184,7 @@ async def check_secrets_b(
     # --- secret_no_life: 24h cumulative within a 48h sliding window ---
     if "secret_no_life" in by_type:
         emby_uids = (await db.execute(
-            select(distinct(PlaybackSession.user_id)).where(user_filter)
+            select(PlaybackSession.user_id).where(user_filter).distinct()
         )).scalars().all()
         if not emby_uids:
             await _apply("secret_no_life", 0)
@@ -196,7 +199,7 @@ async def check_secrets_b(
             await _apply("secret_king", 0)
         else:
             emby_uids = (await db.execute(
-                select(distinct(PlaybackSession.user_id)).where(user_filter)
+                select(PlaybackSession.user_id).where(user_filter).distinct()
             )).scalars().all()
             if not emby_uids:
                 await _apply("secret_king", 0)
@@ -212,7 +215,7 @@ async def check_secrets_b(
             await _apply("secret_pilot", 0)
         else:
             emby_uids = list((await db.execute(
-                select(distinct(PlaybackSession.user_id)).where(user_filter)
+                select(PlaybackSession.user_id).where(user_filter).distinct()
             )).scalars().all())
             hit = (
                 await is_first_viewer_of_fresh_content(db, emby_uids)
@@ -265,5 +268,3 @@ async def check_secrets_b(
                 hit = True
                 break
         await _apply("secret_late", 1 if hit else 0)
-
-    return unlocks

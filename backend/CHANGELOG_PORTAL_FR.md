@@ -17,6 +17,14 @@ utilisateurs.
 ## [Unreleased]
 
 ### Fixed
+- Notifications — barre à la bonne durée, message entier sur petits téléphones.
+- Problèmes — dates du ticket : deux-points à la bonne place en français et en anglais.
+- Quoi de neuf aujourd'hui — Top 3 du mois aligné sur le classement (étiquette « VOUS »).
+- Carrousels, défilements et compteurs — instantanés avec « Réduire les animations ».
+- Badges épinglés — deux épinglages rapprochés ne s'écrasent plus.
+- Mon profil — jours de la semaine et durées dans la langue de l'application.
+- Mon profil — « Jour favori » : toujours 7 barres après un changement de langue.
+- Nombres — écrits dans la langue de l'application, plus dans celle du navigateur.
 - Bouton « + » — annoncé par les lecteurs d'écran (messages non lus), menu parcourable au clavier.
 - Barre d'onglets sur téléphone — libellés entiers sur les petits écrans.
 - Bouton « + » et son chat — passent sous les fenêtres ouvertes.

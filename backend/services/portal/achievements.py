@@ -75,31 +75,44 @@ _BULK_PLAYBACK_CONDITIONS = (
 )
 
 
-async def _safe_pass(label: str, coro) -> list[dict]:
-    """Run one check pass and swallow exceptions so the others keep running."""
+async def _safe_pass(label: str, coro) -> None:
+    """Run one check pass and swallow exceptions so the others keep running.
+
+    A pass appends each unlock as it grants it, so what it granted before
+    failing stays in the caller's list.
+    """
     try:
-        return await coro
+        await coro
     except Exception:
         logger.exception("achievements check pass failed", extra={"pass": label})
-        return []
 
 
-async def check_all_achievements(db: AsyncSession, user_id: int) -> list[dict]:
+async def check_all_achievements(
+    db: AsyncSession,
+    user_id: int,
+    *,
+    unlocks: list[dict] | None = None,
+) -> list[dict]:
     """
     Compute current stats from PlaybackSession and update all achievements.
     Returns list of newly unlocked achievements (for notification).
     Called after a watch session closes, on request creation, etc.; never on login.
+
+    When ``unlocks`` is given, each unlock lands in it as soon as it is granted,
+    so the caller keeps them even if the check raises afterwards.
     """
+    if unlocks is None:
+        unlocks = []
     # Whoever or whatever triggers the check, an account that may not earn gets nothing.
     if not await account_earns(db, user_id):
-        return []
+        return unlocks
 
     excl_filters = await get_exclusion_filters(db)
     pause_excl_filters = await get_pause_event_exclusion_filters(db)
 
     user_filter = await _build_playback_user_filter(db, user_id)
     if user_filter is None:
-        return []
+        return unlocks
     pause_user_filter = await _build_pause_user_filter(db, user_id)
     zone = await get_instance_zone(db)
 
@@ -126,7 +139,6 @@ async def check_all_achievements(db: AsyncSession, user_id: int) -> list[dict]:
             select(PlaybackSession).where(user_filter, *excl_filters)
         )).scalars().all()
 
-    unlocks: list[dict] = []
     common_kwargs = {
         "by_type": by_type,
         "user_id": user_id,
@@ -135,10 +147,11 @@ async def check_all_achievements(db: AsyncSession, user_id: int) -> list[dict]:
         "user_filter": user_filter,
         "excl_filters": excl_filters,
         "playback_rows": playback_rows,
+        "unlocks": unlocks,
     }
 
-    unlocks.extend(await _safe_pass("standard", check_standard(db, **common_kwargs)))
-    unlocks.extend(await _safe_pass(
+    await _safe_pass("standard", check_standard(db, **common_kwargs))
+    await _safe_pass(
         "local_time",
         check_local_time(
             db,
@@ -148,11 +161,12 @@ async def check_all_achievements(db: AsyncSession, user_id: int) -> list[dict]:
             unlocked_ids=unlocked_ids,
             rows=playback_rows or [],
             zone=zone,
+            unlocks=unlocks,
         ),
-    ))
-    unlocks.extend(await _safe_pass("progression", check_progression(db, **common_kwargs)))
-    unlocks.extend(await _safe_pass("secrets_a", check_secrets_a(db, **common_kwargs)))
-    unlocks.extend(await _safe_pass(
+    )
+    await _safe_pass("progression", check_progression(db, **common_kwargs))
+    await _safe_pass("secrets_a", check_secrets_a(db, **common_kwargs))
+    await _safe_pass(
         "secrets_b",
         check_secrets_b(
             db,
@@ -162,13 +176,13 @@ async def check_all_achievements(db: AsyncSession, user_id: int) -> list[dict]:
             zone=zone,
             **common_kwargs,
         ),
-    ))
+    )
 
     # Refresh unlocked_ids so meta-achievements see freshly unlocked tiers
     # from the standard/secret passes above.
     unlocked_ids = {ach_id for ach_id, ua in ua_map.items() if ua.unlocked}
     common_kwargs["unlocked_ids"] = unlocked_ids
-    unlocks.extend(await _safe_pass("meta", check_meta(db, **common_kwargs)))
+    await _safe_pass("meta", check_meta(db, **common_kwargs))
 
     await db.commit()
     return unlocks
@@ -192,7 +206,8 @@ async def safe_check_all_achievements(
     A failure rolls the session back so the caller can go on with it: nothing
     the session had not committed survives, and every instance it holds is
     expired. Callers commit their own work first and touch no ORM object
-    loaded before the call.
+    loaded before the call. A silent failure still returns the unlocks
+    granted before it: ``update_progress`` commits each one as it grants it.
 
     ``source`` is a free-form label; conventional values include
     ``"playback_close"``, ``"chat_message"``,
@@ -204,7 +219,7 @@ async def safe_check_all_achievements(
     started = time.perf_counter()
     unlocks: list[dict] = []
     try:
-        unlocks = await check_all_achievements(db, user_id=user_id)
+        await check_all_achievements(db, user_id=user_id, unlocks=unlocks)
     except Exception:
         logger.exception(
             "achievements run failed",

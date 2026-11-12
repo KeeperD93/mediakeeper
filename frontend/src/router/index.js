@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuth } from '@/composables/useAuth'
 import { fetchApiResponse } from '@/composables/useApi'
+import { prefersReducedMotion } from '@/composables/usePrefersReducedMotion'
 import { adminRoutes } from './routes/admin'
 import { portalRoutes } from './routes/portal'
 
@@ -67,7 +68,7 @@ const router = createRouter({
       // scroll silently when nothing matches so Vue Router doesn't log a
       // "couldn't find element" warning on every tab switch.
       if (typeof document !== 'undefined' && document.querySelector(to.hash)) {
-        return { el: to.hash, behavior: 'smooth' }
+        return { el: to.hash, behavior: prefersReducedMotion() ? 'auto' : 'smooth' }
       }
       return false
     }

@@ -28,7 +28,11 @@
           </span>
           <span class="str-meta-sep">·</span>
           <span>{{ $t('scheduler.runCount', { n: task.run_count }) }}</span>
-          <span v-if="task.last_error" class="str-meta-error" :title="task.last_error">
+          <span
+            v-if="task.last_error"
+            class="str-meta-error"
+            :title="$t('scheduler.lastErrorDetail', { type: task.last_error })"
+          >
             {{ $t('scheduler.lastError') }}
           </span>
         </div>

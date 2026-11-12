@@ -35,7 +35,7 @@
         icon="x"
         size="sm"
         :aria-label="$t('common.remove')"
-        @click="removeExclusion(i)"
+        @click="removeExclusion(exc)"
       />
     </div>
   </div>
