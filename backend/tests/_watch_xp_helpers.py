@@ -24,11 +24,13 @@ async def account(db: AsyncSession, name: str = "alice") -> int:
 
 async def watched(
     db: AsyncSession, name: str = "alice", *, item: str = "MOVIE-1", item_type: str = "Movie",
-    runtime: int = 7200, at: datetime = T, item_name: str = "Test Movie",
+    runtime: int = 7200, at: datetime = T, item_name: str = "Test Movie", emby_id: str | None = None,
 ) -> int:
-    """A title ``name``'s Emby user watched alone to its end at ``at``; returns the watched title's id."""
+    """A title the Emby user ``name`` (id ``emby-<name>`` unless ``emby_id``) watched alone to its
+    end at ``at``; returns the watched title's id."""
+    emby_id = emby_id or f"emby-{name}"
     play = PlaybackSession(
-        session_key=f"emby-{name}_{item}_{at.timestamp()}", user_id=f"emby-{name}", user_name=name,
+        session_key=f"{emby_id}_{item}_{at.timestamp()}", user_id=emby_id, user_name=name,
         item_id=item, item_name=item_name, item_type=item_type, duration_ticks=runtime * TICK,
         position_ticks=runtime * TICK, started_at=at - timedelta(seconds=runtime), ended_at=at, is_active=False,
         watched_seconds=runtime, exclusive_seconds=runtime, completed_at=at,

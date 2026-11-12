@@ -57,15 +57,16 @@ def achievement_xp_reference(achievement_id: str) -> str:
     return f"ach:{achievement_id}"
 
 
-# Who earns XP and trophies, whatever triggers the grant: an active player (deactivating,
-# expiring or deleting an account clears ``is_active``) linked to a media-server user;
-# neither a local account nor a never-linked profile. Select User joined to UserProfile.
-EARNING_ACCOUNT = and_(
-    User.is_active.is_(True),
+# An account linked to a media-server user: neither a local account nor a never-linked
+# profile. Select User joined to UserProfile.
+LINKED_ACCOUNT = and_(
     UserProfile.source == SOURCE_EMBY,
     UserProfile.emby_user_id.is_not(None),
     UserProfile.emby_user_id != "",
 )
+# Who earns XP and trophies, whatever triggers the grant: a linked account still active
+# (deactivating, expiring or deleting an account clears ``is_active``).
+EARNING_ACCOUNT = and_(User.is_active.is_(True), LINKED_ACCOUNT)
 
 
 async def account_earns(db: AsyncSession, user_id: int) -> bool:
