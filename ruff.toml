@@ -1,0 +1,50 @@
+# Python checks for the backend. Issues that predate them are frozen in
+# ruff-baseline.json: see backend/scripts/ruff_baseline.py.
+target-version = "py314"
+# Backend modules import each other as top-level packages ("from services ...").
+src = ["backend"]
+# Migrations cannot be fixed once applied, so none are checked; tests are out of scope for now.
+extend-exclude = ["backend/tests", "backend/alembic/versions"]
+# The commit hook passes explicit paths, which would otherwise bypass the exclusions.
+force-exclude = true
+
+[lint]
+select = [
+  "F",       # unused imports and variables, undefined names
+  "E402",    # imports below module code
+  "E902",    # a file ruff cannot read must fail, not pass unseen
+  "PGH004",  # "noqa" without a rule code
+  "I",       # import order
+  "B",       # likely bugs, including exceptions raised without "from"
+  "UP006",   # native generics (list, dict)
+  "UP007",   # "X | Y" unions
+  "UP035",   # imports deprecated by newer Python versions
+  "UP045",   # "X | None" optionals
+  "ASYNC",   # blocking calls inside coroutines
+  "DTZ",     # dates without a time zone
+  "G004",    # f-strings in logging calls
+  "RUF006",  # asyncio tasks whose reference is lost
+  "ERA001",  # commented-out code
+  "C901",    # overly complex functions
+  "PLR0915", # overly long functions
+]
+# A timeout parameter on a coroutine is a normal pattern in this codebase.
+ignore = ["ASYNC109"]
+
+[lint.flake8-bugbear]
+# FastAPI declares its dependencies through calls in default arguments.
+extend-immutable-calls = [
+  "fastapi.Body",
+  "fastapi.Cookie",
+  "fastapi.Depends",
+  "fastapi.File",
+  "fastapi.Form",
+  "fastapi.Header",
+  "fastapi.Path",
+  "fastapi.Query",
+  "fastapi.Security",
+]
+
+[lint.isort]
+# backend/alembic holds the migrations: "alembic" must still sort as the library.
+known-third-party = ["alembic"]

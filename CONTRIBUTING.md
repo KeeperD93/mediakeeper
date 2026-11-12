@@ -152,7 +152,16 @@ npm run format            # Prettier
 npm run typecheck         # vue-tsc
 ```
 
-Once Husky hooks are active (see _Initial setup_), `git commit` triggers `lint-staged` automatically on staged files.
+For the backend, from the repository root:
+
+```sh
+pip install -r backend/requirements-dev.txt
+python backend/scripts/ruff_baseline.py   # ruff, against the frozen issues
+```
+
+Issues that predate these checks are counted in `ruff-baseline.json` and tolerated; the commit hook and CI fail as soon as a file's count for a rule goes up. After fixing old issues, or moving or splitting a file, run the script with `--update` and commit the updated baseline. To sort the imports of a file: `python -m ruff check --fix --select I <file>`.
+
+Once Husky hooks are active (see _Initial setup_), `git commit` triggers `lint-staged` automatically on staged files. Committing Python files needs the development dependencies above, in the environment that `python` points to.
 
 ### 4. Tests
 
@@ -166,6 +175,7 @@ npm run test:coverage           # + coverage report
 # Backend tests
 cd backend
 pytest                          # full suite
+pytest -n auto                  # full suite, in parallel (much faster)
 pytest --cov                    # + coverage
 pytest tests/test_auth_login.py -v   # specific file
 ```

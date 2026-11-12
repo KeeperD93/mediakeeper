@@ -40,6 +40,9 @@
     ],
     "*.{json,md}": [
       "prettier --write"
+    ],
+    "../backend/**/*.py": [
+      "python ../backend/scripts/ruff_baseline.py"
     ]
   },
   "overrides": {
