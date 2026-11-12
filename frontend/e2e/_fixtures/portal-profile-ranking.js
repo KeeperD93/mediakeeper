@@ -57,6 +57,17 @@ export const tab = (page, period) => card(page).getByRole('tab', { name: LABELS[
 export const firstXp = page => card(page).locator('.gc-lb-v').first()
 
 /**
+ * Waits for the web fonts the page is laid out with. Until they arrive, the figures are
+ * drawn in a fallback font of another width, which moves the room left for the names.
+ */
+export const fontsLoaded = page =>
+  page.evaluate(async () => {
+    // Laying the page out starts the loads of the fonts it uses, so `ready` waits for them.
+    document.body.getBoundingClientRect()
+    await document.fonts.ready
+  })
+
+/**
  * Opens "My profile" and returns the list of the rankings it asked for. With a `digest`,
  * the daily digest opens over the page.
  */

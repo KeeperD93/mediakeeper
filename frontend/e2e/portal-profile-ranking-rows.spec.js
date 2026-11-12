@@ -6,6 +6,7 @@ import { roomAroundFigures } from './_fixtures/portal-leaderboard-page.js'
 import {
   BY_PERIOD,
   card,
+  fontsLoaded,
   menu,
   MONTH,
   openProfile,
@@ -37,6 +38,7 @@ const withViewer = (index, name) =>
 
 // Every row the same way, the XP on one edge, the trophies under it, on the tab shown.
 async function expectFigures(page, expected) {
+  await fontsLoaded(page)
   const rows = await card(page)
     .locator('.gc-lb-row')
     .evaluateAll(items =>
