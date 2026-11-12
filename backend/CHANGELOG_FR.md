@@ -23,6 +23,9 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Outils de debug — « Lancer la vérification » compte aussi les trophées accordés avant une erreur.
 - Nombres — écrits dans la langue de l'application, plus dans celle du navigateur.
 - Niveaux — niveau 1 partout dès 0 XP, barre qui avance aussitôt.
+- Connexion — le navigateur remplit le nom et le mot de passe enregistrés.
+- Connexion — animations coupées avec « Réduire les animations ».
+- Connexion — un double appui n'ouvre plus deux sessions, Entrée relance après un refus.
 - Statistiques — temps de visionnage : lecture coupée en début de titre plus comptée jusqu'au bout.
 
 ## [1.0.0-rc.10] - 2026-11-11

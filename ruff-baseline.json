@@ -1,0 +1,1000 @@
+{
+  "backend/alembic/env.py": {
+    "I001": 1
+  },
+  "backend/api/alerts.py": {
+    "I001": 1
+  },
+  "backend/api/auth/__init__.py": {
+    "I001": 1
+  },
+  "backend/api/auth/login.py": {
+    "C901": 1,
+    "I001": 1,
+    "PLR0915": 1
+  },
+  "backend/api/auth/profile.py": {
+    "I001": 1
+  },
+  "backend/api/backup/_directories.py": {
+    "I001": 1
+  },
+  "backend/api/changelog.py": {
+    "I001": 1
+  },
+  "backend/api/core_routes.py": {
+    "I001": 1
+  },
+  "backend/api/duplicates.py": {
+    "I001": 2,
+    "UP006": 3,
+    "UP035": 1,
+    "UP045": 2
+  },
+  "backend/api/healthcheck.py": {
+    "I001": 1
+  },
+  "backend/api/logs.py": {
+    "I001": 1
+  },
+  "backend/api/media/__init__.py": {
+    "I001": 1
+  },
+  "backend/api/media/_browse.py": {
+    "I001": 1
+  },
+  "backend/api/media/_move.py": {
+    "I001": 1
+  },
+  "backend/api/media/_release_tags.py": {
+    "UP006": 1,
+    "UP035": 1
+  },
+  "backend/api/media/_rename.py": {
+    "I001": 1
+  },
+  "backend/api/notifications.py": {
+    "I001": 1
+  },
+  "backend/api/notifications_history.py": {
+    "I001": 1,
+    "UP006": 1,
+    "UP035": 1,
+    "UP045": 6
+  },
+  "backend/api/onboarding.py": {
+    "I001": 1
+  },
+  "backend/api/portal/__init__.py": {
+    "I001": 1
+  },
+  "backend/api/portal/_events_rooms.py": {
+    "I001": 1,
+    "UP045": 8
+  },
+  "backend/api/portal/_events_seasonal.py": {
+    "UP045": 4
+  },
+  "backend/api/portal/activity.py": {
+    "I001": 1
+  },
+  "backend/api/portal/admin.py": {
+    "C901": 1,
+    "I001": 1,
+    "UP045": 23
+  },
+  "backend/api/portal/auth.py": {
+    "I001": 1
+  },
+  "backend/api/portal/availability.py": {
+    "B007": 1,
+    "C901": 2,
+    "DTZ011": 1,
+    "I001": 1
+  },
+  "backend/api/portal/catalog/_browse.py": {
+    "I001": 3
+  },
+  "backend/api/portal/catalog/_detail.py": {
+    "I001": 1
+  },
+  "backend/api/portal/catalog/_personal.py": {
+    "C901": 1,
+    "I001": 1
+  },
+  "backend/api/portal/chat.py": {
+    "C901": 1,
+    "I001": 1,
+    "PLR0915": 1,
+    "UP045": 1
+  },
+  "backend/api/portal/daily_digest.py": {
+    "I001": 1
+  },
+  "backend/api/portal/deps.py": {
+    "I001": 1
+  },
+  "backend/api/portal/featured.py": {
+    "I001": 1
+  },
+  "backend/api/portal/gdpr.py": {
+    "I001": 1
+  },
+  "backend/api/portal/help.py": {
+    "UP045": 8
+  },
+  "backend/api/portal/library.py": {
+    "I001": 1
+  },
+  "backend/api/portal/lists.py": {
+    "I001": 1,
+    "UP045": 13
+  },
+  "backend/api/portal/lists_admin.py": {
+    "I001": 1
+  },
+  "backend/api/portal/maintenance.py": {
+    "I001": 1
+  },
+  "backend/api/portal/news.py": {
+    "I001": 1,
+    "UP045": 12
+  },
+  "backend/api/portal/notifications.py": {
+    "I001": 1
+  },
+  "backend/api/portal/profile_settings.py": {
+    "I001": 1
+  },
+  "backend/api/portal/requests.py": {
+    "I001": 1
+  },
+  "backend/api/portal/social.py": {
+    "I001": 1,
+    "UP045": 2
+  },
+  "backend/api/portal/tickets.py": {
+    "I001": 1,
+    "UP045": 10
+  },
+  "backend/api/portal/top20.py": {
+    "C901": 1,
+    "I001": 1,
+    "PLR0915": 1
+  },
+  "backend/api/portal/trailers.py": {
+    "B905": 1,
+    "I001": 1
+  },
+  "backend/api/portal/xp_events.py": {
+    "I001": 1,
+    "UP045": 9
+  },
+  "backend/api/portal_admin_gdpr.py": {
+    "I001": 1,
+    "UP045": 5
+  },
+  "backend/api/portal_admin_requests.py": {
+    "I001": 2
+  },
+  "backend/api/portal_admin_users.py": {
+    "I001": 1
+  },
+  "backend/api/portal_admin_users_actions.py": {
+    "I001": 1
+  },
+  "backend/api/portal_admin_users_feed.py": {
+    "I001": 1
+  },
+  "backend/api/portal_admin_users_gdpr.py": {
+    "I001": 1
+  },
+  "backend/api/portal_changelog.py": {
+    "I001": 1
+  },
+  "backend/api/scheduler.py": {
+    "I001": 1
+  },
+  "backend/api/security.py": {
+    "I001": 1
+  },
+  "backend/api/settings.py": {
+    "C901": 2,
+    "I001": 1
+  },
+  "backend/api/settings_dashboard.py": {
+    "I001": 1,
+    "UP006": 2,
+    "UP035": 1,
+    "UP045": 1
+  },
+  "backend/api/stats/_users.py": {
+    "B904": 1
+  },
+  "backend/api/subtitles/_profiles.py": {
+    "I001": 1
+  },
+  "backend/api/system.py": {
+    "I001": 1
+  },
+  "backend/api/watchlist.py": {
+    "DTZ011": 1,
+    "I001": 1
+  },
+  "backend/core/app_startup.py": {
+    "I001": 1,
+    "PLR0915": 1
+  },
+  "backend/core/async_utils.py": {
+    "UP035": 1
+  },
+  "backend/core/database.py": {
+    "I001": 1
+  },
+  "backend/core/file_validation.py": {
+    "UP035": 1
+  },
+  "backend/core/http_client.py": {
+    "I001": 1
+  },
+  "backend/core/log_redaction.py": {
+    "UP035": 1
+  },
+  "backend/core/proxy.py": {
+    "UP035": 1
+  },
+  "backend/core/safe_http.py": {
+    "UP035": 1
+  },
+  "backend/core/security.py": {
+    "I001": 1
+  },
+  "backend/core/security_headers.py": {
+    "I001": 1
+  },
+  "backend/core/ttl_cache.py": {
+    "UP035": 1
+  },
+  "backend/core/url_safety.py": {
+    "C901": 1,
+    "UP035": 1,
+    "UP045": 3
+  },
+  "backend/main.py": {
+    "I001": 1
+  },
+  "backend/models/duplicate_cleanup.py": {
+    "I001": 1
+  },
+  "backend/models/healthcheck.py": {
+    "I001": 1
+  },
+  "backend/models/ignored_duplicate.py": {
+    "I001": 1
+  },
+  "backend/models/notification_channels.py": {
+    "I001": 1
+  },
+  "backend/models/notification_log.py": {
+    "I001": 1
+  },
+  "backend/models/playback_stats.py": {
+    "I001": 1
+  },
+  "backend/models/portal/__init__.py": {
+    "I001": 1
+  },
+  "backend/models/portal/achievement.py": {
+    "I001": 1
+  },
+  "backend/models/portal/audit.py": {
+    "I001": 1
+  },
+  "backend/models/portal/chat.py": {
+    "I001": 1
+  },
+  "backend/models/portal/emby_tmdb_index.py": {
+    "I001": 1
+  },
+  "backend/models/portal/event.py": {
+    "ERA001": 1,
+    "I001": 1
+  },
+  "backend/models/portal/featured.py": {
+    "I001": 1
+  },
+  "backend/models/portal/feedback_report.py": {
+    "I001": 1
+  },
+  "backend/models/portal/help.py": {
+    "I001": 1
+  },
+  "backend/models/portal/login_history.py": {
+    "I001": 1
+  },
+  "backend/models/portal/news.py": {
+    "I001": 1
+  },
+  "backend/models/portal/request.py": {
+    "I001": 1
+  },
+  "backend/models/portal/social.py": {
+    "I001": 1
+  },
+  "backend/models/portal/ticket.py": {
+    "I001": 1
+  },
+  "backend/models/portal/tmdb_runtime.py": {
+    "I001": 1
+  },
+  "backend/models/portal/xp_boost.py": {
+    "I001": 1
+  },
+  "backend/models/portal/xp_ledger.py": {
+    "I001": 1
+  },
+  "backend/models/scheduler_task.py": {
+    "I001": 1
+  },
+  "backend/models/security.py": {
+    "I001": 1
+  },
+  "backend/models/seen_alert.py": {
+    "I001": 1
+  },
+  "backend/models/settings.py": {
+    "I001": 1
+  },
+  "backend/models/subtitle_history.py": {
+    "I001": 1
+  },
+  "backend/models/subtitle_profile.py": {
+    "I001": 1
+  },
+  "backend/models/user.py": {
+    "I001": 1
+  },
+  "backend/models/user_preferences.py": {
+    "ERA001": 2,
+    "I001": 1
+  },
+  "backend/models/watchlist_scans.py": {
+    "I001": 1
+  },
+  "backend/run_worker.py": {
+    "I001": 1
+  },
+  "backend/services/backup/_state.py": {
+    "ASYNC240": 1
+  },
+  "backend/services/backup/directory.py": {
+    "C901": 1,
+    "I001": 1
+  },
+  "backend/services/discord/_images.py": {
+    "I001": 1
+  },
+  "backend/services/discord/payloads.py": {
+    "C901": 2,
+    "I001": 1,
+    "PLR0915": 1
+  },
+  "backend/services/discord/send.py": {
+    "I001": 1
+  },
+  "backend/services/emby/__init__.py": {
+    "F401": 2,
+    "I001": 1
+  },
+  "backend/services/emby/_cache.py": {
+    "I001": 1
+  },
+  "backend/services/emby/config.py": {
+    "I001": 1
+  },
+  "backend/services/emby/images.py": {
+    "I001": 1
+  },
+  "backend/services/emby/sessions.py": {
+    "I001": 1
+  },
+  "backend/services/healthcheck/_analyze.py": {
+    "C901": 1
+  },
+  "backend/services/healthcheck/results.py": {
+    "C901": 1
+  },
+  "backend/services/healthcheck/scan.py": {
+    "C901": 1,
+    "PLR0915": 1
+  },
+  "backend/services/healthcheck/summary.py": {
+    "C901": 1
+  },
+  "backend/services/logs/_emby_fetch.py": {
+    "ASYNC230": 1
+  },
+  "backend/services/logs/_files.py": {
+    "I001": 1
+  },
+  "backend/services/logs/_rotation.py": {
+    "C901": 1
+  },
+  "backend/services/media_manager/__init__.py": {
+    "I001": 1
+  },
+  "backend/services/media_manager/_io.py": {
+    "I001": 1
+  },
+  "backend/services/media_manager/_paths.py": {
+    "I001": 1
+  },
+  "backend/services/media_manager/categories.py": {
+    "I001": 1
+  },
+  "backend/services/media_manager/files.py": {
+    "I001": 1
+  },
+  "backend/services/media_manager/rename.py": {
+    "C901": 2
+  },
+  "backend/services/notification_engine/_common.py": {
+    "I001": 1
+  },
+  "backend/services/notification_engine/added_media.py": {
+    "C901": 1
+  },
+  "backend/services/notification_engine/system.py": {
+    "C901": 1
+  },
+  "backend/services/opensubtitles/__init__.py": {
+    "F401": 21,
+    "I001": 1
+  },
+  "backend/services/opensubtitles/_remux.py": {
+    "ASYNC240": 1,
+    "C901": 1,
+    "PLR0915": 1
+  },
+  "backend/services/opensubtitles/auth.py": {
+    "I001": 1
+  },
+  "backend/services/opensubtitles/existing.py": {
+    "C901": 1,
+    "I001": 1,
+    "PLR0915": 1
+  },
+  "backend/services/opensubtitles/library.py": {
+    "C901": 2,
+    "I001": 1,
+    "PLR0915": 1
+  },
+  "backend/services/opensubtitles/matrix.py": {
+    "C901": 1,
+    "I001": 1
+  },
+  "backend/services/opensubtitles/paths.py": {
+    "ASYNC240": 1,
+    "C901": 2,
+    "I001": 1
+  },
+  "backend/services/opensubtitles/remove.py": {
+    "ASYNC240": 1,
+    "C901": 1,
+    "I001": 1
+  },
+  "backend/services/opensubtitles/rollback_retention.py": {
+    "C901": 1,
+    "UP035": 1
+  },
+  "backend/services/opensubtitles/scan.py": {
+    "C901": 2,
+    "I001": 1,
+    "PLR0915": 2
+  },
+  "backend/services/opensubtitles/search.py": {
+    "ASYNC240": 1,
+    "C901": 2,
+    "I001": 1
+  },
+  "backend/services/path_config.py": {
+    "C901": 1,
+    "UP035": 1
+  },
+  "backend/services/portal/_gdpr_export.py": {
+    "I001": 1
+  },
+  "backend/services/portal/_html_sanitize.py": {
+    "I001": 1
+  },
+  "backend/services/portal/_rank_tiers.py": {
+    "I001": 1
+  },
+  "backend/services/portal/_watch_threshold.py": {
+    "I001": 1
+  },
+  "backend/services/portal/achievement_defs.py": {
+    "I001": 1
+  },
+  "backend/services/portal/achievement_defs_constants.py": {
+    "ERA001": 2
+  },
+  "backend/services/portal/achievements_badges.py": {
+    "I001": 1
+  },
+  "backend/services/portal/achievements_checks_local_time.py": {
+    "C901": 1
+  },
+  "backend/services/portal/achievements_checks_progression.py": {
+    "C901": 1,
+    "PLR0915": 1
+  },
+  "backend/services/portal/achievements_checks_secrets_a.py": {
+    "C901": 1,
+    "I001": 1
+  },
+  "backend/services/portal/achievements_checks_secrets_b.py": {
+    "C901": 1,
+    "I001": 1,
+    "PLR0915": 1
+  },
+  "backend/services/portal/achievements_checks_standard.py": {
+    "C901": 1,
+    "I001": 1
+  },
+  "backend/services/portal/achievements_profile.py": {
+    "I001": 1
+  },
+  "backend/services/portal/achievements_seasonal.py": {
+    "I001": 1
+  },
+  "backend/services/portal/achievements_seed.py": {
+    "C901": 1,
+    "I001": 1
+  },
+  "backend/services/portal/achievements_utils/_playback.py": {
+    "B007": 1
+  },
+  "backend/services/portal/achievements_validation.py": {
+    "B905": 1,
+    "C901": 1,
+    "ERA001": 1,
+    "I001": 1
+  },
+  "backend/services/portal/activity.py": {
+    "I001": 1
+  },
+  "backend/services/portal/admin.py": {
+    "I001": 3
+  },
+  "backend/services/portal/admin_debug.py": {
+    "I001": 1
+  },
+  "backend/services/portal/admin_engagement.py": {
+    "I001": 1
+  },
+  "backend/services/portal/admin_settings.py": {
+    "C901": 1
+  },
+  "backend/services/portal/admin_users.py": {
+    "C901": 2,
+    "I001": 2
+  },
+  "backend/services/portal/admin_users_actions.py": {
+    "I001": 1
+  },
+  "backend/services/portal/admin_users_activity.py": {
+    "I001": 2
+  },
+  "backend/services/portal/admin_users_audit.py": {
+    "I001": 1
+  },
+  "backend/services/portal/admin_users_emby.py": {
+    "C901": 1,
+    "I001": 1,
+    "UP035": 1
+  },
+  "backend/services/portal/admin_users_feed.py": {
+    "I001": 1
+  },
+  "backend/services/portal/admin_users_lifecycle.py": {
+    "C901": 1,
+    "I001": 2,
+    "UP035": 1
+  },
+  "backend/services/portal/admin_users_notify.py": {
+    "I001": 1
+  },
+  "backend/services/portal/admin_users_security.py": {
+    "I001": 1
+  },
+  "backend/services/portal/admin_users_stats.py": {
+    "I001": 1
+  },
+  "backend/services/portal/adult_filter.py": {
+    "I001": 1
+  },
+  "backend/services/portal/available.py": {
+    "I001": 1
+  },
+  "backend/services/portal/available_continue.py": {
+    "C901": 1,
+    "I001": 1,
+    "PLR0915": 1
+  },
+  "backend/services/portal/avatars.py": {
+    "B904": 1,
+    "C901": 1
+  },
+  "backend/services/portal/chat.py": {
+    "I001": 1
+  },
+  "backend/services/portal/daily_digest.py": {
+    "I001": 1
+  },
+  "backend/services/portal/daily_digest_sources.py": {
+    "I001": 1
+  },
+  "backend/services/portal/discover.py": {
+    "I001": 1
+  },
+  "backend/services/portal/discover_categories.py": {
+    "C901": 2,
+    "E402": 1,
+    "I001": 2,
+    "PLR0915": 1
+  },
+  "backend/services/portal/discover_details/__init__.py": {
+    "I001": 1
+  },
+  "backend/services/portal/discover_details/_constants.py": {
+    "B033": 1
+  },
+  "backend/services/portal/discover_details/_details.py": {
+    "I001": 1,
+    "PLR0915": 1
+  },
+  "backend/services/portal/discover_details/_query_variants.py": {
+    "C901": 1
+  },
+  "backend/services/portal/discover_details/_scoring.py": {
+    "C901": 1,
+    "PLR0915": 1
+  },
+  "backend/services/portal/discover_details/_search.py": {
+    "C901": 1,
+    "I001": 1
+  },
+  "backend/services/portal/discover_details/_text_helpers.py": {
+    "I001": 1
+  },
+  "backend/services/portal/discover_details_enrich.py": {
+    "I001": 1
+  },
+  "backend/services/portal/discover_filters.py": {
+    "DTZ011": 2
+  },
+  "backend/services/portal/discover_lists.py": {
+    "DTZ011": 3,
+    "I001": 1
+  },
+  "backend/services/portal/emby_auth.py": {
+    "C901": 1,
+    "I001": 1,
+    "PLR0915": 1
+  },
+  "backend/services/portal/emby_index/_sync.py": {
+    "C901": 1,
+    "PLR0915": 1
+  },
+  "backend/services/portal/events.py": {
+    "I001": 1
+  },
+  "backend/services/portal/help.py": {
+    "ERA001": 1,
+    "I001": 1,
+    "UP035": 1,
+    "UP045": 7
+  },
+  "backend/services/portal/help_content.py": {
+    "I001": 1
+  },
+  "backend/services/portal/help_content_general.py": {
+    "I001": 1
+  },
+  "backend/services/portal/help_content_profile.py": {
+    "I001": 1
+  },
+  "backend/services/portal/help_content_requests.py": {
+    "I001": 1
+  },
+  "backend/services/portal/help_sanitize.py": {
+    "I001": 1,
+    "UP045": 2
+  },
+  "backend/services/portal/iso_lang_map.py": {
+    "I001": 1
+  },
+  "backend/services/portal/lists.py": {
+    "C901": 1,
+    "I001": 1
+  },
+  "backend/services/portal/lists_admin.py": {
+    "I001": 1
+  },
+  "backend/services/portal/lists_items.py": {
+    "C901": 2,
+    "I001": 1
+  },
+  "backend/services/portal/lists_query.py": {
+    "I001": 1
+  },
+  "backend/services/portal/maintenance.py": {
+    "I001": 1
+  },
+  "backend/services/portal/mk_events.py": {
+    "I001": 1
+  },
+  "backend/services/portal/mk_events_chat.py": {
+    "I001": 1
+  },
+  "backend/services/portal/mk_events_crud.py": {
+    "C901": 1,
+    "I001": 1
+  },
+  "backend/services/portal/mk_events_marathon.py": {
+    "I001": 1
+  },
+  "backend/services/portal/mk_events_members.py": {
+    "C901": 2,
+    "I001": 1
+  },
+  "backend/services/portal/mk_events_room.py": {
+    "I001": 1
+  },
+  "backend/services/portal/mk_events_utils.py": {
+    "I001": 1
+  },
+  "backend/services/portal/news.py": {
+    "I001": 1
+  },
+  "backend/services/portal/notifications.py": {
+    "B905": 1,
+    "I001": 1
+  },
+  "backend/services/portal/personal.py": {
+    "I001": 1
+  },
+  "backend/services/portal/personal_genres.py": {
+    "I001": 1
+  },
+  "backend/services/portal/personal_recos.py": {
+    "C901": 1,
+    "I001": 1
+  },
+  "backend/services/portal/personal_utils.py": {
+    "ERA001": 1,
+    "I001": 1,
+    "UP045": 2
+  },
+  "backend/services/portal/personal_watched.py": {
+    "C901": 1,
+    "I001": 1
+  },
+  "backend/services/portal/playback_algorithms.py": {
+    "I001": 1
+  },
+  "backend/services/portal/playback_overlap.py": {
+    "C901": 1,
+    "I001": 1
+  },
+  "backend/services/portal/preferences_based.py": {
+    "C901": 1,
+    "I001": 1
+  },
+  "backend/services/portal/profile_stats.py": {
+    "I001": 1
+  },
+  "backend/services/portal/profile_stats_completion.py": {
+    "I001": 1,
+    "UP035": 1
+  },
+  "backend/services/portal/profile_stats_emby.py": {
+    "I001": 1
+  },
+  "backend/services/portal/profile_stats_history.py": {
+    "C901": 1,
+    "I001": 2,
+    "PLR0915": 1
+  },
+  "backend/services/portal/profile_stats_next.py": {
+    "B905": 2,
+    "I001": 2
+  },
+  "backend/services/portal/profile_stats_ranking.py": {
+    "C901": 1,
+    "I001": 1,
+    "PLR0915": 1
+  },
+  "backend/services/portal/profile_stats_recent.py": {
+    "B905": 2,
+    "C901": 1,
+    "I001": 2,
+    "PLR0915": 1
+  },
+  "backend/services/portal/profile_stats_recent_helpers.py": {
+    "C901": 1,
+    "I001": 2
+  },
+  "backend/services/portal/profile_stats_rewatched.py": {
+    "C901": 1,
+    "I001": 1,
+    "PLR0915": 1
+  },
+  "backend/services/portal/profile_stats_viewing.py": {
+    "I001": 1
+  },
+  "backend/services/portal/profiles.py": {
+    "C901": 1,
+    "I001": 1
+  },
+  "backend/services/portal/requests.py": {
+    "C901": 1,
+    "I001": 1
+  },
+  "backend/services/portal/requests_blacklist.py": {
+    "I001": 1
+  },
+  "backend/services/portal/requests_create.py": {
+    "C901": 1,
+    "I001": 1,
+    "PLR0915": 1
+  },
+  "backend/services/portal/requests_fulfill.py": {
+    "C901": 1,
+    "DTZ011": 1
+  },
+  "backend/services/portal/requests_status.py": {
+    "C901": 1
+  },
+  "backend/services/portal/runtime_cache.py": {
+    "B905": 1,
+    "I001": 1
+  },
+  "backend/services/portal/social.py": {
+    "I001": 1
+  },
+  "backend/services/portal/tickets.py": {
+    "I001": 1
+  },
+  "backend/services/portal/trailers.py": {
+    "C901": 2,
+    "I001": 1,
+    "UP045": 11
+  },
+  "backend/services/portal/xp_boost.py": {
+    "I001": 1
+  },
+  "backend/services/scheduler/_handlers.py": {
+    "I001": 1
+  },
+  "backend/services/scheduler/_scheduler.py": {
+    "DTZ005": 1,
+    "RUF006": 2
+  },
+  "backend/services/scheduler/_tasks.py": {
+    "I001": 1
+  },
+  "backend/services/security.py": {
+    "I001": 1
+  },
+  "backend/services/settings/__init__.py": {
+    "I001": 1
+  },
+  "backend/services/settings/_kv.py": {
+    "I001": 1
+  },
+  "backend/services/settings/_tools.py": {
+    "I001": 1
+  },
+  "backend/services/stats.py": {
+    "I001": 1
+  },
+  "backend/services/stats_aggregator/activity.py": {
+    "I001": 1
+  },
+  "backend/services/stats_aggregator/exclusions.py": {
+    "I001": 1
+  },
+  "backend/services/stats_aggregator/libraries/_repair.py": {
+    "C901": 1
+  },
+  "backend/services/stats_aggregator/playback.py": {
+    "C901": 1,
+    "I001": 1,
+    "PLR0915": 1
+  },
+  "backend/services/stats_aggregator/sessions.py": {
+    "C901": 1,
+    "I001": 1,
+    "PLR0915": 1
+  },
+  "backend/services/stats_aggregator/totals.py": {
+    "I001": 1
+  },
+  "backend/services/stats_aggregator/users.py": {
+    "C901": 1,
+    "I001": 1,
+    "PLR0915": 1
+  },
+  "backend/services/stats_aggregator/users_admin.py": {
+    "I001": 1
+  },
+  "backend/services/stats_collector/_pauses.py": {
+    "C901": 1
+  },
+  "backend/services/stats_collector/collect.py": {
+    "C901": 1,
+    "PLR0915": 1
+  },
+  "backend/services/stats_import/_activity.py": {
+    "C901": 1,
+    "PLR0915": 1
+  },
+  "backend/services/subtitle_audit.py": {
+    "C901": 1,
+    "PLR0915": 1
+  },
+  "backend/services/subtitle_auto.py": {
+    "C901": 1,
+    "I001": 2,
+    "PLR0915": 1
+  },
+  "backend/services/subtitle_batch.py": {
+    "C901": 1,
+    "I001": 1,
+    "PLR0915": 1
+  },
+  "backend/services/subtitle_history.py": {
+    "I001": 2
+  },
+  "backend/services/subtitle_profiles.py": {
+    "I001": 1
+  },
+  "backend/services/subtitle_sources/__init__.py": {
+    "I001": 1
+  },
+  "backend/services/subtitle_tools/compare.py": {
+    "ASYNC240": 2
+  },
+  "backend/services/subtitle_tools/desync.py": {
+    "I001": 1
+  },
+  "backend/services/system.py": {
+    "I001": 1
+  },
+  "backend/services/tmdb_episode.py": {
+    "I001": 1
+  },
+  "backend/services/watchlist.py": {
+    "I001": 1
+  },
+  "backend/services/watchlist_scanner/_analyze.py": {
+    "C901": 1,
+    "DTZ011": 1
+  },
+  "backend/services/watchlist_scanner/_localize.py": {
+    "I001": 1
+  },
+  "backend/services/watchlist_scanner/calendar.py": {
+    "C901": 1
+  },
+  "backend/services/watchlist_scanner/scan.py": {
+    "C901": 1,
+    "DTZ011": 1,
+    "PLR0915": 1
+  },
+  "backend/services/watchlist_tracking.py": {
+    "I001": 1
+  }
+}

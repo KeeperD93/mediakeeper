@@ -7,7 +7,8 @@
   justify-content: center;
   background: var(--bg-primary);
   position: relative;
-  overflow: hidden;
+  /* clip, not hidden: a hidden box can still be scrolled, by a focus or a script. */
+  overflow: clip;
 }
 
 .login-particles {
@@ -444,5 +445,24 @@
   }
   .login-hero-banner {
     max-width: 260px;
+  }
+}
+
+/* Reduced motion: the orbs hold still, the card appears at once and the buttons no
+   longer move under the pointer. The particles stop in useLoginParticles; the
+   waiting ring, the spinner and the focus stay. */
+@media (prefers-reduced-motion: reduce) {
+  .login-orb {
+    animation: none;
+  }
+  .login-appear-enter-active,
+  .login-submit,
+  .login-submit::before,
+  .login-links a {
+    transition: none;
+  }
+  .login-submit:hover:not(:disabled),
+  .login-links a:hover {
+    transform: none;
   }
 }
