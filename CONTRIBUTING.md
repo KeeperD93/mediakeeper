@@ -175,6 +175,7 @@ npm run test:coverage           # + coverage report
 # Backend tests
 cd backend
 pytest                          # full suite
+pytest -n auto                  # full suite, in parallel (much faster)
 pytest --cov                    # + coverage
 pytest tests/test_auth_login.py -v   # specific file
 ```
