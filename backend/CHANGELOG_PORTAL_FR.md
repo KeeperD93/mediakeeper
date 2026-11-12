@@ -37,7 +37,6 @@ utilisateurs.
 - Connexion — le navigateur remplit le nom et le mot de passe enregistrés.
 - Connexion — animations coupées avec « Réduire les animations ».
 - Connexion — un double appui n'ouvre plus deux sessions, Entrée relance après un refus.
-- Jours d'affilée et Régulier — deux vidéos perso simultanées comptées une fois.
 
 ## [1.0.0-rc.10] - 2026-11-11
 
