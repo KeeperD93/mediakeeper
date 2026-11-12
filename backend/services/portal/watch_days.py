@@ -1,0 +1,68 @@
+"""The days something was watched on, on the clock of the instance: what a day streak counts.
+
+A day counts once it holds five minutes of watching, whatever day the titles started on: a
+film finished after midnight fills the new day too. Films and episodes bring their seconds
+per hour (estimated for imported history), other video its time per title laid from its
+start. Pauses and a title stopped at once fill nothing; music and audiobooks never count.
+"""
+from collections import Counter
+from collections.abc import Iterable
+from datetime import date, timedelta, tzinfo
+
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from constants.playback import AUDIO_ITEM_TYPES, WATCH_ITEM_TYPES
+from models.playback_stats import PlaybackSession
+from services.instance_time import to_local
+from services.watch_hours import hour_start, spread_over_hours
+
+MIN_WATCHED_SECONDS_PER_DAY = 5 * 60
+_LAST_INSTANT_OF_AN_HOUR = timedelta(hours=1, microseconds=-1)
+
+# What ``watch_days`` reads of each play.
+WATCH_DAY_COLUMNS = (
+    PlaybackSession.item_type,
+    PlaybackSession.started_at,
+    PlaybackSession.watched_seconds,
+    PlaybackSession.watched_by_hour,
+)
+
+
+def _watched_by_hour(play) -> dict[str, int] | None:
+    """Films and episodes keep their time per hour; other video only per title, laid from its start."""
+    if play.item_type in AUDIO_ITEM_TYPES:
+        return None
+    if play.item_type in WATCH_ITEM_TYPES:
+        return play.watched_by_hour
+    if play.started_at is None:
+        return None
+    return spread_over_hours(play.started_at, play.watched_seconds)
+
+
+def watch_days(plays: Iterable, zone: tzinfo, *, generous: bool = False) -> set[date]:
+    """The days of ``zone`` holding enough watching, summed over ``plays`` (``WATCH_DAY_COLUMNS``).
+
+    An hour goes to the day it starts in: in a zone off by half an hour, the half
+    past midnight stays with the day before. ``generous`` gives such an hour to both
+    days, for a judge that must never take a day away.
+    """
+    per_hour: Counter[str] = Counter()
+    for play in plays:
+        per_hour.update(_watched_by_hour(play) or {})
+    per_day: Counter[date] = Counter()
+    for hour, seconds in per_hour.items():
+        start = hour_start(hour)
+        first = to_local(start, zone).date()
+        per_day[first] += seconds
+        if generous:
+            last = to_local(start + _LAST_INSTANT_OF_AN_HOUR, zone).date()
+            if last != first:
+                per_day[last] += seconds
+    return {day for day, seconds in per_day.items() if seconds >= MIN_WATCHED_SECONDS_PER_DAY}
+
+
+async def load_watch_days(db: AsyncSession, filters: Iterable, zone: tzinfo) -> set[date]:
+    """``watch_days`` of the plays matching ``filters``."""
+    result = await db.execute(select(*WATCH_DAY_COLUMNS).where(*filters))
+    return watch_days(result.all(), zone)

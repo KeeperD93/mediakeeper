@@ -1,13 +1,16 @@
-"""Reading from Emby the position saved for what is playing now."""
+"""Reading from Emby the position saved for what is playing now, and where it saves one."""
+from datetime import timedelta
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import httpx
 import pytest
 
+from services.stats_collector import _resume_zones as zones
 from services.stats_collector._player_reports import (
     StoredPosition,
     fetch_stored_positions,
 )
+from services.stats_collector._resume_zones import ResumeZone, refresh_resume_zones
 from tests._watch_measurement_helpers import T0, TICK, emby_session
 
 pytestmark = pytest.mark.asyncio
@@ -19,7 +22,7 @@ def _client(response: httpx.Response | Exception) -> MagicMock:
     return client
 
 
-def _response(status: int, body: dict) -> httpx.Response:
+def _response(status: int, body: dict | list) -> httpx.Response:
     return httpx.Response(status, json=body, request=httpx.Request("GET", "http://emby.test/Users/EMBY-1/Items"))
 
 
@@ -76,3 +79,44 @@ async def test_a_failed_read_returns_nothing(failure):
 
 async def test_an_item_without_user_data_is_absent():
     assert await _fetch(_client(_response(200, {"Items": [{"Id": "MOVIE-1"}]})), emby_session(at=T0, position_s=60)) == {}
+
+
+def _library(name: str, **options) -> dict:
+    return {"Name": name, "ItemId": f"id-{name}", "LibraryOptions": {"MaxResumePct": 90, **options}}
+
+
+async def _refresh(client: MagicMock, at=T0) -> None:
+    with patch("services.stats_collector._resume_zones.get_internal_client", return_value=client):
+        await refresh_resume_zones("http://emby.test", "k", at)
+
+
+async def test_resume_settings_are_read_per_library():
+    client = _client(_response(200, [
+        _library("Movies", MinResumePct=3, MinResumeDurationSeconds=120),
+        _library("Shows", MinResumePct=5, MinResumeDurationSeconds=300),
+        _library("Home videos"),
+        _library("Clips", MinResumePct=-1, MinResumeDurationSeconds=120),
+    ]))
+    await _refresh(client)
+    assert zones._zones == {"Movies": ResumeZone(3, 120 * TICK), "Shows": ResumeZone(5, 300 * TICK)}
+    assert client.get.await_args.args[0] == "http://emby.test/Library/VirtualFolders"
+
+
+async def test_resume_settings_are_read_at_most_once_per_period():
+    client = _client(_response(200, [_library("Movies", MinResumePct=3, MinResumeDurationSeconds=120)]))
+    for at in (T0, T0 + timedelta(minutes=9), T0 + timedelta(minutes=10)):
+        await _refresh(client, at)
+    assert client.get.await_count == 2
+
+
+@pytest.mark.parametrize("failure", [httpx.ConnectTimeout("too slow"), _response(500, {}), _response(200, {"Items": []})])
+async def test_a_failed_read_keeps_the_resume_settings_read_before(failure):
+    await _refresh(_client(_response(200, [_library("Movies", MinResumePct=3, MinResumeDurationSeconds=120)])))
+    await _refresh(_client(failure), T0 + timedelta(hours=1))
+    assert zones._zones == {"Movies": ResumeZone(3, 120 * TICK)}
+
+
+@pytest.mark.parametrize("runtime_s, start_s", [(6000, 180), (100, None), (0, None)])
+async def test_a_title_shorter_than_the_minimum_is_never_resumed(runtime_s, start_s):
+    start = ResumeZone(3, 120 * TICK).start_ticks(runtime_s * TICK)
+    assert start == (None if start_s is None else start_s * TICK)
