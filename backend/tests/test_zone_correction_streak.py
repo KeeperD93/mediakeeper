@@ -39,7 +39,7 @@ async def test_a_regular_tier_the_start_days_hold_in_the_zone_stays(db_session):
 
 
 @pytest.mark.asyncio
-async def test_the_change_of_rule_alone_changes_no_outcome(db_session, monkeypatch):
+async def test_the_old_rule_gives_the_same_outcome_for_a_launch_alone(db_session, monkeypatch):
     """Judged on the start days alone, as before the days watched, the player keeps the same."""
     await _a_launch_alone_on_the_11th_in_paris(db_session, "regular_1")
     summary = await simulate_zone_correction(db_session)
@@ -59,6 +59,20 @@ async def test_a_regular_tier_neither_rule_holds_in_the_zone_is_taken_back(db_se
     await hold(db_session, alice, "regular_1")
     summary = await simulate_zone_correction(db_session)
     assert [(r["achievement_id"], r["direct"]) for r in summary["removals"]] == [("regular_1", 1)]
+
+
+@pytest.mark.asyncio
+async def test_a_regular_tier_only_the_utc_start_days_gave_is_taken_back(db_session):
+    # Two minutes started on the 11th in UTC, past midnight in Paris: three start days in UTC,
+    # two days watched there, and two days on either rule in Paris.
+    alice = await _alice(db_session)
+    play(db_session, "alice", at(2026, 1, 10, 12), seconds=600)
+    play(db_session, "alice", at(2026, 1, 11, 23, 30), seconds=120)
+    play(db_session, "alice", at(2026, 1, 12, 12), seconds=600)
+    await hold(db_session, alice, "regular_1")
+    summary = await simulate_zone_correction(db_session)
+    assert [(r["achievement_id"], r["direct"]) for r in summary["removals"]] == [("regular_1", 1)]
+    assert summary["kept_nowhere"] == []
 
 
 @pytest.mark.asyncio

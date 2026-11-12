@@ -97,12 +97,12 @@ class Judge:
         if condition == _STREAK:
             if ach.id in START_DAY_STREAKS:
                 return self._streak(ach, side, native, started=True)
-            value = self._streak(ach, side, native, started=False)
-            if side is self._ctx.local:
-                # Regular moved from start days to days watched: a tier either rule holds on the
-                # zone's clock stays, so the change of rule alone never takes one back.
-                value = max(value, self._streak(ach, side, native, started=True))
-            return value
+            # Regular moved from start days to days watched: on each clock a tier either rule
+            # holds is held, so the change of rule alone neither takes one back nor spares one.
+            return max(
+                self._streak(ach, side, native, started=False),
+                self._streak(ach, side, native, started=True),
+            )
 
         plays = self._local_plays(side, native)
         if condition in LOCAL_TIME_RULES:
