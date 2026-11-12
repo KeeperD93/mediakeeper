@@ -63,11 +63,13 @@ async def test_digest_empty_when_no_data(client, db_session):
     dd_svc._digest_cache.clear()
 
     stubs = _stub_all_digest_sources()
-    for s in stubs: s.start()
+    for s in stubs:
+        s.start()
     try:
         resp = await client.get("/api/portal/daily-digest")
     finally:
-        for s in stubs: s.stop()
+        for s in stubs:
+            s.stop()
 
     assert resp.status_code == 200
     data = resp.json()
@@ -84,11 +86,13 @@ async def test_digest_not_empty_when_content(client, db_session):
     stubs = _stub_all_digest_sources()
     # Override streak to 3 consecutive days
     stubs[5] = patch.object(dd_sources, "current_streak", AsyncMock(return_value=3))
-    for s in stubs: s.start()
+    for s in stubs:
+        s.start()
     try:
         resp = await client.get("/api/portal/daily-digest")
     finally:
-        for s in stubs: s.stop()
+        for s in stubs:
+            s.stop()
 
     data = resp.json()
     assert data["digest"]["empty"] is False
@@ -110,11 +114,13 @@ async def test_dismiss_then_get_reports_dismissed(client, db_session):
     assert "portal_daily_digest_dismissed_date" in stored
 
     stubs = _stub_all_digest_sources()
-    for s in stubs: s.start()
+    for s in stubs:
+        s.start()
     try:
         resp = await client.get("/api/portal/daily-digest")
     finally:
-        for s in stubs: s.stop()
+        for s in stubs:
+            s.stop()
 
     assert resp.json()["dismissed"] is True
 
@@ -128,12 +134,14 @@ async def test_cache_hit_avoids_rebuild(client, db_session):
     recent_stub = AsyncMock(return_value=[])
     stubs = _stub_all_digest_sources()
     stubs[0] = patch.object(dd_sources, "recent_adds", recent_stub)
-    for s in stubs: s.start()
+    for s in stubs:
+        s.start()
     try:
         await client.get("/api/portal/daily-digest")
         await client.get("/api/portal/daily-digest")
     finally:
-        for s in stubs: s.stop()
+        for s in stubs:
+            s.stop()
 
     # Aggregator called exactly once across two HTTP calls thanks to cache.
     assert recent_stub.await_count == 1
@@ -148,12 +156,14 @@ async def test_force_bypasses_cache(client, db_session):
     recent_stub = AsyncMock(return_value=[])
     stubs = _stub_all_digest_sources()
     stubs[0] = patch.object(dd_sources, "recent_adds", recent_stub)
-    for s in stubs: s.start()
+    for s in stubs:
+        s.start()
     try:
         await client.get("/api/portal/daily-digest")
         await client.get("/api/portal/daily-digest?force=true")
     finally:
-        for s in stubs: s.stop()
+        for s in stubs:
+            s.stop()
 
     assert recent_stub.await_count == 2
 
