@@ -32,14 +32,14 @@ def _reset_player_reports():
 
 async def test_a_row_ends_at_its_last_real_second_after_thirty_minutes(db_session):
     last, position, position_saved = await play_reporting(db_session, 2000, 25)
-    grant = AsyncMock()
+    closed = AsyncMock()
     for minute in range(1, 40):
         at = last + timedelta(minutes=minute)
-        await poll(db_session, at, emby_session(at=at, position_s=position + 54 * minute), stored=saved(position_saved), grant=grant)
+        await poll(db_session, at, emby_session(at=at, position_s=position + 54 * minute), stored=saved(position_saved), closed=closed)
     (row,) = await rows(db_session)
     assert row.is_active is False and as_utc(row.ended_at) == last
     assert row.watched_seconds == 120
-    grant.assert_awaited_once()
+    closed.assert_awaited_once()
     # Back the next day: a new row, with only what is really played.
     back = last + timedelta(days=1)
     await poll(db_session, back, emby_session(at=back, position_s=5000), stored=saved(4998))

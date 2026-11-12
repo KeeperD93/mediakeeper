@@ -20,9 +20,10 @@ from ._levels import level_bar_percent as level_bar_percent
 from ._levels import level_floor_xp as level_floor_xp
 from ._levels import level_from_xp as level_from_xp
 from ._levels import xp_for_level as xp_for_level
-from ._watch import MIN_WATCH_PERCENT as MIN_WATCH_PERCENT
-from ._watch import WATCH_XP_ITEM_TYPES as WATCH_XP_ITEM_TYPES
-from ._watch import grant_watch_xp as grant_watch_xp
+from ._watch import WatchedTitle as WatchedTitle
+from ._watch import completion_reference as completion_reference
+from ._watch import grant_completion_xp as grant_completion_xp
+from ._watch import watch_xp_eligible as watch_xp_eligible
 
 __all__ = [
     "ACHIEVEMENT_XP_ACTION",
@@ -31,17 +32,18 @@ __all__ = [
     "EARNING_ACCOUNT",
     "MAX_LEVEL",
     "MIN_LEVEL",
-    "MIN_WATCH_PERCENT",
-    "WATCH_XP_ITEM_TYPES",
     "XP_TABLE",
+    "WatchedTitle",
     "account_earns",
     "achievement_xp_reference",
+    "completion_reference",
+    "grant_completion_xp",
     "grant_daily_login_xp",
-    "grant_watch_xp",
     "grant_xp",
     "level_bar_percent",
     "level_floor_xp",
     "level_from_xp",
     "locked_profile",
+    "watch_xp_eligible",
     "xp_for_level",
 ]

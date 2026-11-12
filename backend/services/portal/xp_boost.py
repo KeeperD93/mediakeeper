@@ -1,5 +1,6 @@
 """XP boost event service — load active multipliers and apply to grants."""
 import logging
+from collections.abc import Iterable
 from datetime import datetime, timezone
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -9,29 +10,39 @@ from models.portal.xp_boost import XpBoostEvent
 logger = logging.getLogger("mediakeeper.portal.xp_boost")
 
 
-async def get_active_multiplier(db: AsyncSession, action: str) -> float:
-    """
-    Return the combined XP multiplier currently active for a given action.
-    Multiple overlapping events multiply together.
-    Returns 1.0 when no events are active.
-    """
-    now = datetime.now(timezone.utc)
-    rows = (await db.execute(
-        select(XpBoostEvent).where(
-            XpBoostEvent.enabled == True,  # noqa: E712
-            XpBoostEvent.starts_at <= now,
-            XpBoostEvent.ends_at >= now,
-        )
-    )).scalars().all()
+def multiplier_at(events: Iterable[XpBoostEvent], action: str, at: datetime) -> float:
+    """Combined multiplier of the enabled ``events`` covering ``at`` (aware) for ``action``.
 
+    Overlapping events multiply together; 1.0 when none applies.
+    """
     multiplier = 1.0
-    for ev in rows:
+    for ev in events:
+        if not ev.enabled or not _parse_dt(ev.starts_at) <= at <= _parse_dt(ev.ends_at):
+            continue
         if ev.action_filter:
             allowed = {a.strip() for a in ev.action_filter.split(",") if a.strip()}
             if action not in allowed:
                 continue
         multiplier *= ev.multiplier or 1.0
     return multiplier
+
+
+def boosted_xp(xp: int, multiplier: float) -> int:
+    """``xp`` with a bonus multiplier applied, as every grant writes it."""
+    return round(xp * multiplier) if multiplier != 1.0 else xp
+
+
+async def get_active_multiplier(db: AsyncSession, action: str, at: datetime | None = None) -> float:
+    """Combined multiplier of the events active at ``at`` (aware, now by default) for ``action``."""
+    at = at or datetime.now(timezone.utc)
+    rows = (await db.execute(
+        select(XpBoostEvent).where(
+            XpBoostEvent.enabled == True,  # noqa: E712
+            XpBoostEvent.starts_at <= at,
+            XpBoostEvent.ends_at >= at,
+        )
+    )).scalars().all()
+    return multiplier_at(rows, action, at)
 
 
 async def list_events(db: AsyncSession) -> list[dict]:

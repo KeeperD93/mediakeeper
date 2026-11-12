@@ -2,11 +2,12 @@
 Direct XP grants: who may earn, the ledger and the daily caps.
 
 Direct grants:
-  - watch_movie:          10 XP  (Movie items only, ≥85% runtime, cooldown 24h)
-  - watch_episode:         3 XP  (Episode items only, ≥85% runtime, cooldown 24h)
   - daily_login:           2 XP  (1x per calendar day)
   - request_created:       5 XP  (max 5/day)
   - achievement_unlocked: 20-100 (one-time per achievement, amount = ach.xp_reward)
+
+Watch XP (``watch_movie``, ``watch_episode``) follows the title's runtime and
+is paid when a title counts as watched (``_watch``), through the same ledger write.
 
 Series completion, request approvals, login streaks and event participation
 are rewarded through the achievement system (``completionist_*``,
@@ -39,8 +40,6 @@ DAILY_REQUEST_XP_CAP = 25
 # `achievement_unlocked` is omitted on purpose — its amount is supplied by
 # the caller via ``xp_override`` (each achievement carries its own reward).
 XP_TABLE = {
-    "watch_movie": 10,
-    "watch_episode": 3,
     "daily_login": 2,
     "request_created": 5,
 }
@@ -121,56 +120,51 @@ async def grant_xp(
         return None
 
     # --- Apply active XP boost multipliers (Christmas, Halloween, etc.) ---
-    from services.portal.xp_boost import get_active_multiplier
-    multiplier = await get_active_multiplier(db, action)
-    xp_amount = round(base_xp * multiplier) if multiplier != 1.0 else base_xp
+    from services.portal.xp_boost import boosted_xp, get_active_multiplier
+    xp_amount = boosted_xp(base_xp, await get_active_multiplier(db, action))
 
     # --- Profile first, then the ledger: the caps are read under the lock ---
     profile = await locked_profile(db, user_id)
     if profile is None:  # account deleted since ``account_earns``
         return await _refused(db)
 
-    # No daily cap on watch XP — if someone watches 10h of movies,
-    # they earned it. Anti-abuse is handled by the 85% runtime check
-    # and the 24h cooldown per item in grant_watch_xp().
     if action == "request_created":
         today_start = datetime.now(UTC).replace(hour=0, minute=0, second=0, microsecond=0)
         if await _daily_xp_sum(db, user_id, today_start, ("request_created",)) >= DAILY_REQUEST_XP_CAP:
             return await _refused(db)
 
-    # --- Insert (dedup via unique constraint) ---
+    return await _credit_locked(db, profile, action, reference, xp_amount)
+
+
+async def _credit_locked(
+    db: AsyncSession, profile: UserProfile, action: str, reference: str, xp: int,
+    *, at: datetime | None = None,
+) -> dict | None:
+    """Write one ledger row, dated ``at`` (now by default), add it to the locked
+    ``profile`` and commit. ``None``, committed too, when the same grant exists."""
+    user_id = profile.user_id
+    entry = XpLedger(user_id=user_id, action=action, reference=reference, xp=xp)
+    if at is not None:
+        entry.created_at = at
     # The INSERT runs inside a SAVEPOINT so a duplicate (user_id, action,
     # reference) trips the unique constraint without invalidating the
     # outer transaction — callers keep the work they had pending in the
     # same session.
     try:
         async with db.begin_nested():
-            db.add(XpLedger(
-                user_id=user_id,
-                action=action,
-                reference=reference,
-                xp=xp_amount,
-            ))
+            db.add(entry)
             await db.flush()
     except IntegrityError:
         logger.debug("[XP] duplicate blocked: user=%s action=%s ref=%s", user_id, action, reference)
         return await _refused(db)
 
-    profile.xp = (profile.xp or 0) + xp_amount
-    new_level = level_from_xp(profile.xp)
-    leveled_up = new_level > (profile.level or MIN_LEVEL)
-    profile.level = new_level
+    total = (profile.xp or 0) + xp
+    level = level_from_xp(total)
+    leveled_up = level > (profile.level or MIN_LEVEL)
+    profile.xp, profile.level = total, level
     await db.commit()
-
-    result = {
-        "action": action,
-        "xp": xp_amount,
-        "total_xp": profile.xp,
-        "level": profile.level,
-        "leveled_up": leveled_up,
-    }
-    logger.info("[XP] granted %s XP to user=%s for %s ref=%s", xp_amount, user_id, action, reference)
-    return result
+    logger.info("[XP] granted %s XP to user=%s for %s ref=%s", xp, user_id, action, reference)
+    return {"action": action, "xp": xp, "total_xp": total, "level": level, "leveled_up": leveled_up}
 
 
 async def grant_daily_login_xp(

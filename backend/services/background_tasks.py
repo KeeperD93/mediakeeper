@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import time
 from datetime import datetime, timedelta, timezone
 
 from sqlalchemy import delete, text
@@ -9,7 +10,11 @@ from models.portal.chat import ChatMessage
 from services.logs import fetch_and_store_emby_logs
 from services.scheduler import init_scheduler
 from services.stats import collect_active_sessions, refresh_library_cache
-from services.stats_collector import POLL_INTERVAL_SECONDS
+from services.stats_collector import (
+    POLL_INTERVAL_SECONDS,
+    WATCH_XP_CATCH_UP_SECONDS,
+    catch_up_watch_xp,
+)
 from services.watchlist import engine_ref as wl_engine_ref
 
 logger = logging.getLogger("mediakeeper")
@@ -76,12 +81,20 @@ class BackgroundTaskManager:
 
     async def _periodic_stats_collection(self):
         await asyncio.sleep(10)
+        next_catch_up = 0.0  # at start, then every WATCH_XP_CATCH_UP_SECONDS
         while True:
             try:
                 async with AsyncSession(self._engine, expire_on_commit=False) as session:
                     await collect_active_sessions(session)
             except Exception as e:
                 logger.error("Error collecting stats: %s", e)
+            if time.monotonic() >= next_catch_up:
+                next_catch_up = time.monotonic() + WATCH_XP_CATCH_UP_SECONDS
+                try:
+                    async with AsyncSession(self._engine, expire_on_commit=False) as session:
+                        await catch_up_watch_xp(session)
+                except Exception as e:
+                    logger.error("Error catching up watch XP: %s", e)
             await asyncio.sleep(POLL_INTERVAL_SECONDS)
 
     async def _periodic_library_cache(self):

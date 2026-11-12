@@ -43,12 +43,14 @@ async def _watched_before(db: AsyncSession, row: PlaybackSession, now: datetime)
     return watched or 0, exclusive or 0
 
 
-async def record_completions(db: AsyncSession, rows: list[PlaybackSession], now: datetime) -> int:
-    """Record a completion for each row whose title has just qualified as watched.
+async def record_completions(
+    db: AsyncSession, rows: list[PlaybackSession], now: datetime,
+) -> list[PlaybackCompletion]:
+    """Record and return a completion for each row whose title has just qualified as watched.
 
     Rows must be flushed (``id`` set). A row completes at most once.
     """
-    recorded = 0
+    recorded: list[PlaybackCompletion] = []
     for row in rows:
         if row.completed_at is not None or row.item_type not in WATCH_ITEM_TYPES:
             continue
@@ -61,7 +63,7 @@ async def record_completions(db: AsyncSession, rows: list[PlaybackSession], now:
         if total < runtime * WATCHED_TIME_RATIO:
             continue
         row.completed_at = now
-        db.add(PlaybackCompletion(
+        done = PlaybackCompletion(
             session_id=row.id,
             user_id=row.user_id,
             user_name=row.user_name,
@@ -77,6 +79,7 @@ async def record_completions(db: AsyncSession, rows: list[PlaybackSession], now:
             exclusive_seconds=int((row.exclusive_seconds or 0) + exclusive_before),
             completed_at=now,
             source="live",
-        ))
-        recorded += 1
+        )
+        db.add(done)
+        recorded.append(done)
     return recorded

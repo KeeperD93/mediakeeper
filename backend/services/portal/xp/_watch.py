@@ -1,103 +1,116 @@
 """
-XP for watching a movie or an episode.
+XP for watching a movie or an episode, paid when the title counts as watched.
 
-Anti-abuse:
-  - Watch XP requires ≥85% of runtime AND item type Movie/Episode
-  - Watched duration is clamped to runtime (pauses can't inflate the ratio)
-  - No daily cap on watch XP (if you watch 10h, you earned it)
-  - Cooldown: same item can't grant XP within 24h
+  - 20 XP per hour of the title's runtime, rounded to the nearest, at least 1
+  - only if the user watched at least 75 % of the runtime alone: a second title
+    playing at the same time on the account earns nothing
+  - once per title and account within 24 hours
+  - dated when the title counted as watched, with the bonus events active
+    then; the bonus stays in the amount written
 """
 import logging
+from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 
 from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from models.portal.xp_ledger import XpLedger
-from services.portal._watch_threshold import WATCHED_THRESHOLD
 
-from ._grants import grant_xp
+from ._grants import _credit_locked, _refused, account_earns, locked_profile
 
 logger = logging.getLogger("mediakeeper.portal.xp")
 
-MIN_WATCH_PERCENT = WATCHED_THRESHOLD
-WATCH_XP_ITEM_TYPES = {"Movie", "Episode"}  # Trailers, MusicVideo, LiveTV…
-                                            # are deliberately excluded.
+WATCH_XP_PER_HOUR = 20
+MIN_WATCH_XP = 1
+# Share of the runtime the user must have watched with no other title playing.
+WATCH_XP_EXCLUSIVE_RATIO = 0.75
+WATCH_XP_COOLDOWN = timedelta(hours=24)
+# Trailers, music videos, live TV… earn nothing.
+WATCH_XP_ACTIONS = {"Movie": "watch_movie", "Episode": "watch_episode"}
+_SECONDS_PER_HOUR = 3600
 
 
-async def grant_watch_xp(
-    db: AsyncSession,
-    user_id: int,
-    item_id: str,
-    item_type: str,
-    duration_seconds: int,
-    runtime_ticks: int | None,
-) -> dict | None:
+@dataclass(frozen=True)
+class WatchedTitle:
+    """What watch XP reads from a watched title (``PlaybackCompletion``), as plain
+    values: they outlive a rollback of the session."""
+
+    id: int
+    item_id: str
+    item_type: str
+    runtime_seconds: int
+    exclusive_seconds: int
+    completed_at: datetime
+
+    @classmethod
+    def of(cls, done) -> "WatchedTitle":
+        at = done.completed_at
+        return cls(
+            done.id, done.item_id, done.item_type, done.runtime_seconds, done.exclusive_seconds,
+            at.replace(tzinfo=UTC) if at.tzinfo is None else at,  # SQLite drops the offset
+        )
+
+
+def watch_xp_amount(runtime_seconds: int) -> int:
+    """20 XP per hour of runtime, halves rounded up, at least 1 XP."""
+    # Integer maths: ``round`` goes half to even and would pay 7.5 minutes 2 XP, not 3.
+    rounded = (2 * runtime_seconds * WATCH_XP_PER_HOUR + _SECONDS_PER_HOUR) // (2 * _SECONDS_PER_HOUR)
+    return max(MIN_WATCH_XP, rounded)
+
+
+def watch_action(item_type: str) -> str | None:
+    """The ledger action of a title type; ``None`` for a type that earns nothing."""
+    return WATCH_XP_ACTIONS.get(item_type)
+
+
+def completion_reference(item_id: str, completion_id: int) -> str:
+    """One ledger row per watched title, under a reference that never changes."""
+    return f"{item_id}:c{completion_id}"
+
+
+def watch_xp_eligible(title: WatchedTitle) -> bool:
+    """A movie or an episode watched alone for long enough."""
+    return (
+        watch_action(title.item_type) is not None
+        and title.runtime_seconds > 0
+        and title.exclusive_seconds >= title.runtime_seconds * WATCH_XP_EXCLUSIVE_RATIO
+    )
+
+
+async def grant_completion_xp(db: AsyncSession, user_id: int, title: WatchedTitle) -> dict | None:
+    """Pay ``title``'s watch XP to ``user_id``, dated when it counted as watched.
+
+    ``None`` when nothing is due. Once the profile is locked, every path commits.
     """
-    Grant XP for watching content. A single rule: ≥85% of the item
-    runtime watched, plus a 24h cooldown per item.
-
-    ``runtime_ticks`` is the Emby runtime in 100-nanosecond ticks.
-    If unavailable (live streams, badly tagged items…), XP is skipped —
-    there's no time-based fallback so the rule stays uniform.
-    """
-    if not item_id or not user_id:
+    if not watch_xp_eligible(title) or not await account_earns(db, user_id):
         return None
+    action = watch_action(title.item_type)
+    from services.portal.xp_boost import boosted_xp, get_active_multiplier
+    multiplier = await get_active_multiplier(db, action, title.completed_at)
+    xp = boosted_xp(watch_xp_amount(title.runtime_seconds), multiplier)
 
-    # --- Item type whitelist ---
-    # Without this, trailers, MusicVideo, LiveTV recordings, etc. would
-    # earn ``watch_episode`` XP (3 XP) just for being played to 85%, which
-    # is a trivial farm vector.
-    if item_type not in WATCH_XP_ITEM_TYPES:
-        logger.debug(
-            "[XP] item_type=%r not eligible: "
-            "user=%s item=%s — XP skipped",
-            item_type, user_id, item_id,
-        )
-        return None
+    profile = await locked_profile(db, user_id)
+    if profile is None:  # account deleted since ``account_earns``
+        return await _refused(db)
+    if await _paid_lately(db, user_id, action, title):
+        logger.debug("[XP] watch cooldown: user=%s item=%s", user_id, title.item_id)
+        return await _refused(db)
+    reference = completion_reference(title.item_id, title.id)
+    return await _credit_locked(db, profile, action, reference, xp, at=title.completed_at)
 
-    # --- Minimum watch check (85% of runtime, no fallback) ---
-    if not runtime_ticks or runtime_ticks <= 0:
-        logger.debug(
-            "[XP] no runtime: user=%s item=%s — XP skipped", user_id, item_id
-        )
-        return None
-    runtime_seconds = runtime_ticks / 10_000_000
-    # Clamp the reported duration to the item's runtime: a long pause
-    # inflates ``wall_duration`` (callers pass max(wall, position)) and
-    # would otherwise let someone earn XP without actually watching.
-    effective_duration = min(duration_seconds, runtime_seconds)
-    watch_percent = effective_duration / runtime_seconds
-    if watch_percent < MIN_WATCH_PERCENT:
-        logger.debug(
-            "[XP] watch too short: user=%s item=%s "
-            "%.0f%% < %.0f%%",
-            user_id, item_id, watch_percent * 100, MIN_WATCH_PERCENT * 100,
-        )
-        return None
 
-    # --- 24h cooldown per item ---
-    cutoff = datetime.now(UTC) - timedelta(hours=24)
-    action = "watch_movie" if item_type == "Movie" else "watch_episode"
-    existing = (await db.execute(
+async def _paid_lately(db: AsyncSession, user_id: int, action: str, title: WatchedTitle) -> bool:
+    """A watch row for the same title from 24 hours before it on, without an upper
+    bound: the former rule dated its row when the playback closed, after the end."""
+    return await db.scalar(
         select(XpLedger.id).where(
             XpLedger.user_id == user_id,
             XpLedger.action == action,
             or_(
-                XpLedger.reference == item_id,
-                XpLedger.reference.like(f"{item_id}:%"),
+                XpLedger.reference == title.item_id,
+                XpLedger.reference.startswith(f"{title.item_id}:", autoescape=True),
             ),
-            XpLedger.created_at > cutoff,
-        )
-        .limit(1)
-    )).scalar_one_or_none()
-    if existing:
-        logger.debug("[XP] cooldown active: user=%s item=%s", user_id, item_id)
-        return None
-
-    # Use a time-bucketed reference so the unique constraint allows
-    # the same item after 24h: "item_id:YYYY-MM-DD"
-    today = datetime.now(UTC).strftime("%Y-%m-%d")
-    reference = f"{item_id}:{today}"
-
-    return await grant_xp(db, user_id, action, reference)
+            XpLedger.created_at > title.completed_at - WATCH_XP_COOLDOWN,
+        ).limit(1)
+    ) is not None

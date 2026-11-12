@@ -13,12 +13,12 @@ from models.playback_stats import PlaybackPauseEvent, PlaybackSession
 from services.settings import get_setting
 
 
-async def _load_exclusion_entries(db: AsyncSession) -> list[dict]:
+async def load_exclusion_entries(db: AsyncSession) -> list[dict]:
     """Read and parse the ``stats.exclusions`` setting.
 
-    Centralized so both ``PlaybackSession`` and ``PlaybackPauseEvent``
-    filter helpers stay byte-for-byte aligned with the same source of
-    truth (item-name blacklist edited by admins on the Stats page).
+    Centralized so the ``PlaybackSession`` and ``PlaybackPauseEvent``
+    filter helpers and ``is_excluded`` stay aligned with the same source
+    of truth (item-name blacklist edited by admins on the Stats page).
     """
     raw = await get_setting(db, "stats.exclusions")
     if not raw:
@@ -28,6 +28,21 @@ async def _load_exclusion_entries(db: AsyncSession) -> list[dict]:
     except Exception:
         return []
     return parsed if isinstance(parsed, list) else []
+
+
+def is_excluded(name: str | None, entries: list[dict]) -> bool:
+    """Whether a title name falls under ``entries``, read like the SQL filters below:
+    ``exact`` as is, ``contains`` ignoring case."""
+    if not name:
+        return False
+    for exc in entries:
+        value = exc.get("value", "")
+        if not value:
+            continue
+        mode = exc.get("mode", "exact")
+        if (mode == "exact" and name == value) or (mode == "contains" and value.lower() in name.lower()):
+            return True
+    return False
 
 
 async def get_exclusion_filters(db: AsyncSession) -> list:
@@ -43,7 +58,7 @@ async def get_exclusion_filters(db: AsyncSession) -> list:
         query = select(PlaybackSession).where(*filters, ...)
     """
     conditions = []
-    for exc in await _load_exclusion_entries(db):
+    for exc in await load_exclusion_entries(db):
         mode = exc.get("mode", "exact")
         value = exc.get("value", "")
         if not value:
@@ -64,7 +79,7 @@ async def get_pause_event_exclusion_filters(db: AsyncSession) -> list:
     bathroom-break trophy.
     """
     conditions = []
-    for exc in await _load_exclusion_entries(db):
+    for exc in await load_exclusion_entries(db):
         mode = exc.get("mode", "exact")
         value = exc.get("value", "")
         if not value:
