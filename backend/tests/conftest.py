@@ -186,15 +186,18 @@ def _reset_chat_ws_registries():
 
 
 @pytest.fixture(autouse=True)
-def _reset_resume_zones():
-    """Forget the library resume settings read by the watch-time collector, so
-    the ones a test sets never change how another test measures."""
+def _reset_watch_measurement_memory():
+    """Forget the library resume settings and the saving devices seen by the
+    watch-time collector, so what a test sets never changes how another measures."""
+    from services.stats_collector import _player_reports as _pr
     from services.stats_collector import _resume_zones as _rz
     _rz._zones.clear()
     _rz._read_at = None
+    _pr._saving_devices.clear()
     yield
     _rz._zones.clear()
     _rz._read_at = None
+    _pr._saving_devices.clear()
 
 
 @pytest_asyncio.fixture

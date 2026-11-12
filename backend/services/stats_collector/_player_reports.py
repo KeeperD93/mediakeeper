@@ -51,6 +51,9 @@ class _LastStored:
 # activity rule. Learned again after a restart from the first reports it sees.
 _writers: set[tuple[str, str]] = set()
 _last_stored: dict[str, _LastStored] = {}
+# Devices seen saving their position while playing: before its first save, only
+# such a device is held, a known application may run on players that save nothing.
+_saving_devices: set[str] = set()
 
 
 @dataclass(frozen=True)
@@ -157,7 +160,9 @@ def _moves_like_the_clock(last: _LastStored, ticks: int, now: datetime) -> bool:
     return moved > 0 and abs(moved - (now - last.changed_at).total_seconds()) <= _MAX_CLOCK_GAP_SECONDS
 
 
-def _learn(key: str, client: str, library: str | None, position: int, stored: StoredPosition, now: datetime) -> None:
+def _learn(
+    key: str, client: str, device: str, library: str | None, position: int, stored: StoredPosition, now: datetime,
+) -> None:
     last = _last_stored.get(key)
     if last is None:
         _last_stored[key] = _LastStored(stored.ticks, now)
@@ -170,7 +175,11 @@ def _learn(key: str, client: str, library: str | None, position: int, stored: St
     )
     last.small_steps = last.small_steps + 1 if reported else 0
     last.ticks, last.changed_at = stored.ticks, now
-    if last.small_steps >= _STEPS_TO_TRUST and library and (client, library) not in _writers:
+    if last.small_steps < _STEPS_TO_TRUST:
+        return
+    if device:
+        _saving_devices.add(device)
+    if library and (client, library) not in _writers:
         _writers.add((client, library))
         logger.info("Playback reports confirmed: client %s saves its position in library %s", client, library)
 
@@ -196,6 +205,7 @@ def player_is_lost(
     reference = row or previous_row
     library = reference.library_name if reference else None
     client = session.get("Client", "")
+    device = session.get("DeviceId") or ""
     known = (client, library) in _writers
     position = play_state.get("PositionTicks") or 0
     if stored is None:
@@ -208,10 +218,9 @@ def player_is_lost(
     if stored.ticks > 0:
         lost = known and _runs_from_save(position, stored.ticks, row)
     else:
-        lost = known and not stored.played and _left_unsaved(
-            position, _last_confirmed(row, previous_row, key), item.get("RunTimeTicks") or 0, library,
-        )
-    _learn(key, client, library, position, stored, now)
+        confirmed = _last_confirmed(row, previous_row, key) if device in _saving_devices else None
+        lost = known and not stored.played and _left_unsaved(position, confirmed, item.get("RunTimeTicks") or 0, library)
+    _learn(key, client, device, library, position, stored, now)
     return lost
 
 

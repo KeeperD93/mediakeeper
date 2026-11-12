@@ -71,6 +71,20 @@ async def test_a_player_lost_before_its_first_save_stops_counting_past_it(db_ses
     assert not [c for c in await completions(db_session) if c.item_id == "MOVIE-1"]
 
 
+async def test_a_device_never_seen_saving_keeps_the_previous_rule(db_session):
+    # The application is known from another device; this one, an external player, saves nothing.
+    await known_application(db_session)
+    _library_saves_from(3)
+    runtime, at, position = 1440, T0 + timedelta(hours=1), 5
+    while position <= runtime:
+        session = emby_session(at=at, position_s=position, runtime_s=runtime, session="S-2", device="DEVICE-2")
+        await poll(db_session, at, session, stored=saved(0))
+        at, position = at + STEP, position + 5
+    await poll(db_session, at)
+    (row,) = await _movie_rows(db_session)
+    assert row.watched_seconds == runtime
+
+
 async def test_a_real_playback_from_start_to_end_counts_every_second(db_session):
     await known_application(db_session)
     _library_saves_from(3)

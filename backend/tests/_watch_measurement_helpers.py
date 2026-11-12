@@ -21,13 +21,14 @@ def _emby_date(at: datetime) -> str:
 def emby_session(
     *, at: datetime, position_s: float, paused: bool = False, item: str = "MOVIE-1",
     item_type: str = "Movie", runtime_s: int = 6000, user: str = "EMBY-1",
-    session: str = "S-1", silent_since: datetime | None = None, client: str = "Web",
+    session: str = "S-1", silent_since: datetime | None = None, client: str = "Web", device: str = "DEVICE-1",
 ) -> dict:
     return {
         "Id": session,
         "UserId": user,
         "UserName": "viewer",
         "Client": client,
+        "DeviceId": device,
         "DeviceName": "PC",
         "LastActivityDate": _emby_date(silent_since or at),
         "NowPlayingItem": {
