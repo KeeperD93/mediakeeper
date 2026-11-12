@@ -24,6 +24,7 @@ from services.portal.profile_stats_viewing import (  # noqa: F401
     compute_longest_session,
     compute_media_type_ratio,
 )
+from services.portal.watch_days import load_watch_days
 
 logger = logging.getLogger("mediakeeper.portal.profile_stats")
 
@@ -76,10 +77,9 @@ async def _local_starts(
 async def compute_streak(
     db: AsyncSession, user_filter, excl_filters: list, zone: tzinfo,
 ) -> int:
-    """Consecutive days with at least 1 play, on the calendar of ``zone``."""
+    """Consecutive days with watching in them, on the calendar of ``zone``."""
     try:
-        starts = await _local_starts(db, user_filter, excl_filters, zone)
-        days = {start.date() for start in starts}
+        days = await load_watch_days(db, (user_filter, *excl_filters), zone)
         return current_streak(days, to_local(datetime.now(UTC), zone).date())
     except Exception as e:
         logger.debug("[PROFILE] streak error: %s", e)

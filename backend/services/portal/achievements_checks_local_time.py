@@ -17,6 +17,7 @@ from services.portal.playback_overlap import (
     find_concurrent_other_user_session,
     has_distinct_user_universe,
 )
+from services.portal.watch_days import watch_days
 
 _STREAK = "streak_days"
 _LONELY = "secret_lonely"
@@ -64,7 +65,7 @@ async def check_local_time(
     # Once a zone is chosen, a tier reached by a past run is earned; the others show the run
     # in progress. Before that nothing changes: a tier is final, and these are not its days.
     if _STREAK in by_type:
-        days = {play.at.date() for play in plays}
+        days = watch_days((row.watched_by_hour for row in rows), zone)
         today = to_local(datetime.now(UTC), zone).date()
         current = current_streak(days, today)
         longest = 0

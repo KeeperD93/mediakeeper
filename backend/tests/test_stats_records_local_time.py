@@ -82,6 +82,23 @@ async def test_the_streaks_follow_the_days_of_the_zone(db_session, monkeypatch):
 
 
 @pytest.mark.asyncio
+async def test_a_film_finished_after_midnight_holds_the_streak(db_session, monkeypatch):
+    """The 15th only holds the end of a film started at 23:00 in Paris the day before."""
+    freeze(monkeypatch, utc(2026, 10, 16, 18))
+    play(db_session, utc(2026, 10, 14, 12))
+    play(db_session, utc(2026, 10, 14, 21), exclusive=75 * 60)
+    play(db_session, utc(2026, 10, 16, 12))
+    await db_session.commit()
+    await save_paris(db_session)
+
+    stats = await get_records(db_session)
+
+    assert (stats["current_streak"], stats["longest_streak"]) == (3, 3)
+    # The record day still counts the plays started on it.
+    assert (stats["record_day_date"], stats["record_day_count"]) == ("2026-10-14", 2)
+
+
+@pytest.mark.asyncio
 async def test_today_of_the_streak_follows_the_zone(db_session, monkeypatch):
     """18:00 UTC on the 16th is the 17th in Auckland: its 16th stayed empty, so the run is over."""
     freeze(monkeypatch, utc(2026, 10, 16, 18))

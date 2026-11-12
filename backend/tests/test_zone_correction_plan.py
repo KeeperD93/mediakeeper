@@ -126,6 +126,20 @@ async def test_a_trophy_met_on_neither_clock_stays_and_is_counted(db_session):
 
 
 @pytest.mark.asyncio
+async def test_a_day_streak_counts_the_watched_hours_on_both_clocks(db_session):
+    # Paris is UTC+1: the first film runs until 00:30 on the 11th there, the second starts on the 12th.
+    await seed_achievements(db_session)
+    await save_zone(db_session)
+    alice = await player(db_session, "alice")
+    play(db_session, "alice", at(2026, 1, 10, 22, 30), seconds=3600)
+    play(db_session, "alice", at(2026, 1, 11, 23, 30))
+    play(db_session, "alice", at(2026, 1, 12, 12))
+    await hold(db_session, alice, "regular_1")
+    summary = await simulate_zone_correction(db_session)
+    assert summary["removals"] == [] and summary["kept_nowhere"] == []
+
+
+@pytest.mark.asyncio
 async def test_a_trophy_handed_out_by_an_admin_stays_and_is_counted(db_session):
     alice = await _alice_with_dawn(db_session)
     db_session.add(AdminAuditLog(

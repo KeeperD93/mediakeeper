@@ -9,7 +9,7 @@ import re
 from collections import Counter
 from datetime import datetime, timedelta, timezone
 
-from constants.playback import TICKS_PER_SECOND, WATCH_ITEM_TYPES
+from constants.playback import TICKS_PER_SECOND, WATCH_HOUR_KEY_FORMAT, WATCH_ITEM_TYPES
 
 # Delay between two polls: the precision of every measured session.
 POLL_INTERVAL_SECONDS = 5
@@ -131,7 +131,7 @@ def add_to_hour(buckets: dict | None, at: datetime, seconds: int) -> dict | None
     if seconds <= 0:
         return buckets
     updated = dict(buckets or {})  # a new object so the JSON column is flagged dirty
-    key = as_utc(at).strftime("%Y-%m-%dT%H")
+    key = as_utc(at).strftime(WATCH_HOUR_KEY_FORMAT)
     updated[key] = updated.get(key, 0) + seconds
     return updated
 
@@ -144,7 +144,7 @@ def spread_over_hours(start: datetime, seconds: int) -> dict[str, int]:
     while left > 0:
         next_hour = cursor.replace(minute=0, second=0, microsecond=0) + timedelta(hours=1)
         chunk = min(left, int((next_hour - cursor).total_seconds()) or 1)
-        key = cursor.strftime("%Y-%m-%dT%H")
+        key = cursor.strftime(WATCH_HOUR_KEY_FORMAT)
         buckets[key] = buckets.get(key, 0) + chunk
         left -= chunk
         cursor = next_hour

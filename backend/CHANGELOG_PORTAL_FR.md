@@ -16,6 +16,9 @@ utilisateurs.
 
 ## [Unreleased]
 
+### Changed
+- Jours d'affilée et trophée Régulier — tout jour avec du visionnage compte, après minuit compris ; musique exclue.
+
 ### Fixed
 - Notifications — barre à la bonne durée, message entier sur petits téléphones.
 - Problèmes — dates du ticket : deux-points à la bonne place en français et en anglais.

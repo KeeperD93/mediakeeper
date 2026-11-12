@@ -18,6 +18,7 @@ from services.portal.achievements import check_all_achievements, seed_achievemen
 from services.portal.achievements_checks_local_time import LOCAL_TIME_CONDITIONS
 from services.portal.achievements_validation import KNOWN_CONDITION_TYPES
 from services.settings import set_setting
+from services.stats_collector._measure import spread_over_hours
 
 
 def _at(*parts: int) -> datetime:
@@ -56,6 +57,7 @@ def _session(db, started: datetime, *, user: str = "alice", item: str = "item-1"
         ended_at=fields.pop("ended_at", started + timedelta(seconds=seconds)),
         measured=True,
         exclusive_seconds=seconds,
+        watched_by_hour=spread_over_hours(started, seconds),
         **fields,
     ))
 

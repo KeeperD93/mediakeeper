@@ -12,6 +12,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 
 ### Changed
 - Tableau de bord — widget du classement aligné sur la page Classement.
+- Statistiques et trophée Régulier — tout jour avec du visionnage compte, après minuit compris ; musique exclue.
 
 ### Fixed
 - Notifications — en-tête au nom de la page, barre à la bonne durée, message entier sur petits téléphones.

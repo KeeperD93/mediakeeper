@@ -5,6 +5,7 @@ from models.playback_stats import PlaybackSession
 from services.instance_time import INSTANCE_TIMEZONE_KEY
 from services.settings import set_setting
 from services.stats_aggregator import charts, profile, records
+from services.stats_collector._measure import spread_over_hours
 
 SECOND_IN_TICKS = 10_000_000
 
@@ -40,6 +41,7 @@ def play(
         ended_at=started + timedelta(minutes=1),
         watched_seconds=watched,
         exclusive_seconds=exclusive,
+        watched_by_hour=spread_over_hours(started, exclusive),
     ))
 
 

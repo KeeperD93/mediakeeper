@@ -8,6 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from models.playback_stats import PlaybackSession
 from services.instance_time import get_instance_zone, to_local
 from services.portal.play_streak import current_streak, longest_streak, most_played
+from services.portal.watch_days import load_watch_days
 
 from ._helpers import _apply_filters
 from .exclusions import _get_exclusion_filters
@@ -26,6 +27,7 @@ async def get_records(db: AsyncSession):
     record_day = most_played(plays_per_day) if plays_per_day else None
     peak_hour = most_played(plays_per_hour) if plays_per_hour else None
     today = to_local(datetime.now(UTC), zone).date()
+    watched_days = await load_watch_days(db, exc_filters, zone)
 
     # Top user percentage
     top_user_q = select(
@@ -49,8 +51,8 @@ async def get_records(db: AsyncSession):
     return {
         "record_day_date": record_day.isoformat() if record_day else None,
         "record_day_count": plays_per_day[record_day],
-        "current_streak": current_streak(plays_per_day, today),
-        "longest_streak": longest_streak(plays_per_day),
+        "current_streak": current_streak(watched_days, today),
+        "longest_streak": longest_streak(watched_days),
         "top_user_name": top_user_name,
         "top_user_pct": top_user_pct,
         "peak_hour": peak_hour,

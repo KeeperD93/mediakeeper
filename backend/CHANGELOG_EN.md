@@ -12,6 +12,7 @@ This section intentionally has no date so it is not shown to users.
 
 ### Changed
 - Dashboard — leaderboard widget matches the Leaderboard page.
+- Statistics and Regular trophy — any day with watching counts, past midnight included; music left out.
 
 ### Fixed
 - Notifications — header names the page, bar lasts as long as the message, full message on small phones.

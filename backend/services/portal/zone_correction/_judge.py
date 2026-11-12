@@ -24,6 +24,7 @@ from services.portal.playback_algorithms import (
     all_night_chain_in,
     holds_12_consecutive_top1_months,
 )
+from services.portal.watch_days import watch_days
 
 from ._context import AchievementInfo, Context, Side, is_imported
 
@@ -55,13 +56,14 @@ class Judge:
         self._plays = plays
         self._local: dict[tuple[int, bool], list[LocalPlay]] = {}
 
+    def _rows(self, native: bool) -> list[PlaybackSession]:
+        rows = self._plays.rows
+        return [row for row in rows if not is_imported(row.session_key)] if native else rows
+
     def _local_plays(self, side: Side, native: bool) -> list[LocalPlay]:
         key = (id(side), native)
         if key not in self._local:
-            rows = self._plays.rows
-            if native:
-                rows = [row for row in rows if not is_imported(row.session_key)]
-            self._local[key] = local_plays(rows, side.zone)
+            self._local[key] = local_plays(self._rows(native), side.zone)
         return self._local[key]
 
     async def value(self, ach: AchievementInfo, side: Side, *, native: bool = False) -> int:
@@ -78,15 +80,15 @@ class Judge:
         if condition == _ALLNIGHT:
             spans = self._plays.native_spans if native else self._plays.spans
             return int(all_night_chain_in(spans, side.zone))
+        if condition == _STREAK:
+            days = watch_days((row.watched_by_hour for row in self._rows(native)), side.zone)
+            today = to_local(datetime.now(UTC), side.zone).date()
+            longest = longest_streak(day for day in days if day <= today)
+            return longest if longest >= ach.threshold else current_streak(days, today)
 
         plays = self._local_plays(side, native)
         if condition in LOCAL_TIME_RULES:
             return LOCAL_TIME_RULES[condition](plays)
         if condition == _LONELY:
             return int(await _is_lonely(self._db, new_year_rows(plays)))
-        if condition == _STREAK:
-            days = {play.at.date() for play in plays}
-            today = to_local(datetime.now(UTC), side.zone).date()
-            longest = longest_streak(day for day in days if day <= today)
-            return longest if longest >= ach.threshold else current_streak(days, today)
         raise ValueError(f"not a trophy of the hour: {condition}")
