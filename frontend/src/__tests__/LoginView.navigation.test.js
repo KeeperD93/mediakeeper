@@ -173,6 +173,41 @@ describe('LoginView — leaving the page after a sign-in', () => {
     expect(router.currentRoute.value.name).toBe('portal')
   })
 
+  it('keeps the button busy when a newer navigation takes over and leaves', async () => {
+    const letPortalThrough = holdRoute('portal')
+    loginMock.mockResolvedValue(MEMBER)
+    await signInPage()
+    await submit()
+
+    const letHomeThrough = holdRoute('home')
+    router.replace('/')
+    letPortalThrough()
+    await flushPromises()
+    expect(router.currentRoute.value.name).toBe('login')
+    expect(button().attributes('disabled')).toBeDefined()
+    vi.setSystemTime(Date.now() + PAUSE_OVER)
+    await submit()
+    expect(loginMock).toHaveBeenCalledTimes(1)
+
+    letHomeThrough()
+    await flushPromises()
+    expect(router.currentRoute.value.name).toBe('home')
+  })
+
+  it('frees the button when a newer navigation takes over and lands back here', async () => {
+    const letPortalThrough = holdRoute('portal')
+    loginMock.mockResolvedValue(MEMBER)
+    await signInPage()
+    await submit()
+
+    await router.replace({ name: 'login', hash: '#main-content' })
+    letPortalThrough()
+    await flushPromises()
+
+    expect(router.currentRoute.value.name).toBe('login')
+    expect(button().attributes('disabled')).toBeUndefined()
+  })
+
   it.each([
     ['an admin', ADMIN, 'http://localhost/'],
     [

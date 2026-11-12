@@ -166,7 +166,7 @@
 
 <script setup>
 import { computed, ref, onMounted, onUnmounted, useId } from 'vue'
-import { useRouter } from 'vue-router'
+import { NavigationFailureType, isNavigationFailure, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useAuth } from '@/composables/useAuth'
 import { signInErrorMessage } from '@/composables/signInErrors'
@@ -289,10 +289,14 @@ async function doLogin() {
 
     target = targetAfterSignIn(data)
     // The button stays busy while the page is left: a press during that navigation
-    // would sign in a second time.
+    // would sign in a second time. Only a navigation that ends back here frees it.
+    const stopWatching = router.afterEach((to, from, failure) => {
+      // Cancelled: a newer navigation took over, and its own end decides.
+      if (isNavigationFailure(failure, NavigationFailureType.cancelled)) return
+      stopWatching()
+      if (router.currentRoute.value.name === 'login') submitting.value = false
+    })
     await router.push(target)
-    // A navigation that failed or was sent back here leaves the page in place.
-    if (router.currentRoute.value.name === 'login') submitting.value = false
   } catch (e) {
     console.error('[LoginView.doLogin]', e)
     if (target) {
