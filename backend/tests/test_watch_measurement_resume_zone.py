@@ -1,5 +1,6 @@
 """A saved position still at 0 where Emby would already have saved one: the player is gone."""
 from datetime import timedelta
+from types import SimpleNamespace
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import httpx
@@ -7,6 +8,7 @@ import pytest
 
 from services.stats_collector import _player_reports as reports
 from services.stats_collector import _resume_zones as zones
+from services.stats_collector._player_reports import StoredPosition
 from tests._watch_measurement_helpers import (
     STEP,
     T0,
@@ -175,6 +177,16 @@ async def test_a_new_playback_on_the_same_session_is_not_held_by_an_old_row(db_s
         kept = 0 if i == 0 else position - position % 10
         await poll(db_session, at, emby_session(at=at, position_s=position, runtime_s=2700), stored=saved(kept))
     assert [r.watched_seconds for r in await _movie_rows(db_session)] == [20, 35]
+
+
+async def test_a_closed_row_without_its_last_second_proves_nothing():
+    reports._writers.add(("Web", "Films"))
+    reports._saving_devices.add("DEVICE-1")
+    _library_saves_from(3)
+    reports._last_stored["k"] = reports._LastStored(0, T0)
+    closed = SimpleNamespace(library_name="Films", last_seen_at=None, position_ticks=60 * TICK)
+    session = emby_session(at=T0 + MIN, position_s=900, runtime_s=1440)
+    assert reports.player_is_lost(session, "k", None, closed, StoredPosition(0, False), T0 + MIN) is False
 
 
 async def test_library_settings_are_read_when_a_saved_position_was(db_session):

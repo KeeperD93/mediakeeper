@@ -135,7 +135,8 @@ def _last_confirmed(row: PlaybackSession | None, previous_row: PlaybackSession |
     if row is not None:
         return row.position_ticks or 0
     last = _last_stored.get(key)
-    if previous_row is None or last is None or last.ticks or last.changed_at > as_utc(previous_row.last_seen_at):
+    seen = as_utc(previous_row.last_seen_at) if previous_row is not None else None
+    if seen is None or last is None or last.ticks or last.changed_at > seen:
         return None
     return previous_row.position_ticks or 0
 
