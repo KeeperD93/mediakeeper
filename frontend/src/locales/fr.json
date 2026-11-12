@@ -370,6 +370,7 @@
       "tags": "Étiquettes",
       "anonymous": "Envoyer de façon anonyme",
       "budget": "{used} / {max} caractères",
+      "tooLong": "Signalement trop long : {used} / {max} caractères au total. Raccourcissez un champ.",
       "submit": "Envoyer",
       "reset": "Réinitialiser",
       "moderate": "Voir les remontées en attente",

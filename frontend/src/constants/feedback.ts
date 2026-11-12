@@ -27,9 +27,9 @@ export const FEEDBACK_TAGS = Object.freeze([
 ] as const)
 export type FeedbackTag = (typeof FEEDBACK_TAGS)[number]
 
-// Discord caps a webhook message at 2000 chars; the live counter keeps the
-// whole block (delimiters + labels + meta + fields) under this, mirroring the
-// backend guard in services/feedback.py.
+// Discord caps a webhook message at 2000 chars; the form keeps the whole block
+// (delimiters + labels + meta + fields) under this, mirroring the backend guard
+// in services/feedback.py.
 export const FEEDBACK_MAX_CHARS = 2000
 
 // Per-field input caps — mirror backend/constants/feedback.py (must stay <= the

@@ -200,19 +200,32 @@ describe('FeedbackModal — sending', () => {
     expect(h.apiPost.mock.calls[0][1].platform).toBe('mobile')
   })
 
-  it('counts the report against the Discord budget and blocks an oversized one', async () => {
+  it('counts the description against the same limit as its field', async () => {
     const w = await openModal()
-    const budget = () => w.find('.fbk-budget')
-    // Fixed block (170) + zone and module of Statistiques + the tab label (t() returns
-    // keys in these tests, so "stats.users"); no resolution under jsdom.
-    expect(budget().text()).toContain('"used":224')
-    await w.findAll('.fbk-chips')[1].find('.fbk-chip').trigger('click')
-    expect(budget().text()).toContain('"used":230')
+    const field = w.findAll('textarea')[0]
+    const counter = w.find(`[id="${field.attributes('aria-describedby')}"]`)
+    expect(field.attributes('maxlength')).toBe(String(FEEDBACK_MAX.description))
+    expect(counter.text()).toContain(`"used":0,"max":${FEEDBACK_MAX.description}`)
 
+    await field.setValue('x'.repeat(FEEDBACK_MAX.description))
+    const full = FEEDBACK_MAX.description
+    expect(counter.text()).toContain(`"used":${full},"max":${full}`)
+    // Under the Discord cap, the whole-message total stays out of sight.
+    expect(w.findAll('.fbk-budget')).toHaveLength(1)
+  })
+
+  it('blocks a report over the Discord cap and says why', async () => {
+    const w = await openModal()
+    await w.findAll('.fbk-chips')[1].find('.fbk-chip').trigger('click') // "urgent" tag
     await titleInput(w).setValue('Sample title')
     await w.findAll('textarea')[0].setValue('x'.repeat(FEEDBACK_MAX.description))
     await w.findAll('textarea')[1].setValue('x'.repeat(FEEDBACK_MAX.reproduction))
-    expect(budget().classes()).toContain('over')
+
+    // Fixed block (170) + zone and module of Statistiques + the tab label (t() returns
+    // keys in these tests, so "stats.users") + the tag + title, description, reproduction.
+    const over = w.find('.fbk-budget.over')
+    expect(over.text()).toContain('feedback.modal.tooLong')
+    expect(over.text()).toContain('"used":2242,"max":2000')
     expect(w.find('button[type="submit"]').attributes('disabled')).toBeDefined()
   })
 

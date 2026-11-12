@@ -6,6 +6,7 @@ import { useToast } from '@/composables/useToast'
 import { TOAST_TYPE } from '@/constants/toast'
 import { SIDEBAR_SUB_TABS } from '@/constants/sidebarSubTabs'
 import {
+  FEEDBACK_MAX,
   FEEDBACK_MAX_CHARS,
   FEEDBACK_PAGES,
   FEEDBACK_PLATFORMS,
@@ -16,7 +17,7 @@ import {
 import { locationFromRoute } from '@/utils/feedbackLocation'
 
 // Roughly the fixed block overhead (delimiters + labels + meta line) so the
-// counter stays conservative vs the backend's 2000-char truncation.
+// whole-message total stays conservative vs the backend's 2000-char truncation.
 const OVERHEAD = 170
 
 function detectResolution() {
@@ -86,6 +87,12 @@ export function useFeedbackForm({ endpoint, showLocation }) {
       tabLabel.value.length +
       [...selectedTags.value].join(', ').length,
   )
+  // Shown under the description: the field's own limit, the one its maxlength
+  // enforces. The whole-message total above only shows past the Discord cap.
+  const descriptionCount = computed(() => ({
+    used: description.value.length,
+    max: FEEDBACK_MAX.description,
+  }))
   const canSubmit = computed(
     () => !!title.value.trim() && !!description.value.trim() && used.value <= FEEDBACK_MAX_CHARS,
   )
@@ -195,6 +202,7 @@ export function useFeedbackForm({ endpoint, showLocation }) {
     busy,
     tabOptions,
     used,
+    descriptionCount,
     canSubmit,
     canUseCurrentPage,
     toggleTag,
