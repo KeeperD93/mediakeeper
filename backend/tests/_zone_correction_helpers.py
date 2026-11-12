@@ -14,7 +14,7 @@ from services.portal.admin_users_constants import ACTION_SYSTEM_TIMEZONE_CHANGED
 from services.portal.xp import ACHIEVEMENT_XP_ACTION, achievement_xp_reference
 from services.portal.zone_correction import _context
 from services.settings import set_setting
-from services.stats_collector._measure import spread_over_hours
+from services.watch_hours import spread_over_hours
 from tests._portal_profile_helpers import PORTAL_COOKIE, make_portal_user, portal_token
 
 SIMULATE = "/api/portal/admin/debug/zone-correction/simulate"

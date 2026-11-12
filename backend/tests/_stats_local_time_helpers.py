@@ -5,7 +5,7 @@ from models.playback_stats import PlaybackSession
 from services.instance_time import INSTANCE_TIMEZONE_KEY
 from services.settings import set_setting
 from services.stats_aggregator import charts, profile, records
-from services.stats_collector._measure import spread_over_hours
+from services.watch_hours import spread_over_hours
 
 SECOND_IN_TICKS = 10_000_000
 

@@ -14,7 +14,7 @@ from services.instance_time import INSTANCE_TIMEZONE_KEY
 from services.portal import achievements_checks_local_time
 from services.portal.achievements import check_all_achievements, seed_achievements
 from services.settings import set_setting
-from services.stats_collector._measure import spread_over_hours
+from services.watch_hours import spread_over_hours
 
 
 def _at(*parts: int) -> datetime:
@@ -40,7 +40,7 @@ async def _viewer(db, username: str = "alice") -> User:
 
 
 def _session(db, started: datetime, *, user: str = "alice", item: str = "item-1", **fields) -> None:
-    seconds = fields.pop("seconds", 60)
+    seconds = fields.pop("seconds", 10 * 60)
     item_type = fields.pop("item_type", "Movie")
     db.add(PlaybackSession(
         session_key=f"{user}-{item}-{started.timestamp()}",
@@ -230,8 +230,8 @@ async def test_music_fills_no_day_and_a_tier_won_stays(db_session, monkeypatch):
         unlocked_at=_at(2026, 9, 1), notified=True,
     ))
     now = _at(2026, 10, 16, 18)
-    for day in range(3):
-        _session(db_session, now - timedelta(days=day), item=f"song-{day}", item_type="Audio")
+    for day, item_type in enumerate(("Audio", "Audio", "AudioBook")):
+        _session(db_session, now - timedelta(days=day), item=f"track-{day}", item_type=item_type, seconds=3600)
     await db_session.commit()
     _freeze(monkeypatch, achievements_checks_local_time, now)
 
@@ -239,6 +239,25 @@ async def test_music_fills_no_day_and_a_tier_won_stays(db_session, monkeypatch):
 
     assert await _unlocked(db_session, alice, "regular_1")
     assert (await _progress(db_session, alice, "regular_2")).progress == 0
+
+
+@pytest.mark.asyncio
+async def test_faithful_keeps_counting_the_days_a_play_started_on(db_session, monkeypatch):
+    """A minute a day: no day of Regular, three of Faithful, whose own rule is yet to come."""
+    alice = await _viewer(db_session)
+    await seed_achievements(db_session)
+    await set_setting(db_session, INSTANCE_TIMEZONE_KEY, "Europe/Paris")
+    now = _at(2026, 10, 16, 18)
+    for day in range(3):
+        _session(db_session, now - timedelta(days=day), seconds=60)
+    await db_session.commit()
+    _freeze(monkeypatch, achievements_checks_local_time, now)
+
+    await check_all_achievements(db_session, alice.id)
+
+    regular = await _progress(db_session, alice, "regular_1")
+    assert (regular.unlocked, regular.progress) == (False, 0)
+    assert (await _progress(db_session, alice, "secret_dedication")).progress == 3
 
 
 @pytest.mark.asyncio

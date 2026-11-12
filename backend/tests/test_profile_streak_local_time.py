@@ -13,7 +13,7 @@ from services.instance_time import INSTANCE_TIMEZONE_KEY
 from services.portal import daily_digest_sources, profile_stats, profile_stats_playback
 from services.portal.play_streak import current_streak, longest_streak
 from services.settings import set_setting
-from services.stats_collector._measure import spread_over_hours
+from services.watch_hours import spread_over_hours
 
 PARIS = ZoneInfo("Europe/Paris")
 NOW = datetime(2026, 10, 16, 18, tzinfo=UTC)
@@ -38,7 +38,7 @@ async def _viewer(db) -> tuple[User, UserProfile]:
     return user, profile
 
 
-def _session(db, started: datetime, seconds: int = 60) -> None:
+def _session(db, started: datetime, seconds: int = 10 * 60) -> None:
     db.add(PlaybackSession(
         session_key=f"alice-{started.timestamp()}",
         user_id="emby-alice",

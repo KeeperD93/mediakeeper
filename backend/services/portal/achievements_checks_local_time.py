@@ -22,6 +22,8 @@ from services.portal.watch_days import watch_days
 _STREAK = "streak_days"
 _LONELY = "secret_lonely"
 LOCAL_TIME_CONDITIONS = (*LOCAL_TIME_RULES, _STREAK, _LONELY)
+# Faithful still counts the days a play started on, until its own rule comes.
+START_DAY_STREAKS = frozenset({"secret_dedication"})
 
 
 async def _is_lonely(db: AsyncSession, rows: list[PlaybackSession]) -> bool:
@@ -65,13 +67,13 @@ async def check_local_time(
     # Once a zone is chosen, a tier reached by a past run is earned; the others show the run
     # in progress. Before that nothing changes: a tier is final, and these are not its days.
     if _STREAK in by_type:
-        days = watch_days((row.watched_by_hour for row in rows), zone)
         today = to_local(datetime.now(UTC), zone).date()
-        current = current_streak(days, today)
-        longest = 0
-        if zone_is_chosen(zone):
-            longest = longest_streak(day for day in days if day <= today)
+        started = {play.at.date() for play in plays}
+        watched = watch_days(rows, zone)
         for ach in by_type[_STREAK]:
+            days = started if ach.id in START_DAY_STREAKS else watched
+            current = current_streak(days, today)
+            longest = longest_streak(day for day in days if day <= today) if zone_is_chosen(zone) else 0
             await _apply(ach, longest if longest >= ach.threshold else current)
 
     if _LONELY in by_type:

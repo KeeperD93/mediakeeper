@@ -11,6 +11,9 @@ TICKS_PER_SECOND = 10_000_000
 # their per-title time but never count as the user's watching.
 WATCH_ITEM_TYPES = frozenset({"Movie", "Episode"})
 
+# Listened to, not watched: these never fill a day of watching.
+AUDIO_ITEM_TYPES = frozenset({"Audio", "AudioBook"})
+
 # Keys of a play's ``watched_by_hour``: the UTC hour its seconds were watched in.
 WATCH_HOUR_KEY_FORMAT = "%Y-%m-%dT%H"
 

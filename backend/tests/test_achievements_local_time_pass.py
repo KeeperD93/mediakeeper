@@ -18,7 +18,7 @@ from services.portal.achievements import check_all_achievements, seed_achievemen
 from services.portal.achievements_checks_local_time import LOCAL_TIME_CONDITIONS
 from services.portal.achievements_validation import KNOWN_CONDITION_TYPES
 from services.settings import set_setting
-from services.stats_collector._measure import spread_over_hours
+from services.watch_hours import spread_over_hours
 
 
 def _at(*parts: int) -> datetime:

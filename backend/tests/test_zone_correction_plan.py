@@ -1,5 +1,5 @@
 """What the correction would take back: the trophies the UTC clock gave, and only those."""
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import pytest
 
@@ -132,9 +132,22 @@ async def test_a_day_streak_counts_the_watched_hours_on_both_clocks(db_session):
     await save_zone(db_session)
     alice = await player(db_session, "alice")
     play(db_session, "alice", at(2026, 1, 10, 22, 30), seconds=3600)
-    play(db_session, "alice", at(2026, 1, 11, 23, 30))
-    play(db_session, "alice", at(2026, 1, 12, 12))
+    play(db_session, "alice", at(2026, 1, 11, 23, 30), seconds=600)
+    play(db_session, "alice", at(2026, 1, 12, 12), seconds=600)
     await hold(db_session, alice, "regular_1")
+    summary = await simulate_zone_correction(db_session)
+    assert summary["removals"] == [] and summary["kept_nowhere"] == []
+
+
+@pytest.mark.asyncio
+async def test_faithful_is_judged_on_the_days_a_play_started_on(db_session):
+    # A minute at noon every day of 2025: a run on both clocks, though never five minutes a day.
+    await seed_achievements(db_session)
+    await save_zone(db_session)
+    alice = await player(db_session, "alice")
+    for day in range(365):
+        play(db_session, "alice", at(2025, 1, 1, 12) + timedelta(days=day))
+    await hold(db_session, alice, "secret_dedication")
     summary = await simulate_zone_correction(db_session)
     assert summary["removals"] == [] and summary["kept_nowhere"] == []
 

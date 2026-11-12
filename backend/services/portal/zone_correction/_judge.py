@@ -10,7 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from models.playback_stats import PlaybackSession
 from services.instance_time import to_local
-from services.portal.achievements_checks_local_time import _is_lonely
+from services.portal.achievements_checks_local_time import START_DAY_STREAKS, _is_lonely
 from services.portal.achievements_checks_progression import COMPETITOR_POSITIONS
 from services.portal.achievements_local_time import (
     LOCAL_TIME_RULES,
@@ -81,7 +81,10 @@ class Judge:
             spans = self._plays.native_spans if native else self._plays.spans
             return int(all_night_chain_in(spans, side.zone))
         if condition == _STREAK:
-            days = watch_days((row.watched_by_hour for row in self._rows(native)), side.zone)
+            if ach.id in START_DAY_STREAKS:
+                days = {play.at.date() for play in self._local_plays(side, native)}
+            else:
+                days = watch_days(self._rows(native), side.zone)
             today = to_local(datetime.now(UTC), side.zone).date()
             longest = longest_streak(day for day in days if day <= today)
             return longest if longest >= ach.threshold else current_streak(days, today)
