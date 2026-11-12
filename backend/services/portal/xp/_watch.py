@@ -29,6 +29,8 @@ WATCH_XP_COOLDOWN = timedelta(hours=24)
 # Trailers, music videos, live TV… earn nothing.
 WATCH_XP_ACTIONS = {"Movie": "watch_movie", "Episode": "watch_episode"}
 _SECONDS_PER_HOUR = 3600
+# Between the item and the watched title's id in a reference; the former rule put a date there.
+_COMPLETION_MARK = ":c"
 
 
 @dataclass(frozen=True)
@@ -66,7 +68,7 @@ def watch_action(item_type: str) -> str | None:
 
 def completion_reference(item_id: str, completion_id: int) -> str:
     """One ledger row per watched title, under a reference that never changes."""
-    return f"{item_id}:c{completion_id}"
+    return f"{item_id}{_COMPLETION_MARK}{completion_id}"
 
 
 def watch_xp_eligible(title: WatchedTitle) -> bool:
@@ -101,8 +103,10 @@ async def grant_completion_xp(db: AsyncSession, user_id: int, title: WatchedTitl
 
 
 async def _paid_lately(db: AsyncSession, user_id: int, action: str, title: WatchedTitle) -> bool:
-    """A watch row for the same title from 24 hours before it on, without an upper
-    bound: the former rule dated its row when the playback closed, after the end."""
+    """A watch row for the same title within 24 hours of it, before or after: a
+    title caught up late still pays next to a later viewing. A row of the former
+    rule has no upper bound: it was dated when the playback closed, after the end."""
+    this_rule = XpLedger.reference.startswith(f"{title.item_id}{_COMPLETION_MARK}", autoescape=True)
     return await db.scalar(
         select(XpLedger.id).where(
             XpLedger.user_id == user_id,
@@ -112,5 +116,6 @@ async def _paid_lately(db: AsyncSession, user_id: int, action: str, title: Watch
                 XpLedger.reference.startswith(f"{title.item_id}:", autoescape=True),
             ),
             XpLedger.created_at > title.completed_at - WATCH_XP_COOLDOWN,
+            or_(~this_rule, XpLedger.created_at < title.completed_at + WATCH_XP_COOLDOWN),
         ).limit(1)
     ) is not None

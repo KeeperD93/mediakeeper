@@ -11,6 +11,7 @@ from sqlalchemy import select
 from models.portal.xp_ledger import XpLedger
 from services.background_tasks import BackgroundTaskManager
 from services.stats_collector import WATCH_XP_CATCH_UP_SECONDS, catch_up_watch_xp
+from services.stats_collector.collect import pay_watch_xp
 from tests._watch_xp_helpers import account, watch_rows, watched
 
 NOW = datetime(2026, 3, 10, 12, 0, tzinfo=UTC)
@@ -41,6 +42,35 @@ async def test_a_title_paid_when_its_playback_closed_is_not_paid_again(db_sessio
     assert await catch_up_watch_xp(db_session, NOW) == 0
 
     assert await watch_rows(db_session) == [("watch_movie", "MOVIE-1:2026-03-10", 10)]
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(("later", "caught"), [(20, 0), (30, 1)])
+async def test_a_later_viewing_paid_first_blocks_a_caught_up_title_within_24_hours_only(db_session, later, caught):
+    await account(db_session)
+    first = await watched(db_session, at=NOW - timedelta(hours=40))
+    again = await watched(db_session, at=NOW - timedelta(hours=40 - later))
+    assert await pay_watch_xp(db_session, [again]) == 1  # paid live, before the first one was caught up
+
+    assert await catch_up_watch_xp(db_session, NOW) == caught
+
+    assert {reference for _, reference, _ in await watch_rows(db_session)} == {
+        f"MOVIE-1:c{done}" for done in ([again, first] if caught else [again])
+    }
+
+
+@pytest.mark.asyncio
+async def test_a_former_payment_dated_long_after_the_title_still_blocks_it(db_session):
+    alice = await account(db_session)
+    await watched(db_session, at=NOW - timedelta(hours=40))
+    # Its playback stayed open (paused) and closed 30 hours later: the former rule paid then.
+    db_session.add(XpLedger(
+        user_id=alice, action="watch_movie", reference="MOVIE-1:2026-03-10", xp=10,
+        created_at=NOW - timedelta(hours=10),
+    ))
+    await db_session.commit()
+
+    assert await catch_up_watch_xp(db_session, NOW) == 0
 
 
 @pytest.mark.asyncio
