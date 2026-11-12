@@ -55,22 +55,6 @@
   min-height: 0;
 }
 
-/* Separator above the "you" row when the daily digest lists the user after
-   its top 3 — makes it obvious that the leader list ends there and the
-   extra entry is the user's own rank. */
-.gc-lb-box--widget .gc-lb-rows > .gc-lb-row--me:not(:first-child) {
-  margin-top: 0.45rem;
-  position: relative;
-}
-.gc-lb-box--widget .gc-lb-rows > .gc-lb-row--me:not(:first-child)::before {
-  content: '';
-  position: absolute;
-  top: -0.3rem;
-  left: 8%;
-  right: 8%;
-  border-top: 1px dashed rgb(255, 255, 255, 0.15);
-}
-
 .gc-lb-row {
   display: flex;
   align-items: center;

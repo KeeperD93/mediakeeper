@@ -5,6 +5,7 @@
     :class="{ 'gc-lb-box--widget': widget, 'gc-lb-box--tabs': period }"
   >
     <router-link
+      v-if="!digest"
       :to="{ name: 'portal-leaderboard' }"
       class="gc-box-title gc-box-title--link"
       :class="{ 'gc-lb-widget-title': widget }"
@@ -55,12 +56,11 @@
               :src="entry.avatar_url || null"
               :size="28"
               :tier="entry.tier || 'bronze'"
-              class="gc-lb-av-mk"
             />
           </div>
           <div class="gc-lb-info">
             <span class="gc-lb-n">{{ entry.display_name }}</span>
-            <LeaderboardMePill v-if="period && entry.is_current_user" />
+            <LeaderboardMePill v-if="entry.is_current_user" />
             <span class="gc-lb-tier">
               <LeaderboardLevelTitle :entry="entry" />
             </span>
@@ -68,7 +68,7 @@
           <span class="gc-lb-figures">
             <LeaderboardTrophies :count="entry.trophies_won" />
             <LeaderboardMove :movement="entry.movement" :period="period || undefined" />
-            <span class="gc-lb-v">{{ (entry.period_xp || 0).toLocaleString() }} XP</span>
+            <span class="gc-lb-v">{{ localizedNumber(entry.period_xp || 0) }} XP</span>
           </span>
         </component>
       </template>
@@ -86,10 +86,13 @@ import LeaderboardMove from '@/components/portal/leaderboard/LeaderboardMove.vue
 import LeaderboardPeriodTabs from '@/components/portal/leaderboard/LeaderboardPeriodTabs.vue'
 import LeaderboardTrophies from '@/components/portal/leaderboard/LeaderboardTrophies.vue'
 import { LEADERBOARD_PERIODS, LEADERBOARD_PROFILE_LIMIT } from '@/constants/leaderboard'
+import { localizedNumber } from '@/utils/localizedNumber'
 
 const props = defineProps({
   entries: { type: Array, default: () => [] },
   widget: { type: Boolean, default: false },
+  // The daily digest: its section already names the card, which shows no title.
+  digest: { type: Boolean, default: false },
   loading: { type: Boolean, default: false },
 })
 
@@ -120,10 +123,14 @@ const stateKey = computed(() => {
 </style>
 
 <style scoped>
+/* The rows of the leaderboard page, wherever the card is shown: they follow its width. */
+.gc-lb-box {
+  container: lb-card / inline-size;
+}
+
 /* With a choice of period: the title shares its row with the menu, the rest takes
    the full width. The rows stay at the top of a card its neighbours stretch. */
 .gc-lb-box--tabs {
-  container: lb-card / inline-size;
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
@@ -195,11 +202,11 @@ const stateKey = computed(() => {
 
 /* The XP with its arrow, the trophies under them: under the name in a narrow card,
    beside it in a wider one, every row alike so that they line up. */
-.gc-lb-box--tabs .gc-lb-row {
+.gc-lb-box .gc-lb-row {
   column-gap: var(--portal-space-2);
   padding-inline: var(--portal-space-1-5);
 }
-.gc-lb-box--tabs .gc-lb-figures {
+.gc-lb-box .gc-lb-figures {
   flex-basis: 100%;
   display: grid;
   grid-template-columns: auto auto;
@@ -207,38 +214,38 @@ const stateKey = computed(() => {
   place-items: center end;
   gap: var(--portal-space-1);
 }
-.gc-lb-box--tabs .gc-lb-move {
+.gc-lb-box .gc-lb-move {
   grid-area: 1 / 1;
   min-width: 0;
   line-height: var(--portal-lh-tight);
 }
 /* Always the last column: without an arrow, the first one stays empty. Without the
    space its line keeps above the digits, the block sits centered in the row. */
-.gc-lb-box--tabs .gc-lb-v {
+.gc-lb-box .gc-lb-v {
   grid-area: 1 / 2;
   line-height: var(--portal-lh-tight);
   text-box: trim-both cap alphabetic;
 }
-.gc-lb-box--tabs .lb-trophies {
+.gc-lb-box .lb-trophies {
   grid-row: 2;
   grid-column: 1 / -1;
 }
 
 /* The viewer's row, as on the leaderboard page: the label goes under a name that
    needs the room, and only the name can be cut. */
-.gc-lb-box--tabs .gc-lb-row--me {
+.gc-lb-box .gc-lb-row--me {
   border-left: var(--portal-border-width-accent) solid var(--portal-accent-500);
   background: var(--portal-row-me-bg);
 }
-.gc-lb-box--tabs .gc-lb-info {
+.gc-lb-box .gc-lb-info {
   flex-flow: row wrap;
   align-items: center;
   column-gap: var(--portal-space-1-5);
 }
-.gc-lb-box--tabs .gc-lb-n {
+.gc-lb-box .gc-lb-n {
   flex: 0 1 auto;
 }
-.gc-lb-box--tabs .gc-lb-tier {
+.gc-lb-box .gc-lb-tier {
   flex: 0 0 100%;
 }
 
@@ -264,10 +271,10 @@ const stateKey = computed(() => {
 /* A query cannot read a token: its width stays a number, like the breakpoints of a
    media query. Here, where a name keeps about 100 px next to the largest figures. */
 @container lb-card (min-width: 270px) {
-  .gc-lb-box--tabs .gc-lb-row {
+  .gc-lb-box .gc-lb-row {
     flex-wrap: nowrap;
   }
-  .gc-lb-box--tabs .gc-lb-figures {
+  .gc-lb-box .gc-lb-figures {
     flex: none;
   }
 }

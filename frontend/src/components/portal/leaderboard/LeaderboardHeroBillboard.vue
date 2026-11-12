@@ -40,12 +40,12 @@
         </em>
       </div>
       <div class="lb-hero-xp">
-        <span class="lb-hero-xp-value">{{ displayedXp.toLocaleString() }}</span>
+        <span class="lb-hero-xp-value">{{ localizedNumber(displayedXp) }}</span>
         <span class="lb-hero-xp-unit">XP</span>
       </div>
       <div v-if="leadOver2 > 0 || entry.trophies_won > 0" class="lb-hero-chips">
         <div v-if="leadOver2 > 0" class="lb-hero-lead">
-          {{ $t('portal.leaderboard.hero.leadOverSecond', { n: leadOver2.toLocaleString() }) }}
+          {{ $t('portal.leaderboard.hero.leadOverSecond', { n: localizedNumber(leadOver2) }) }}
         </div>
         <LeaderboardTrophies :count="entry.trophies_won" large />
       </div>
@@ -61,6 +61,7 @@ import MkAvatar from '@/components/common/MkAvatar.vue'
 import LeaderboardMePill from '@/components/portal/leaderboard/LeaderboardMePill.vue'
 import LeaderboardTrophies from '@/components/portal/leaderboard/LeaderboardTrophies.vue'
 import { useCountUp } from '@/composables/portal/useCountUp'
+import { localizedNumber } from '@/utils/localizedNumber'
 
 const props = defineProps({
   entry: { type: Object, default: null },

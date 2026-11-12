@@ -51,7 +51,7 @@ function setTicket(payload) {
     id: 1,
     user_id: 17,
     media_type: 'movie',
-    media_title: 'Sample Movie',
+    media_title: 'Test Movie',
     issue_type: 'audio',
     priority: 'minor',
     status: 'open',
@@ -78,7 +78,7 @@ describe('PortalTicketDetail', () => {
     await flushPromises()
     expect(w.find('.ptd-hero').exists()).toBe(true)
     expect(w.find('.ptd-hero-poster').attributes('src')).toContain('/api/emby/image/emby-mov-1')
-    expect(w.text()).toContain('Sample Movie')
+    expect(w.text()).toContain('Test Movie')
   })
 
   it('uses the compact header for "other" tickets — no hero', async () => {
@@ -120,6 +120,16 @@ describe('PortalTicketDetail', () => {
     await flushPromises()
     expect(w.find('.ptd-hero-scope').text()).toContain('portal.tickets.detail.scope.episodes')
     expect(w.find('.ptd-hero-scope').text()).toContain('1, 3, 5')
+  })
+
+  it('leaves the colons of the timestamps to the translation', async () => {
+    setTicket({ updated_at: '2026-04-29T10:00:00Z' })
+    const w = mount(PortalTicketDetail)
+    await flushPromises()
+    const [opened, updated] = w.findAll('.ptd-timestamps span').map(span => span.text())
+
+    expect(opened).toMatch(/^portal\.tickets\.detail\.openedAt \d/)
+    expect(updated).toMatch(/^· portal\.tickets\.detail\.updatedAt \d/)
   })
 
   it('hides the admin status control for non-admin users', async () => {

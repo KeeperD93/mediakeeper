@@ -12,6 +12,7 @@ from models.portal.achievement import Achievement, UserAchievement
 from models.portal.profile import UserProfile
 from models.user import User
 from services.instance_time import INSTANCE_TIMEZONE_KEY
+from services.portal import achievements_checks_local_time
 from services.portal.achievement_defs import ACHIEVEMENT_DEFS
 from services.portal.achievements import check_all_achievements, seed_achievements
 from services.portal.achievements_checks_local_time import LOCAL_TIME_CONDITIONS
@@ -127,6 +128,31 @@ async def test_a_date_at_the_edge_of_the_calendar_loses_no_pass(db_session, capl
 
     assert "check pass failed" not in caplog.text
     assert await _unlocked(db_session, alice, _first_tier("night_watch"))
+
+
+@pytest.mark.asyncio
+async def test_a_pass_that_fails_still_reports_what_it_unlocked(db_session, monkeypatch, caplog):
+    """The lonely new year read fails once the triple is granted: the triple is still returned."""
+    alice = await _viewer(db_session)
+    await seed_achievements(db_session)
+    for item in ("item-1", "item-2", "item-3"):
+        _session(db_session, _at(2026, 1, 15, 12), item=item)
+    await db_session.commit()
+
+    async def read_fails(*_args):
+        raise RuntimeError("Test read failure")
+
+    monkeypatch.setattr(achievements_checks_local_time, "_is_lonely", read_fails)
+    with caplog.at_level(logging.ERROR, logger="mediakeeper.portal.achievements"):
+        unlocks = await check_all_achievements(db_session, alice.id)
+
+    assert "secret_triple" in {u["achievement_id"] for u in unlocks}
+    assert await _unlocked(db_session, alice, "secret_triple")
+    failed = [
+        getattr(r, "pass", None) for r in caplog.records
+        if r.getMessage() == "achievements check pass failed"
+    ]
+    assert failed == ["local_time"]
 
 
 @pytest.mark.asyncio

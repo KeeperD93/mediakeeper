@@ -35,7 +35,7 @@
         :size="10"
       />
     </span>
-    <span class="lb-top-row-xp">{{ (entry.period_xp || 0).toLocaleString() }} XP</span>
+    <span class="lb-top-row-xp">{{ localizedNumber(entry.period_xp || 0) }} XP</span>
   </router-link>
 </template>
 
@@ -46,6 +46,7 @@ import LeaderboardMePill from '@/components/portal/leaderboard/LeaderboardMePill
 import LeaderboardMove from '@/components/portal/leaderboard/LeaderboardMove.vue'
 import LeaderboardTrophies from '@/components/portal/leaderboard/LeaderboardTrophies.vue'
 import { LEADERBOARD_PERIOD } from '@/constants/leaderboard'
+import { localizedNumber } from '@/utils/localizedNumber'
 
 defineProps({
   entry: { type: Object, default: null },

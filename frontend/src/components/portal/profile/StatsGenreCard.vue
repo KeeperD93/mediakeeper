@@ -33,7 +33,7 @@
           <span class="gc-tile-label">{{ $t('portal.profile.favoriteDay') }}</span>
         </div>
         <div class="gc-daychart">
-          <div v-for="day in weekData" :key="day.label" class="gc-daybar-wrap">
+          <div v-for="(day, i) in weekData" :key="i" class="gc-daybar-wrap">
             <div class="gc-daybar">
               <div
                 class="gc-daybar-fill"

@@ -54,6 +54,7 @@
 
 <script setup>
 import { Trash2 } from 'lucide-vue-next'
+import { localizedNumber } from '@/utils/localizedNumber'
 
 const props = defineProps({
   schedCaches: { type: Array, required: true },
@@ -63,7 +64,7 @@ const props = defineProps({
 
 function formatInt(n) {
   if (typeof n !== 'number' || !Number.isFinite(n)) return '—'
-  return n.toLocaleString()
+  return localizedNumber(n)
 }
 
 // 1 KiB granularity is enough for the admin readout — the cache

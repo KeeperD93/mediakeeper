@@ -15,8 +15,9 @@ def _reset_state():
 
 
 @pytest.mark.asyncio
-async def test_scheduler_alerts_when_task_handler_raises(monkeypatch):
-    """A handler exception must trigger a SCHEDULER_TASK_CRASHED alert."""
+async def test_scheduler_alerts_when_task_handler_raises(monkeypatch, caplog):
+    """A handler exception must trigger a SCHEDULER_TASK_CRASHED alert that,
+    like the stored last error, names the exception class but never its message."""
 
     async def _broken_handler(_db):
         raise RuntimeError("simulated handler failure")
@@ -29,7 +30,7 @@ async def test_scheduler_alerts_when_task_handler_raises(monkeypatch):
         clear=False,
     ), patch("services.scheduler._scheduler._mark_running", new=AsyncMock()), patch(
         "services.scheduler._scheduler._mark_done", new=AsyncMock()
-    ), patch("services.scheduler._scheduler.AsyncSession") as session_cls, patch(
+    ) as mark_done, patch("services.scheduler._scheduler.AsyncSession") as session_cls, patch(
         "services.monitoring.send_alert", new=AsyncMock(return_value=True)
     ) as alert_mock:
         # Make the AsyncSession context manager a no-op around our broken handler.
@@ -43,4 +44,6 @@ async def test_scheduler_alerts_when_task_handler_raises(monkeypatch):
     args, kwargs = alert_mock.await_args
     assert args[0] is AlertType.SCHEDULER_TASK_CRASHED
     assert args[1]["task"] == "fake_task"
-    assert "simulated handler failure" in args[1]["error"]
+    assert args[1]["error"] == "RuntimeError"
+    assert mark_done.await_args.args[1:] == ("fake_task", "RuntimeError")
+    assert "simulated handler failure" in caplog.text  # the message stays server-side

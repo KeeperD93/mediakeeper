@@ -11,7 +11,8 @@ import fr from '@/locales/fr.json'
 import LeaderboardLevelTitle from '../LeaderboardLevelTitle.vue'
 import LeaderboardTopTenRow from '../LeaderboardTopTenRow.vue'
 
-vi.mock('vue-i18n', () => ({
+vi.mock('vue-i18n', async importOriginal => ({
+  ...(await importOriginal()),
   useI18n: () => ({ t: key => key }),
 }))
 

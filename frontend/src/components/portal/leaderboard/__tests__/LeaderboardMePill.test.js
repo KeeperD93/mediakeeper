@@ -12,7 +12,8 @@ import LeaderboardMePill from '../LeaderboardMePill.vue'
 import LeaderboardTopTenRow from '../LeaderboardTopTenRow.vue'
 import PortalLeaderboardPodium from '../PortalLeaderboardPodium.vue'
 
-vi.mock('vue-i18n', () => ({
+vi.mock('vue-i18n', async importOriginal => ({
+  ...(await importOriginal()),
   useI18n: () => ({ t: key => key }),
 }))
 

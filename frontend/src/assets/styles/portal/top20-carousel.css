@@ -130,6 +130,10 @@
   .pt-top20-card--rank-1 .pt-card-poster {
     animation: none;
   }
+  /* The arrows jump instead of sliding. */
+  .pt-top20-track {
+    scroll-behavior: auto;
+  }
 }
 
 /* Laurel medallion — small floating SVG anchored to the top-left of

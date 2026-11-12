@@ -14,6 +14,16 @@ This section intentionally has no date so it is not shown to users.
 
 ## [Unreleased]
 
+### Fixed
+- Notifications — bar lasts as long as the message, full message on small phones.
+- Issues — ticket dates: colons placed right in English and French.
+- Today's digest — Top 3 of the month matches the leaderboard ("YOU" label).
+- Carousels, scrolling and counters — instant with "Reduce motion".
+- Pinned badges — two pins in quick succession no longer overwrite each other.
+- My profile — weekdays and durations in the app's language.
+- My profile — "Favorite day": always 7 bars after a language change.
+- Numbers — written in the app's language, no longer the browser's.
+
 ## [1.0.0-rc.10] - 2026-11-11
 
 ### Added
