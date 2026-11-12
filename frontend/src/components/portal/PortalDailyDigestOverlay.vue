@@ -98,7 +98,7 @@
                 class="ddd-section ddd-section--leaderboard"
               >
                 <h3 class="ddd-section-title">{{ $t('portal.dailyDigest.sections.top3') }}</h3>
-                <LeaderboardCard :entries="digest.ranking.top3" widget />
+                <LeaderboardCard :entries="digest.ranking.top3" digest />
               </section>
 
               <section v-if="digest.next_achievement" class="ddd-ach-hero">
