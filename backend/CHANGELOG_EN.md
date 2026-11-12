@@ -31,6 +31,7 @@ This section intentionally has no date so it is not shown to users.
 - Sign-in — a double press no longer opens two sessions, Enter retries after a refusal.
 - Statistics — watch time: playback cut off early in a title no longer counted to the end.
 - Bonus events — XP rounded to the nearest, halves up.
+- Debug tools — XP history: a removal records only the XP actually taken.
 
 ## [1.0.0-rc.10] - 2026-11-11
 

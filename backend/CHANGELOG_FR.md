@@ -31,6 +31,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Connexion — un double appui n'ouvre plus deux sessions, Entrée relance après un refus.
 - Statistiques — temps de visionnage : lecture coupée en début de titre plus comptée jusqu'au bout.
 - Événements bonus — XP arrondie au plus proche, les moitiés vers le haut.
+- Outils de debug — historique XP : un retrait n'inscrit que l'XP vraiment retirée.
 
 ## [1.0.0-rc.10] - 2026-11-11
 

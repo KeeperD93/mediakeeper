@@ -2,9 +2,9 @@
 
 These helpers bypass the anti-abuse rules of ``grant_xp`` (daily caps,
 unique-action dedup, watch percentage) so an administrator can repair
-state, reward early adopters, or test trophy logic. Every operation
-records a row in ``XpLedger`` (for audit) and recomputes the level
-from the total XP so the cached ``UserProfile.level`` never drifts.
+state, reward early adopters, or test trophy logic. Every change of XP
+records in ``XpLedger`` the gap it really made (for audit) and recomputes
+the level from the total XP so the cached ``UserProfile.level`` never drifts.
 """
 from __future__ import annotations
 
@@ -54,17 +54,19 @@ async def admin_grant_xp(
         await db.commit()  # releases the lock
         return {"xp": profile.xp or 0, "level": profile.level or MIN_LEVEL, "leveled_up": False}
 
-    ref_suffix = (note or uuid.uuid4().hex)[:48]
-    entry = XpLedger(
-        user_id=user_id,
-        action=ADMIN_GRANT_ACTION,
-        reference=f"{datetime.now(timezone.utc).timestamp()}:{ref_suffix}",
-        xp=delta,
-    )
-    db.add(entry)
+    before = profile.xp or 0
+    after = max(0, before + delta)
+    if after != before:  # a removal below 0 takes, and records, only what the player had
+        ref_suffix = (note or uuid.uuid4().hex)[:48]
+        db.add(XpLedger(
+            user_id=user_id,
+            action=ADMIN_GRANT_ACTION,
+            reference=f"{datetime.now(timezone.utc).timestamp()}:{ref_suffix}",
+            xp=after - before,
+        ))
 
     previous_level = profile.level or MIN_LEVEL
-    profile.xp = max(0, (profile.xp or 0) + delta)
+    profile.xp = after
     profile.level = level_from_xp(profile.xp)
     db.add(profile)
     await record_audit(
@@ -103,13 +105,13 @@ async def admin_set_level(
     target_xp_floor = level_floor_xp(target)
     delta = target_xp_floor - (profile.xp or 0)
 
-    entry = XpLedger(
-        user_id=user_id,
-        action=ADMIN_GRANT_ACTION,
-        reference=f"set_level:{datetime.now(timezone.utc).timestamp()}:{uuid.uuid4().hex[:8]}",
-        xp=delta,
-    )
-    db.add(entry)
+    if delta:  # nothing to record when the player already sits at the start of that level
+        db.add(XpLedger(
+            user_id=user_id,
+            action=ADMIN_GRANT_ACTION,
+            reference=f"set_level:{datetime.now(timezone.utc).timestamp()}:{uuid.uuid4().hex[:8]}",
+            xp=delta,
+        ))
 
     profile.xp = target_xp_floor
     profile.level = target
