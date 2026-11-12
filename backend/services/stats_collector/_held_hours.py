@@ -3,10 +3,10 @@
 A player switched off seconds into a title leaves Emby moving the session alone,
 and nothing tells it from a real start until the position Emby saves at the
 first resume point of the library (3 % by default). Until then the row's hours,
-what a day streak reads, wait here: paid once the player saves next to the
-session or the row ends normally, dropped when it ends judged lost on a position
-still saved at 0. The seconds are counted as before, except that a held row never
-takes its user's share of a poll from another row of that user.
+what a day streak reads, wait here. They are paid once the player saves next to
+the session, or when the row ends, unless its last saved 0 judged the player
+gone: then they are dropped. The seconds are counted as before, except that a
+held row never takes its user's share of a poll from another row of that user.
 """
 import logging
 from collections.abc import Iterable
@@ -27,8 +27,9 @@ class _Held:
     lost: bool  # judged lost on its last saved 0: dropped if the row ends so
 
 
-# Row ``session_key`` -> what it holds. In memory: a restart forgets at most the
-# start of a playback. Changed only once a collector pass is committed.
+# Row ``session_key`` -> what it holds. In memory: a restart forgets it, the start
+# of a playback up to its first save, or up to its end after a jump right into its
+# last tenth, where Emby saves 0 again. Changed only once a collector pass is committed.
 _held: dict[str, _Held] = {}
 
 
