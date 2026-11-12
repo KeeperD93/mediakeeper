@@ -1,7 +1,8 @@
 """A saved position still at 0 where Emby would already have saved one: the player is gone."""
 from datetime import timedelta
-from unittest.mock import AsyncMock
+from unittest.mock import AsyncMock, MagicMock, patch
 
+import httpx
 import pytest
 
 from services.stats_collector import _player_reports as reports
@@ -83,6 +84,30 @@ async def test_a_device_never_seen_saving_keeps_the_previous_rule(db_session):
     await poll(db_session, at)
     (row,) = await _movie_rows(db_session)
     assert row.watched_seconds == runtime
+
+
+async def test_a_setting_raised_in_emby_releases_a_held_row_in_time(db_session):
+    # Read at 3 %, raised to 50 % five minutes in: the real player saves nothing before 50 %.
+    settings = {"MinResumePct": 3, "MinResumeDurationSeconds": 120}
+
+    async def read_settings(url, api_key, now):
+        client = MagicMock()
+        answer = [{"Name": "Films", "LibraryOptions": dict(settings)}]
+        client.get = AsyncMock(return_value=httpx.Response(200, json=answer, request=httpx.Request("GET", url)))
+        with patch("services.stats_collector._resume_zones.get_internal_client", return_value=client):
+            await zones.refresh_resume_zones(url, api_key, now)
+
+    await known_application(db_session)
+    begin, step = T0 + timedelta(hours=1), timedelta(seconds=10)
+    at, position = begin, 5
+    while position <= 2400:  # 40 min of real playback
+        if at - begin >= 5 * MIN:
+            settings["MinResumePct"] = 50
+        await poll(db_session, at, emby_session(at=at, position_s=position, runtime_s=7200), stored=saved(0),
+                   refresh=AsyncMock(side_effect=read_settings))
+        at, position = at + step, position + 10
+    (row,) = await _movie_rows(db_session)
+    assert row.watched_seconds == position - 10
 
 
 async def test_a_real_playback_from_start_to_end_counts_every_second(db_session):

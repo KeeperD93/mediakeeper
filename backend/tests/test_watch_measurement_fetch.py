@@ -102,9 +102,9 @@ async def test_resume_settings_are_read_per_library():
     assert client.get.await_args.args[0] == "http://emby.test/Library/VirtualFolders"
 
 
-async def test_resume_settings_are_read_at_most_hourly():
+async def test_resume_settings_are_read_at_most_once_per_period():
     client = _client(_response(200, [_library("Movies", MinResumePct=3, MinResumeDurationSeconds=120)]))
-    for at in (T0, T0 + timedelta(minutes=59), T0 + timedelta(hours=1)):
+    for at in (T0, T0 + timedelta(minutes=9), T0 + timedelta(minutes=10)):
         await _refresh(client, at)
     assert client.get.await_count == 2
 
