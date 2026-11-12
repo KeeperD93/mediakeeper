@@ -44,7 +44,18 @@ describe('HomeFab', () => {
 
     const titles = w.findAll('button').map(b => b.attributes('title') || '')
     expect(titles.some(t => t.includes('portal.promotion'))).toBe(false)
-    expect(w.findAll('.pt-fab-btn--disabled')).toHaveLength(0)
+  })
+
+  it('never disables a sub-button', async () => {
+    const w = mountFab()
+    await w.find('.pt-fab-main').trigger('click')
+
+    const subButtons = w.findAll('.pt-fab-btn')
+    expect(subButtons.length).toBeGreaterThan(0)
+    for (const b of subButtons) {
+      expect(b.attributes('disabled')).toBeUndefined()
+      expect(b.attributes('aria-disabled')).not.toBe('true')
+    }
   })
 
   it('gives the main toggle a translated accessible name', () => {
