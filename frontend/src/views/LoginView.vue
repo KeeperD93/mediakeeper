@@ -272,19 +272,21 @@ async function doLogin() {
       localStorage.removeItem(STORAGE_KEYS.SAVED_USERNAME)
     }
 
+    // The button stays busy while the page is left: a press during that navigation
+    // would sign in a second time.
     if (data.scope === 'portal') {
-      router.push(isPortalRedirect ? redirect : '/portal')
+      await router.push(isPortalRedirect ? redirect : '/portal')
     } else if (data.must_change_password) {
-      router.push('/?force_change_password=1')
+      await router.push('/?force_change_password=1')
     } else {
-      router.push(redirect || '/')
+      await router.push(redirect || '/')
     }
+    // A navigation that failed or was sent back here leaves the page in place.
+    if (router.currentRoute.value.name === 'login') submitting.value = false
   } catch (e) {
     console.error('[LoginView.doLogin]', e)
     refusedAt = Date.now()
     errorMsg.value = signInErrorMessage(e)
-    // Only a refusal frees the button: after a success the page is being left,
-    // and a press during that navigation would sign in a second time.
     submitting.value = false
     // After a press on the button, the focus can fall on the page, where Enter does
     // nothing: put it on the password, unless a field has it.
