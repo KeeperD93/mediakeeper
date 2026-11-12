@@ -24,15 +24,6 @@ from tests._watch_measurement_helpers import (
 pytestmark = pytest.mark.asyncio
 
 
-@pytest.fixture(autouse=True)
-def _reset_player_reports():
-    reports._writers.clear()
-    reports._last_stored.clear()
-    yield
-    reports._writers.clear()
-    reports._last_stored.clear()
-
-
 async def _play_saves(db, saves: tuple[int, ...]) -> None:
     """Two polls per save, 5 s apart, the session right next to it."""
     at = T0

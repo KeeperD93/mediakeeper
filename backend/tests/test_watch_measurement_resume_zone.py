@@ -16,36 +16,15 @@ from tests._watch_measurement_helpers import (
     completions,
     emby_session,
     known_application,
+    library_saves_from,
     poll,
     rows,
     saved,
+    saved_by_emby,
 )
 
 pytestmark = pytest.mark.asyncio
 MIN = timedelta(minutes=1)
-
-
-@pytest.fixture(autouse=True)
-def _reset_player_reports():
-    reports._writers.clear()
-    reports._last_stored.clear()
-    yield
-    reports._writers.clear()
-    reports._last_stored.clear()
-
-
-def _library_saves_from(min_pct: float, min_duration_s: int = 120) -> None:
-    zones._zones["Films"] = zones.ResumeZone(min_pct, min_duration_s * TICK)
-
-
-def _saved_by_emby(position_s: float, runtime_s: int) -> dict:
-    """What Emby keeps for a player reporting every 10 s: 0 before 3 %, a title played past 90 %."""
-    reported = position_s - position_s % 10
-    if reported < runtime_s * 0.03:
-        return saved(0)
-    if reported > runtime_s * 0.90:
-        return saved(0, played=True)
-    return saved(reported)
 
 
 async def _movie_rows(db):
@@ -55,7 +34,7 @@ async def _movie_rows(db):
 @pytest.mark.parametrize("runtime, cut, start", [(7200, 150, 216), (2700, 60, 81), (1440, 30, 43.2)])
 async def test_a_player_lost_before_its_first_save_stops_counting_past_it(db_session, runtime, cut, start):
     await known_application(db_session)
-    _library_saves_from(3)
+    library_saves_from(3)
     begin = T0 + timedelta(hours=1)
     at, position = begin, 5.0
     while position <= cut:
@@ -77,7 +56,7 @@ async def test_a_player_lost_before_its_first_save_stops_counting_past_it(db_ses
 async def test_a_device_never_seen_saving_keeps_the_previous_rule(db_session):
     # The application is known from another device; this one, an external player, saves nothing.
     await known_application(db_session)
-    _library_saves_from(3)
+    library_saves_from(3)
     runtime, at, position = 1440, T0 + timedelta(hours=1), 5
     while position <= runtime:
         session = emby_session(at=at, position_s=position, runtime_s=runtime, session="S-2", device="DEVICE-2")
@@ -114,12 +93,12 @@ async def test_a_setting_raised_in_emby_releases_a_held_row_in_time(db_session):
 
 async def test_a_real_playback_from_start_to_end_counts_every_second(db_session):
     await known_application(db_session)
-    _library_saves_from(3)
+    library_saves_from(3)
     runtime, begin = 1440, T0 + timedelta(hours=1)
     at, position = begin, 5
     while position <= runtime:
         await poll(db_session, at, emby_session(at=at, position_s=position, runtime_s=runtime),
-                   stored=_saved_by_emby(position, runtime))
+                   stored=saved_by_emby(position, runtime))
         if position == 600:
             for _ in range(12):  # one minute paused
                 at += STEP
@@ -133,7 +112,7 @@ async def test_a_real_playback_from_start_to_end_counts_every_second(db_session)
 
 async def test_a_seek_past_the_first_save_counts_once_the_player_saves(db_session):
     await known_application(db_session)
-    _library_saves_from(3)
+    library_saves_from(3)
     begin = T0 + timedelta(hours=1)
     positions = [5, 10, 15, 20, 25, 30, 1500, 1505, 1510, 1515, 1520]
     for i, position in enumerate(positions):
@@ -154,7 +133,7 @@ async def test_a_seek_past_the_first_save_counts_once_the_player_saves(db_sessio
 async def test_a_save_at_zero_is_judged_on_the_library_settings(db_session, min_pct, min_duration_s, expected):
     await known_application(db_session)
     if min_pct is not None:
-        _library_saves_from(min_pct, min_duration_s)
+        library_saves_from(min_pct, min_duration_s)
     start = T0 + timedelta(hours=1)
     for i in range(8):
         at = start + STEP * i
@@ -165,7 +144,7 @@ async def test_a_save_at_zero_is_judged_on_the_library_settings(db_session, min_
 
 async def test_a_new_playback_on_the_same_session_is_not_held_by_an_old_row(db_session):
     await known_application(db_session)
-    _library_saves_from(3)
+    library_saves_from(3)
     first = T0 + timedelta(hours=1)
     for i in range(4):  # 20 s at the start, then the viewer stops
         at = first + STEP * i
@@ -182,7 +161,7 @@ async def test_a_new_playback_on_the_same_session_is_not_held_by_an_old_row(db_s
 async def test_a_closed_row_without_its_last_second_proves_nothing():
     reports._writers.add(("Web", "Films"))
     reports._saving_devices.add("DEVICE-1")
-    _library_saves_from(3)
+    library_saves_from(3)
     reports._last_stored["k"] = reports._LastStored(0, T0)
     closed = SimpleNamespace(library_name="Films", last_seen_at=None, position_ticks=60 * TICK)
     session = emby_session(at=T0 + MIN, position_s=900, runtime_s=1440)
