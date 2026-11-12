@@ -281,7 +281,8 @@ async function doLogin() {
     console.error('[LoginView.doLogin]', e)
     refusedAt = Date.now()
     errorMsg.value = signInErrorMessage(e)
-  } finally {
+    // Only a refusal frees the button: after a success the page is being left,
+    // and a press during that navigation would sign in a second time.
     submitting.value = false
   }
 }

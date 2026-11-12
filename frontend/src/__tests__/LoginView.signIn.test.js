@@ -7,9 +7,10 @@ import { mount, flushPromises } from '@vue/test-utils'
 
 vi.mock('vue-i18n', () => ({ useI18n: () => ({ t: key => key }) }))
 
+const pushMock = vi.fn()
 vi.mock('vue-router', () => ({
   useRoute: () => ({ query: {} }),
-  useRouter: () => ({ push: vi.fn(), replace: vi.fn() }),
+  useRouter: () => ({ push: pushMock, replace: vi.fn() }),
 }))
 
 const loginMock = vi.fn()
@@ -94,6 +95,7 @@ let consoleError
 
 beforeEach(() => {
   loginMock.mockReset()
+  pushMock.mockReset()
   consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
 })
 
@@ -200,6 +202,21 @@ describe('LoginView — signing in', () => {
     await flushPromises()
 
     expect(loginMock).toHaveBeenCalledTimes(2)
+  })
+
+  it('sends nothing more once a sign-in succeeds, while the page is being left', async () => {
+    loginMock.mockResolvedValue({ scope: 'portal' })
+    const w = await filledForm()
+
+    await submit(w)
+    await flushPromises()
+    vi.setSystemTime(Date.now() + PAUSE_OVER)
+    await submit(w)
+    await flushPromises()
+
+    expect(loginMock).toHaveBeenCalledTimes(1)
+    expect(pushMock).toHaveBeenCalledExactlyOnceWith('/portal')
+    expect(w.find('button.login-submit').attributes('disabled')).toBeDefined()
   })
 
   it('counts a second press right after a refusal as the same try', async () => {
