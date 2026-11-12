@@ -4,7 +4,11 @@ from sqlalchemy import func, select
 
 from models.portal.profile import UserProfile
 from models.portal.xp_ledger import XpLedger
-from services.portal.admin_debug import ADMIN_GRANT_ACTION, admin_grant_xp, admin_set_level
+from services.portal.admin_debug import (
+    ADMIN_GRANT_ACTION,
+    admin_grant_xp,
+    admin_set_level,
+)
 from services.portal.xp import level_floor_xp
 from tests._watch_xp_helpers import account
 
