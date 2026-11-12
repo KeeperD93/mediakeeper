@@ -17,8 +17,9 @@ WATCHED_TIME_RATIO = 0.75
 COMPLETION_WINDOW = timedelta(days=30)
 
 
-async def _watched_before(db: AsyncSession, row: PlaybackSession, now: datetime) -> int:
-    """Seconds watched on the same title in the other sittings that still count."""
+async def _watched_before(db: AsyncSession, row: PlaybackSession, now: datetime) -> tuple[int, int]:
+    """Seconds watched, then seconds watched alone, on the same title in the
+    other sittings that still count."""
     since = now - COMPLETION_WINDOW
     last_done = as_utc(await db.scalar(
         select(func.max(PlaybackCompletion.completed_at)).where(
@@ -28,14 +29,18 @@ async def _watched_before(db: AsyncSession, row: PlaybackSession, now: datetime)
     ))
     if last_done is not None and last_done > since:
         since = last_done
-    return await db.scalar(
-        select(func.coalesce(func.sum(PlaybackSession.watched_seconds), 0)).where(
+    watched, exclusive = (await db.execute(
+        select(
+            func.coalesce(func.sum(PlaybackSession.watched_seconds), 0),
+            func.coalesce(func.sum(PlaybackSession.exclusive_seconds), 0),
+        ).where(
             PlaybackSession.user_id == row.user_id,
             PlaybackSession.item_id == row.item_id,
             PlaybackSession.id != row.id,
             PlaybackSession.started_at >= since,
         )
-    ) or 0
+    )).one()
+    return watched or 0, exclusive or 0
 
 
 async def record_completions(db: AsyncSession, rows: list[PlaybackSession], now: datetime) -> int:
@@ -51,7 +56,8 @@ async def record_completions(db: AsyncSession, rows: list[PlaybackSession], now:
         position = (row.position_ticks or 0) / TICKS_PER_SECOND
         if runtime <= 0 or position < runtime * WATCHED_THRESHOLD:
             continue
-        total = (row.watched_seconds or 0) + await _watched_before(db, row, now)
+        watched_before, exclusive_before = await _watched_before(db, row, now)
+        total = (row.watched_seconds or 0) + watched_before
         if total < runtime * WATCHED_TIME_RATIO:
             continue
         row.completed_at = now
@@ -68,6 +74,7 @@ async def record_completions(db: AsyncSession, rows: list[PlaybackSession], now:
             library_name=row.library_name,
             runtime_seconds=int(runtime),
             watched_seconds=int(total),
+            exclusive_seconds=int((row.exclusive_seconds or 0) + exclusive_before),
             completed_at=now,
             source="live",
         ))
