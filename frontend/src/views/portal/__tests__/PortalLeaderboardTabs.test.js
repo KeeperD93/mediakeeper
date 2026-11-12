@@ -8,7 +8,8 @@ import en from '@/locales/en.json'
 import fr from '@/locales/fr.json'
 import { buildEntries, buildStats, composableState, mountPage } from './portalLeaderboardHarness'
 
-vi.mock('vue-i18n', () => ({
+vi.mock('vue-i18n', async importOriginal => ({
+  ...(await importOriginal()),
   useI18n: () => ({ t: key => key }),
 }))
 

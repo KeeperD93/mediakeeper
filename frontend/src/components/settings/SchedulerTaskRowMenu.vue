@@ -8,7 +8,9 @@
     </div>
     <div v-if="task.last_error" class="strm-section">
       <div class="strm-section-title strm-error-title">{{ $t('scheduler.lastError') }}</div>
-      <div class="strm-error-body">{{ task.last_error }}</div>
+      <div class="strm-error-body">
+        {{ $t('scheduler.lastErrorDetail', { type: task.last_error }) }}
+      </div>
     </div>
     <div class="strm-actions">
       <button

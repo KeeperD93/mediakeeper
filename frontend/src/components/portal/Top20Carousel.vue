@@ -144,7 +144,7 @@ function scroll(dir) {
   if (step <= 0) return
 
   const visible = Math.max(1, Math.floor(trackRect.width / step))
-  el.scrollBy({ left: dir * visible * step, behavior: 'smooth' })
+  el.scrollBy({ left: dir * visible * step })
 }
 
 let resizeObs = null

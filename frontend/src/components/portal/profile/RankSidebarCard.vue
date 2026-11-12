@@ -73,8 +73,8 @@
           <div class="gc-xp-shine" />
         </div>
         <span class="gc-xp-text">
-          {{ Math.min(profileData?.xp || 0, nextLevelXp).toLocaleString() }} /
-          {{ nextLevelXp.toLocaleString() }} XP
+          {{ localizedNumber(Math.min(profileData?.xp || 0, nextLevelXp)) }} /
+          {{ localizedNumber(nextLevelXp) }} XP
         </span>
       </div>
 
@@ -134,6 +134,7 @@ import { HelpCircle } from 'lucide-vue-next'
 import MkAvatar from '@/components/common/MkAvatar.vue'
 import { xpForLevel } from '@/composables/portal/useProfileXp'
 import { MIN_LEVEL } from '@/constants/portal'
+import { localizedNumber } from '@/utils/localizedNumber'
 
 const props = defineProps({
   profileData: { type: Object, default: null },

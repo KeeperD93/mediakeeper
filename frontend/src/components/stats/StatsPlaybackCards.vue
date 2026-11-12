@@ -32,6 +32,17 @@
         <div class="skel-line w40" />
       </div>
     </div>
+    <div v-if="playbackFailed" class="pc-error">
+      {{ $t('stats.playbackLoadError') }}
+      <MkButton
+        variant="link"
+        size="sm"
+        class="mk-touch-mobile"
+        @click="loadPlaybackAndResolve(playbackDays)"
+      >
+        {{ $t('stats.retry') }}
+      </MkButton>
+    </div>
     <div v-show="playback" class="top-grid">
       <div
         v-for="(card, ci) in orderedCards"
@@ -68,13 +79,21 @@ import { useI18n } from 'vue-i18n'
 import { useStats } from '@/composables/useStats'
 import { GripVertical, SlidersHorizontal } from 'lucide-vue-next'
 import { useStatsUI } from '@/composables/useStatsUI'
+import MkButton from '@/components/common/MkButton.vue'
 import PlaybackCardDonut from './StatsPlaybackCards/PlaybackCardDonut.vue'
 import PlaybackCardRadar from './StatsPlaybackCards/PlaybackCardRadar.vue'
 import PlaybackCardRank from './StatsPlaybackCards/PlaybackCardRank.vue'
 import { usePlaybackCards } from './StatsPlaybackCards/usePlaybackCards'
 
 const { t } = useI18n()
-const { playback, loadingPlayback, loadPlayback, resolveSeriesImageId, ticksToHours } = useStats()
+const {
+  playback,
+  loadingPlayback,
+  playbackFailed,
+  loadPlayback,
+  resolveSeriesImageId,
+  ticksToHours,
+} = useStats()
 const { showPreview, hidePreview, openUserProfile, goToActivitySearch } = useStatsUI()
 
 const periodOptions = [7, 30, 90, 180, 365]
@@ -142,6 +161,12 @@ const {
 }
 .top-card {
   padding: 14px 16px;
+}
+/* Same look as the other load errors of the Statistics screen (exclusions). */
+.pc-error {
+  font-size: var(--text-2xs);
+  color: var(--text-muted);
+  padding: var(--space-1) 0;
 }
 
 .pill-customize {

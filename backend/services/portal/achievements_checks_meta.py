@@ -20,16 +20,13 @@ async def check_meta(
     user_id: int,
     ua_map: dict[str, UserAchievement],
     unlocked_ids: set[str],
+    unlocks: list[dict],
     **_: object,
-) -> list[dict]:
+) -> None:
     """For each meta achievement, count how many non-excluded trophies of
-    its target category are unlocked. Unlock the meta when all are."""
-    metas = by_type.get("meta", [])
-    if not metas:
-        return []
-
-    unlocks: list[dict] = []
-    for meta_ach in metas:
+    its target category are unlocked. Unlock the meta when all are, and
+    append it to ``unlocks``."""
+    for meta_ach in by_type.get("meta", []):
         target = META_TARGET_CATEGORY.get(meta_ach.id)
         if not target:
             continue
@@ -42,4 +39,3 @@ async def check_meta(
         result = await update_progress(db, user_id, meta_ach.id, new_value=done, ua_map=ua_map)
         if result:
             unlocks.append(result)
-    return unlocks

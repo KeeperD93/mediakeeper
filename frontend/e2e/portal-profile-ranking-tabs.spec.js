@@ -18,7 +18,7 @@ test.describe('Each period of the card', () => {
 
   test('the month opens from the profile, without a request', async ({ page }) => {
     const { asked, tracker } = await openProfile(page, { width: 1280 })
-    await expect(firstXp(page)).toHaveText('33,333 XP')
+    await expect(firstXp(page)).toHaveText('33 333 XP')
     await expect(card(page).locator('.gc-lb-row')).toHaveCount(15)
     await expect(card(page).locator('.gc-box-title')).toHaveText('Classement')
     await expect(menu(page)).toHaveValue('month')
@@ -28,8 +28,8 @@ test.describe('Each period of the card', () => {
 
   for (const [period, xp] of [
     ['today', '111 XP'],
-    ['week', '2,222 XP'],
-    ['all', '444,444 XP'],
+    ['week', '2 222 XP'],
+    ['all', '444 444 XP'],
   ]) {
     test(`${period} asks for 15 rows and shows them`, async ({ page }) => {
       const { asked } = await openProfile(page, { width: 1280 })
@@ -49,7 +49,7 @@ test.describe('Each period of the card', () => {
     await expect(last.locator('.gc-lb-n')).toHaveText('Alice')
 
     await menu(page).selectOption('week')
-    await expect(firstXp(page)).toHaveText('2,222 XP')
+    await expect(firstXp(page)).toHaveText('2 222 XP')
     await expect(card(page).locator('.gc-lb-row')).toHaveCount(15)
     await expect(card(page).locator('.gc-lb-row--me')).toHaveCount(0)
   })
@@ -57,11 +57,11 @@ test.describe('Each period of the card', () => {
   test('all time shows no arrow, the other periods do', async ({ page }) => {
     await openProfile(page, { width: 1280 })
     await menu(page).selectOption('all')
-    await expect(firstXp(page)).toHaveText('444,444 XP')
+    await expect(firstXp(page)).toHaveText('444 444 XP')
     await expect(card(page).locator('.gc-lb-move')).toHaveCount(0)
 
     await menu(page).selectOption('week')
-    await expect(firstXp(page)).toHaveText('2,222 XP')
+    await expect(firstXp(page)).toHaveText('2 222 XP')
     await expect(card(page).locator('.gc-lb-move').first()).toBeVisible()
   })
 
@@ -85,11 +85,11 @@ test.describe('Each period of the card', () => {
   test('coming back uses what is loaded, the month without a request', async ({ page }) => {
     const { asked } = await openProfile(page, { width: 1280 })
     await menu(page).selectOption('week')
-    await expect(firstXp(page)).toHaveText('2,222 XP')
+    await expect(firstXp(page)).toHaveText('2 222 XP')
     await menu(page).selectOption('month')
-    await expect(firstXp(page)).toHaveText('33,333 XP')
+    await expect(firstXp(page)).toHaveText('33 333 XP')
     await menu(page).selectOption('week')
-    await expect(firstXp(page)).toHaveText('2,222 XP')
+    await expect(firstXp(page)).toHaveText('2 222 XP')
     expect(asked).toEqual(['week:15'])
   })
 
@@ -99,7 +99,7 @@ test.describe('Each period of the card', () => {
     await expect(card(page).locator('.gc-lb-state')).toHaveText('Chargement...')
     await expect(card(page).locator('.gc-lb-row')).toHaveCount(0)
     await menu(page).selectOption('month')
-    await expect(firstXp(page)).toHaveText('33,333 XP')
+    await expect(firstXp(page)).toHaveText('33 333 XP')
     await expect(card(page).locator('.gc-lb-state')).toHaveCount(0)
   })
 
@@ -107,16 +107,16 @@ test.describe('Each period of the card', () => {
     await openProfile(page, { width: 1280, delays: { week: 400 } })
     await menu(page).selectOption('week')
     await menu(page).selectOption('all')
-    await expect(firstXp(page)).toHaveText('444,444 XP')
+    await expect(firstXp(page)).toHaveText('444 444 XP')
     await page.waitForTimeout(600)
-    await expect(firstXp(page)).toHaveText('444,444 XP')
+    await expect(firstXp(page)).toHaveText('444 444 XP')
   })
 
   test('the viewer stays on an empty month, and can leave it', async ({ page }) => {
     await openProfile(page, { width: 1280, month: [] })
     await expect(card(page).locator('.gc-lb-state')).toHaveText('Aucun joueur classé ce mois.')
     await menu(page).selectOption('week')
-    await expect(firstXp(page)).toHaveText('2,222 XP')
+    await expect(firstXp(page)).toHaveText('2 222 XP')
   })
 
   test('an empty period says so in its own words', async ({ page }) => {
@@ -137,7 +137,7 @@ test.describe('Each period of the card', () => {
     await page.keyboard.press('ArrowRight')
     await expect(tab(page, 'all')).toBeFocused()
     await expect(tab(page, 'all')).toHaveCSS('outline-style', 'solid')
-    await expect(firstXp(page)).toHaveText('444,444 XP')
+    await expect(firstXp(page)).toHaveText('444 444 XP')
   })
 
   for (const [control, width] of [

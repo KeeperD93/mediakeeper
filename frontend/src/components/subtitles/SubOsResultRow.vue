@@ -29,7 +29,7 @@
         </span>
         <span v-if="result.ai_translated" class="sub-tag tag-ai">AI</span>
         <span v-if="result.machine_translated" class="sub-tag tag-machine">MT</span>
-        <span class="sub-os-dl-count">{{ result.download_count.toLocaleString() }}</span>
+        <span class="sub-os-dl-count">{{ localizedNumber(result.download_count) }}</span>
         <span v-if="result.ratings" class="sub-os-rating" :title="$t('subtitles.communityRating')">
           {{ result.ratings }}/10
         </span>
@@ -45,6 +45,7 @@
 <script setup>
 import SubQualityStars from './SubQualityStars.vue'
 import { Download } from 'lucide-vue-next'
+import { localizedNumber } from '@/utils/localizedNumber'
 
 defineProps({
   result: { type: Object, required: true },

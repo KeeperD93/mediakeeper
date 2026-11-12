@@ -199,10 +199,17 @@
      portal (8px vertical, see --portal-section-rhythm-track). */
   padding: var(--portal-section-rhythm-track) 4%;
   scrollbar-width: none;
+  scroll-behavior: smooth;
   scroll-snap-type: x mandatory;
 }
 .dp-cw-track::-webkit-scrollbar {
   display: none;
+}
+/* Reduced motion: the arrows jump instead of sliding. */
+@media (prefers-reduced-motion: reduce) {
+  .dp-cw-track {
+    scroll-behavior: auto;
+  }
 }
 .dp-cw-card {
   flex-shrink: 0;

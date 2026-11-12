@@ -14,14 +14,14 @@ test.describe('Each tab brings its own figures', () => {
   test('the month opens first and is asked once', async ({ page }) => {
     const asked = await openTabs(page)
     await expect(page.locator('h1')).toHaveText('Classement du mois')
-    await expect(heroXp(page)).toHaveText('33,333')
+    await expect(heroXp(page)).toHaveText('33 333')
     expect(asked).toEqual(['month:100'])
   })
 
   for (const [period, title, xp, chip] of [
     ['today', 'Classement du jour', '111', 'Lundi 2 novembre'],
-    ['week', 'Classement de la semaine', '2,222', 'Du 2 au 8 novembre'],
-    ['all', 'Classement de tous les temps', '444,444', 'Depuis le début'],
+    ['week', 'Classement de la semaine', '2 222', 'Du 2 au 8 novembre'],
+    ['all', 'Classement de tous les temps', '444 444', 'Depuis le début'],
   ]) {
     test(`${period}: title, figures and band follow, days left go away`, async ({ page }) => {
       await openTabs(page)
@@ -42,11 +42,11 @@ test.describe('Each tab brings its own figures', () => {
     await expect(page.locator('.gc-lb-move').first()).toBeVisible()
 
     await tab(page, 'all').click()
-    await expect(heroXp(page)).toHaveText('444,444')
+    await expect(heroXp(page)).toHaveText('444 444')
     await expect(page.locator('.gc-lb-move')).toHaveCount(0)
 
     await tab(page, 'week').click()
-    await expect(heroXp(page)).toHaveText('2,222')
+    await expect(heroXp(page)).toHaveText('2 222')
     await expect(page.locator('.gc-lb-move').first()).toBeVisible()
   })
 
@@ -74,14 +74,14 @@ test.describe('Each tab brings its own figures', () => {
   test('coming back to a tab uses what is loaded, and every figure returns', async ({ page }) => {
     const asked = await openTabs(page)
     await tab(page, 'week').click()
-    await expect(heroXp(page)).toHaveText('2,222')
-    await expect(chips(page).nth(2)).toContainText('22,220')
+    await expect(heroXp(page)).toHaveText('2 222')
+    await expect(chips(page).nth(2)).toContainText('22 220')
 
     await tab(page, 'month').click()
 
-    await expect(heroXp(page)).toHaveText('33,333')
+    await expect(heroXp(page)).toHaveText('33 333')
     await expect(chips(page).first()).toHaveText('Novembre 2026')
-    await expect(chips(page).nth(2)).toContainText('333,330')
+    await expect(chips(page).nth(2)).toContainText('333 330')
     expect(asked).toEqual(['month:100', 'week:100'])
   })
 
@@ -90,14 +90,14 @@ test.describe('Each tab brings its own figures', () => {
     await tab(page, 'week').click()
     await expect(page.locator('.lb-stats-bar')).toBeVisible()
     await tab(page, 'month').click()
-    await expect(heroXp(page)).toHaveText('33,333', { timeout: 5000 })
+    await expect(heroXp(page)).toHaveText('33 333', { timeout: 5000 })
     const bar = await page.locator('.lb-stats-bar').elementHandle()
     const hero = await page.locator('.lb-hero').elementHandle()
 
     await tab(page, 'week').click()
 
-    await expect(heroXp(page)).toHaveText('2,222', { timeout: 5000 })
-    await expect(chips(page).nth(2)).toContainText('22,220', { timeout: 5000 })
+    await expect(heroXp(page)).toHaveText('2 222', { timeout: 5000 })
+    await expect(chips(page).nth(2)).toContainText('22 220', { timeout: 5000 })
     await expect(page.locator('.lb-stats-bar')).toHaveCount(1)
     expect(await bar.evaluate(element => element.isConnected)).toBe(true)
     expect(await hero.evaluate(element => element.isConnected)).toBe(true)
@@ -107,11 +107,11 @@ test.describe('Each tab brings its own figures', () => {
     await openTabs(page, { delays: { week: 400 } })
     await tab(page, 'week').click()
     await tab(page, 'all').click()
-    await expect(heroXp(page)).toHaveText('444,444')
+    await expect(heroXp(page)).toHaveText('444 444')
 
     await page.waitForTimeout(600)
 
-    await expect(heroXp(page)).toHaveText('444,444')
+    await expect(heroXp(page)).toHaveText('444 444')
     await expect(page.locator('h1')).toHaveText('Classement de tous les temps')
   })
 
@@ -126,7 +126,7 @@ test.describe('Each tab brings its own figures', () => {
 
     await expect(page.locator('.pt-lb-state')).toHaveText("Aucun joueur classé aujourd'hui.")
     await tab(page, 'month').click()
-    await expect(heroXp(page)).toHaveText('33,333')
+    await expect(heroXp(page)).toHaveText('33 333')
   })
 
   test('the viewer outside the list reads the XP of the tab, without the month outlook', async ({
@@ -153,7 +153,7 @@ test.describe('Each tab brings its own figures', () => {
 
     await page.keyboard.press('ArrowRight')
     await expect(tab(page, 'all')).toBeFocused()
-    await expect(heroXp(page)).toHaveText('444,444')
+    await expect(heroXp(page)).toHaveText('444 444')
 
     await page.keyboard.press('ArrowRight')
     await expect(tab(page, 'today')).toBeFocused()

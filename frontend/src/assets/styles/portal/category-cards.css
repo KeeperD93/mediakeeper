@@ -29,6 +29,12 @@
 .pt-catcards-grid::-webkit-scrollbar {
   display: none;
 }
+/* Reduced motion: the arrows jump instead of sliding. */
+@media (prefers-reduced-motion: reduce) {
+  .pt-catcards-grid {
+    scroll-behavior: auto;
+  }
+}
 
 .pt-catcard {
   flex-shrink: 0;
