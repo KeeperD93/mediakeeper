@@ -14,6 +14,10 @@ This section intentionally has no date so it is not shown to users.
 
 ## [Unreleased]
 
+### Changed
+- Days in a row and Regular — from 5 min watched; music and audiobooks left out.
+- Secret trophies — name and icon shown, description and progress hidden until unlocked.
+
 ### Fixed
 - XP bar — same percentage in today's digest and the profile.
 - Notifications — bar lasts as long as the message, full message on small phones.

@@ -14,6 +14,7 @@ from tests._watch_measurement_helpers import (
     completions,
     emby_alone,
     emby_session,
+    known_application,
     play_reporting,
     poll,
     rows,
@@ -30,11 +31,6 @@ def _reset_player_reports():
     yield
     reports._writers.clear()
     reports._last_stored.clear()
-
-
-async def _known_application(db) -> None:
-    await play_reporting(db, 1000, 6, item="OTHER", session="S-0")
-    assert reports._writers
 
 
 async def _play_saves(db, saves: tuple[int, ...]) -> None:
@@ -77,7 +73,7 @@ async def test_an_application_that_never_saves_keeps_the_activity_rule(db_sessio
 
 async def test_a_saved_position_that_stays_out_of_reach_proves_nothing(db_session):
     # Known application, new title, saved position left far away by an earlier viewing.
-    await _known_application(db_session)
+    await known_application(db_session)
     for i in range(60):
         at = T0 + timedelta(hours=1) + STEP * i
         await poll(db_session, at, emby_session(at=at, position_s=2000 + 5 * i), stored=saved(5000))
@@ -87,7 +83,7 @@ async def test_a_saved_position_that_stays_out_of_reach_proves_nothing(db_sessio
 
 async def test_a_young_row_is_not_judged_on_an_old_saved_position(db_session):
     # Known application, a saved position 20 s ahead that this viewing has not rewritten yet.
-    await _known_application(db_session)
+    await known_application(db_session)
     for i in range(30):
         at = T0 + timedelta(hours=1) + STEP * i
         await poll(db_session, at, emby_session(at=at, position_s=2000 + 5 * i), stored=saved(2020))
@@ -129,7 +125,7 @@ async def test_a_failed_read_during_normal_playback_loses_nothing(db_session):
 
 
 async def test_saved_at_zero_far_into_a_film_means_the_player_is_lost(db_session):
-    await _known_application(db_session)
+    await known_application(db_session)
     start = T0 + timedelta(hours=1)
     for i in range(8):
         at = start + STEP * i
@@ -144,7 +140,7 @@ async def test_saved_at_zero_far_into_a_film_means_the_player_is_lost(db_session
     (7200, True, 35),   # at 0 and marked played: past the end of the resume zone
 ])
 async def test_saved_at_zero_proves_nothing_elsewhere(db_session, runtime, played, expected):
-    await _known_application(db_session)
+    await known_application(db_session)
     start = T0 + timedelta(hours=1)
     for i in range(8):
         at = start + STEP * i

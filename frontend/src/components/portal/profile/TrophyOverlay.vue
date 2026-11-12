@@ -92,11 +92,7 @@
             >
               <div
                 class="ta-row-icon"
-                :class="[
-                  ach.status === TROPHY_STATUS.LOCKED || ach.status === TROPHY_STATUS.PROGRESS
-                    ? 'gc-trophy-icon--dim'
-                    : '',
-                ]"
+                :class="[ach.status !== TROPHY_STATUS.UNLOCKED ? 'gc-trophy-icon--dim' : '']"
               >
                 <span
                   class="ta-row-icon-inner"
@@ -108,16 +104,13 @@
                       : ''
                   "
                 >
-                  <HelpCircle v-if="ach.status === TROPHY_STATUS.SECRET" :size="28" />
-                  <component :is="iconMap[ach.icon] || HelpCircle" v-else :size="28" />
+                  <component :is="iconMap[ach.icon] || HelpCircle" :size="28" />
                 </span>
               </div>
 
               <div class="ta-row-info">
                 <div class="ta-row-top">
-                  <h4 class="ta-row-name">
-                    {{ ach.status === TROPHY_STATUS.SECRET ? '???' : $t(ach.name_key) }}
-                  </h4>
+                  <h4 class="ta-row-name">{{ $t(ach.name_key) }}</h4>
                   <span
                     v-if="ach.status === TROPHY_STATUS.UNLOCKED"
                     class="gc-trophy-rarity"
@@ -129,7 +122,7 @@
                 <div v-if="ach.status !== TROPHY_STATUS.SECRET" class="ta-row-desc">
                   {{ trophyDesc(ach) }}
                 </div>
-                <div v-else class="ta-row-desc">{{ $t('portal.profile.secretTrophy') }}</div>
+                <div v-else class="ta-row-desc">{{ $t('portal.profile.secretDescription') }}</div>
                 <div
                   v-if="ach.status !== TROPHY_STATUS.SECRET && ach.threshold"
                   class="ta-row-prog"
@@ -297,6 +290,8 @@ const searchedTrophies = computed(() => {
   if (!q) return list
   return list.filter(ach => {
     const name = ach.name_key && te(ach.name_key) ? t(ach.name_key).toLowerCase() : ''
+    // An unearned secret is searchable by name only: its other texts hint at how to earn it.
+    if (ach.status === TROPHY_STATUS.SECRET) return name.includes(q)
     const desc = trophyDesc(ach).toLowerCase()
     const titleReward =
       ach.title_reward && te(ach.title_reward) ? t(ach.title_reward).toLowerCase() : ''

@@ -78,19 +78,24 @@ async def list_my_titles(
     one and the full catalogue (title → source achievement) so the UI can show
     a "how to unlock" panel."""
     user, profile = up
-    unlocked = titles_from(await unlocked_achievement_ids(db, user.id))
+    unlocked_ids = await unlocked_achievement_ids(db, user.id)
+    unlocked = titles_from(unlocked_ids)
     catalogue = []
     for ach_id, title_key in TITLE_REWARDS.items():
         ach_def = next((d for d in ACHIEVEMENT_DEFS if d["id"] == ach_id), None)
         if not ach_def:
             continue
+        secret = ach_def.get("secret", False)
         catalogue.append({
             "title_key": title_key,
             "achievement_id": ach_id,
             "achievement_name_key": ach_def["name_key"],
-            "achievement_description_key": ach_def["description_key"],
+            # A secret keeps how it is earned to itself until unlocked.
+            "achievement_description_key": (
+                None if secret and ach_id not in unlocked_ids else ach_def["description_key"]
+            ),
             "tier": ach_def.get("tier", 1),
-            "secret": ach_def.get("secret", False),
+            "secret": secret,
             "unlocked": title_key in unlocked,
         })
     return {

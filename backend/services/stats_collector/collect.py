@@ -36,6 +36,7 @@ from ._player_reports import (
     title_key,
 )
 from ._resolver import _session_library_name
+from ._resume_zones import refresh_resume_zones
 from ._watch_xp import pay_watch_xp
 
 __all__ = ["_after_rows_closed", "_process_pause_events", "collect_active_sessions", "pay_watch_xp"]
@@ -146,6 +147,8 @@ async def collect_active_sessions(db: AsyncSession, now: datetime | None = None)
 
     await _process_pause_events(db, sessions, now)
     stored = await fetch_stored_positions(url, api_key, sessions)
+    if stored:  # the libraries' resume settings only serve to judge a saved position
+        await refresh_resume_zones(url, api_key, now)
 
     keys = {_emby_key(s) for s in sessions}
     forget_other_sessions(keys)

@@ -12,6 +12,8 @@ This section intentionally has no date so it is not shown to users.
 
 ### Changed
 - Dashboard — leaderboard widget matches the Leaderboard page.
+- Statistics — day streak from 5 min watched; music and audiobooks left out.
+- Portal — secret trophies: name and icon shown, description and progress hidden until unlocked.
 
 ### Fixed
 - XP bar — same percentage in today's digest and the profile.
@@ -27,6 +29,7 @@ This section intentionally has no date so it is not shown to users.
 - Sign-in — the browser fills in the saved username and password.
 - Sign-in — animations stop with "Reduce motion".
 - Sign-in — a double press no longer opens two sessions, Enter retries after a refusal.
+- Statistics — watch time: playback cut off early in a title no longer counted to the end.
 
 ## [1.0.0-rc.10] - 2026-11-11
 

@@ -2,11 +2,20 @@
 from sqlalchemy import distinct, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from constants.achievements import (
+    TROPHY_STATUS_LOCKED,
+    TROPHY_STATUS_PROGRESS,
+    TROPHY_STATUS_SECRET,
+    TROPHY_STATUS_UNLOCKED,
+)
 from models.portal.achievement import Achievement, UserAchievement
 from models.portal.profile import UserProfile
 from models.user import User
 from services.portal.achievement_defs import (
-    META_TARGET_CATEGORY, SECONDARY_CATEGORIES, SECRET_THEMES, TIER_NAMES,
+    META_TARGET_CATEGORY,
+    SECONDARY_CATEGORIES,
+    SECRET_THEMES,
+    TIER_NAMES,
     TITLE_REWARDS,
 )
 from services.portal.achievement_defs_constants import PLACEHOLDER_IDS
@@ -20,9 +29,10 @@ async def get_achievements_for_profile(
 ) -> dict:
     """
     Returns everything needed by the profile page trophy section:
-    - All achievements with user progress + rarity
+    - All achievements with user progress + rarity; an unearned secret carries
+      its name and icon but no description, progress or target
     - Unlocked count / total
-    - Next closest achievement (urgency bar)
+    - Next closest achievement (urgency bar), never an unearned secret
     """
     all_achs_raw = (await db.execute(
         select(Achievement).order_by(Achievement.sort_order)
@@ -92,15 +102,7 @@ async def get_achievements_for_profile(
 
         pct = round(100 * (rarity_map.get(ach.id, 0) / total_users))
         rarity = _rarity_label(ach.tier)
-
-        if is_unlocked:
-            status = "unlocked"
-        elif ach.secret and progress == 0:
-            status = "secret"
-        elif progress > 0:
-            status = "progress"
-        else:
-            status = "locked"
+        status = _status(is_unlocked, ach.secret, progress)
 
         item = {
             "id": ach.id,
@@ -129,9 +131,16 @@ async def get_achievements_for_profile(
             ),
             "seasonal_years": seasonal_years.get(ach.id, []),
         }
+        if ach.secret and not is_unlocked:
+            # Until unlocked, a secret hides how it is earned (description,
+            # theme, seasonal years) and how close the user is.
+            item.update(
+                description_key=None, progress=None, threshold=None,
+                secret_theme=None, seasonal_years=[],
+            )
         items.append(item)
 
-        if not is_unlocked and progress > 0 and ach.threshold > 0:
+        if not is_unlocked and not ach.secret and progress > 0 and ach.threshold > 0:
             fill_pct = progress / ach.threshold
             if best_next is None or fill_pct > best_next["_fill"]:
                 best_next = {**item, "_fill": fill_pct}
@@ -147,8 +156,17 @@ async def get_achievements_for_profile(
     }
 
 
+def _status(is_unlocked: bool, secret: bool, progress: int) -> str:
+    """Display status; an unearned secret stays secret whatever its progress."""
+    if is_unlocked:
+        return TROPHY_STATUS_UNLOCKED
+    if secret:
+        return TROPHY_STATUS_SECRET
+    return TROPHY_STATUS_PROGRESS if progress > 0 else TROPHY_STATUS_LOCKED
+
+
 def _rarity_label(tier: int) -> str:
-    """Tier-based rarity color (palier 1..6 → common..mythic).
+    """Tier-based rarity color (tier 1..6 → common..mythic).
     Decoupled from the statistical % so colors stay meaningful even
     on a small user base — relying on player count to derive rarity
     means tiny instances only ever see common/gray badges."""

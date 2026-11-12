@@ -49,14 +49,11 @@
             {{ item.unlocked ? '✓' : '🔒' }} {{ $t(item.title_key) }}
           </span>
           <span>
-            ←
-            <template v-if="item.secret">
-              {{ $t('portal.settings.appearance.titleSecretHint') }}
-            </template>
-            <template v-else>
-              {{ $t(item.achievement_name_key) }}
-              <em>· {{ $t(item.achievement_description_key) }}</em>
-            </template>
+            ← {{ $t(item.achievement_name_key) }}
+            <!-- The server leaves the description out for a secret not yet unlocked. -->
+            <em v-if="item.achievement_description_key">
+              · {{ $t(item.achievement_description_key) }}
+            </em>
           </span>
         </li>
       </ul>

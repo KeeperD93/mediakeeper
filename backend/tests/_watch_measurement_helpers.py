@@ -6,7 +6,7 @@ from unittest.mock import AsyncMock, patch
 from sqlalchemy import select
 
 from models.playback_stats import PlaybackCompletion, PlaybackSession
-from services.stats_collector._player_reports import StoredPosition
+from services.stats_collector._player_reports import StoredPosition, _writers
 from services.stats_collector.collect import collect_active_sessions
 
 TICK = 10_000_000
@@ -22,13 +22,14 @@ def _emby_date(at: datetime) -> str:
 def emby_session(
     *, at: datetime, position_s: float, paused: bool = False, item: str = "MOVIE-1",
     item_type: str = "Movie", runtime_s: int = 6000, user: str = "EMBY-1",
-    session: str = "S-1", silent_since: datetime | None = None, client: str = "Web",
+    session: str = "S-1", silent_since: datetime | None = None, client: str = "Web", device: str = "DEVICE-1",
 ) -> dict:
     return {
         "Id": session,
         "UserId": user,
         "UserName": "viewer",
         "Client": client,
+        "DeviceId": device,
         "DeviceName": "PC",
         "LastActivityDate": _emby_date(silent_since or at),
         "NowPlayingItem": {
@@ -45,7 +46,7 @@ def saved(position_s: float, *, played: bool = False, user: str = "EMBY-1", item
 
 async def poll(
     db, at: datetime, *sessions: dict, stored: dict | None = None, closed: AsyncMock | None = None,
-    real_xp: bool = False,
+    refresh: AsyncMock | None = None, real_xp: bool = False,
 ) -> None:
     """One poll; watch XP and the follow-up of closed rows are left out unless ``real_xp``."""
     source = {"source": "emby", "url": "http://emby.test", "api_key": "k"}
@@ -57,6 +58,7 @@ async def poll(
             ("_session_library_name", "Films"),
         ):
             stack.enter_context(patch(f"services.stats_collector.collect.{target}", new=AsyncMock(return_value=value)))
+        stack.enter_context(patch("services.stats_collector.collect.refresh_resume_zones", new=refresh or AsyncMock()))
         if not real_xp:
             stack.enter_context(patch("services.stats_collector.collect.pay_watch_xp", new=AsyncMock()))
             stack.enter_context(patch("services.stats_collector.collect._after_rows_closed", new=closed or AsyncMock()))
@@ -88,6 +90,12 @@ async def play_reporting(db, first_position: float, count: int, **kw):
         at, position, position_saved = T0 + STEP * i, first_position + 5 * i, first_position + 10 * (i // 2)
         await poll(db, at, emby_session(at=at, position_s=position, **kw), stored=saved(position_saved, item=item))
     return at, position, position_saved
+
+
+async def known_application(db) -> None:
+    """The player application of the tests, seen saving its position on another title."""
+    await play_reporting(db, 1000, 6, item="OTHER", session="S-0")
+    assert _writers
 
 
 async def emby_alone(db, last, position: float, position_saved: float, count: int, **kw):

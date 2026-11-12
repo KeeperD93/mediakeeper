@@ -5,6 +5,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.portal.deps import get_current_profile, get_request_lang
+from constants.achievements import TROPHY_STATUS_UNLOCKED
 from constants.leaderboard import LeaderboardPeriod
 from core.database import get_db
 from core.rate_limit import limiter, portal_user_or_ip_key
@@ -68,7 +69,7 @@ async def user_achievements(
         raise HTTPException(status_code=404, detail="profile_not_found")
 
     data = await ach_svc.get_achievements_for_profile(db, user_id)
-    data["items"] = [a for a in data["items"] if a["status"] == "unlocked"]
+    data["items"] = [a for a in data["items"] if a["status"] == TROPHY_STATUS_UNLOCKED]
     return data
 
 

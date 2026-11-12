@@ -8,10 +8,18 @@ from sqlalchemy import update
 from models.playback_stats import PlaybackSession
 from services.instance_time import INSTANCE_TIMEZONE_KEY
 from services.settings import set_setting
+from services.stats_aggregator import records
 from services.stats_aggregator.charts import get_daily_chart_data
 from services.stats_aggregator.profile import get_user_profile
 from services.stats_aggregator.records import get_records
 from tests._stats_local_time_helpers import freeze, play, save_paris, utc
+
+# Enough watching to fill a day of the streak on its own.
+WATCHED_DAY = 10 * 60
+
+
+def _watch(db, started: datetime, **fields) -> None:
+    play(db, started, watched=WATCHED_DAY, exclusive=WATCHED_DAY, **fields)
 
 
 @pytest.mark.asyncio
@@ -59,18 +67,32 @@ async def test_a_tie_keeps_the_earliest_record_and_the_earliest_hour(db_session,
 async def test_the_streak_holds_until_a_whole_day_is_missed(db_session, monkeypatch, now, current):
     freeze(monkeypatch, now)
     for day in (14, 15, 16):
-        play(db_session, utc(2026, 10, day, 12))
+        _watch(db_session, utc(2026, 10, day, 12))
     await db_session.commit()
 
     assert (await get_records(db_session))["current_streak"] == current
 
 
 @pytest.mark.asyncio
+async def test_a_day_of_the_streak_needs_five_minutes_from_all_players(db_session, monkeypatch):
+    freeze(monkeypatch, utc(2026, 10, 16, 18))
+    play(db_session, utc(2026, 10, 14, 12), watched=120, exclusive=120)
+    play(db_session, utc(2026, 10, 15, 12), watched=180, exclusive=180)
+    play(db_session, utc(2026, 10, 15, 20), user="bob", watched=180, exclusive=180)
+    _watch(db_session, utc(2026, 10, 16, 12))
+    await db_session.commit()
+
+    stats = await get_records(db_session)
+
+    assert (stats["current_streak"], stats["longest_streak"]) == (2, 2)
+
+
+@pytest.mark.asyncio
 async def test_the_streaks_follow_the_days_of_the_zone(db_session, monkeypatch):
     """A play at 22:30 UTC fills the next day in Paris: the gap closes there, not in UTC."""
     freeze(monkeypatch, utc(2026, 10, 16, 18))
-    play(db_session, utc(2026, 10, 14, 22, 30))
-    play(db_session, utc(2026, 10, 16, 12))
+    _watch(db_session, utc(2026, 10, 14, 22, 30))
+    _watch(db_session, utc(2026, 10, 16, 12))
     await db_session.commit()
 
     in_utc = await get_records(db_session)
@@ -82,12 +104,68 @@ async def test_the_streaks_follow_the_days_of_the_zone(db_session, monkeypatch):
 
 
 @pytest.mark.asyncio
+async def test_a_film_finished_after_midnight_holds_the_streak(db_session, monkeypatch):
+    """The 15th only holds the end of a film started at 23:00 in Paris the day before."""
+    freeze(monkeypatch, utc(2026, 10, 16, 18))
+    _watch(db_session, utc(2026, 10, 14, 12))
+    play(db_session, utc(2026, 10, 14, 21), watched=75 * 60, exclusive=75 * 60)
+    _watch(db_session, utc(2026, 10, 16, 12))
+    await db_session.commit()
+    await save_paris(db_session)
+
+    stats = await get_records(db_session)
+
+    assert (stats["current_streak"], stats["longest_streak"]) == (3, 3)
+    # The record day still counts the plays started on it.
+    assert (stats["record_day_date"], stats["record_day_count"]) == ("2026-10-14", 2)
+
+
+@pytest.mark.asyncio
+async def test_the_records_read_the_plays_once(db_session, monkeypatch):
+    freeze(monkeypatch, utc(2026, 10, 16, 18))
+    _watch(db_session, utc(2026, 10, 16, 12))
+    await db_session.commit()
+    statements = []
+    execute = db_session.execute
+
+    async def spy(statement, *args, **kwargs):
+        statements.append(str(statement))
+        return await execute(statement, *args, **kwargs)
+
+    monkeypatch.setattr(db_session, "execute", spy)
+    stats = await get_records(db_session)
+
+    assert (stats["record_day_date"], stats["current_streak"]) == ("2026-10-16", 1)
+    assert sum("playback_sessions.started_at" in sql for sql in statements) == 1
+
+
+@pytest.mark.asyncio
+async def test_the_records_count_the_plays_off_the_event_loop(db_session, monkeypatch):
+    freeze(monkeypatch, utc(2026, 10, 16, 18))
+    _watch(db_session, utc(2026, 10, 16, 12))
+    await db_session.commit()
+    run_in_thread = records.asyncio.to_thread
+    sent = []
+
+    async def spy(func, *args, **kwargs):
+        sent.append(func.__name__)
+        return await run_in_thread(func, *args, **kwargs)
+
+    monkeypatch.setattr(records.asyncio, "to_thread", spy)
+    stats = await get_records(db_session)
+
+    assert sent == ["_count_days_and_hours"]
+    # No zone saved: the instance reads UTC.
+    assert (stats["record_day_date"], stats["peak_hour"], stats["current_streak"]) == ("2026-10-16", 12, 1)
+
+
+@pytest.mark.asyncio
 async def test_today_of_the_streak_follows_the_zone(db_session, monkeypatch):
     """18:00 UTC on the 16th is the 17th in Auckland: its 16th stayed empty, so the run is over."""
     freeze(monkeypatch, utc(2026, 10, 16, 18))
     # The 14th and the 15th in Auckland.
-    play(db_session, utc(2026, 10, 13, 12))
-    play(db_session, utc(2026, 10, 14, 12))
+    _watch(db_session, utc(2026, 10, 13, 12))
+    _watch(db_session, utc(2026, 10, 14, 12))
     await db_session.commit()
     await set_setting(db_session, INSTANCE_TIMEZONE_KEY, "Pacific/Auckland")
 
@@ -100,7 +178,7 @@ async def test_today_of_the_streak_follows_the_zone(db_session, monkeypatch):
 async def test_the_longest_streak_finds_a_past_run(db_session, monkeypatch):
     freeze(monkeypatch, utc(2026, 10, 20, 12))
     for day in (1, 2, 3, 4, 10):
-        play(db_session, utc(2026, 10, day, 12))
+        _watch(db_session, utc(2026, 10, day, 12))
     await db_session.commit()
 
     stats = await get_records(db_session)
@@ -130,9 +208,10 @@ async def test_records_leave_out_excluded_titles_and_rows_without_a_date(db_sess
     await set_setting(
         db_session, "stats.exclusions", json.dumps([{"mode": "exact", "value": "Test Intro"}]),
     )
-    play(db_session, utc(2026, 10, 14, 12))
-    play(db_session, utc(2026, 10, 3, 9), item="Test Intro")
-    play(db_session, utc(2026, 10, 3, 9), item="Test Intro")
+    _watch(db_session, utc(2026, 10, 14, 12))
+    # Without the list, the excluded title would make a run of two days.
+    _watch(db_session, utc(2026, 10, 13, 9), item="Test Intro")
+    _watch(db_session, utc(2026, 10, 13, 9), item="Test Intro")
     play(db_session, utc(2026, 10, 5, 9), item="No Date")
     await db_session.commit()
     await db_session.execute(

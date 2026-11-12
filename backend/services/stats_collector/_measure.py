@@ -9,7 +9,8 @@ import re
 from collections import Counter
 from datetime import datetime, timedelta, timezone
 
-from constants.playback import TICKS_PER_SECOND, WATCH_ITEM_TYPES
+from constants.playback import TICKS_PER_SECOND, WATCH_HOUR_KEY_FORMAT, WATCH_ITEM_TYPES
+from services.watch_hours import spread_over_hours
 
 # Delay between two polls: the precision of every measured session.
 POLL_INTERVAL_SECONDS = 5
@@ -131,24 +132,9 @@ def add_to_hour(buckets: dict | None, at: datetime, seconds: int) -> dict | None
     if seconds <= 0:
         return buckets
     updated = dict(buckets or {})  # a new object so the JSON column is flagged dirty
-    key = as_utc(at).strftime("%Y-%m-%dT%H")
+    key = as_utc(at).strftime(WATCH_HOUR_KEY_FORMAT)
     updated[key] = updated.get(key, 0) + seconds
     return updated
-
-
-def spread_over_hours(start: datetime, seconds: int) -> dict[str, int]:
-    """Lay ``seconds`` contiguously from ``start``, per UTC hour: used when only
-    the played duration is known (imported history), not the real timeline."""
-    buckets: dict[str, int] = {}
-    cursor, left = as_utc(start), seconds
-    while left > 0:
-        next_hour = cursor.replace(minute=0, second=0, microsecond=0) + timedelta(hours=1)
-        chunk = min(left, int((next_hour - cursor).total_seconds()) or 1)
-        key = cursor.strftime("%Y-%m-%dT%H")
-        buckets[key] = buckets.get(key, 0) + chunk
-        left -= chunk
-        cursor = next_hour
-    return buckets
 
 
 def history_measure(session_key: str, item_type: str, started_at: datetime, seconds: int) -> dict:
