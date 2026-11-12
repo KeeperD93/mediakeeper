@@ -80,8 +80,8 @@ def xp_for_level(level: int) -> int:
 
 
 def level_from_xp(total_xp: int) -> int:
-    """Compute level from total cumulative XP."""
-    level = 0
+    """Compute level from total cumulative XP; every player starts at level 1."""
+    level = 1
     while level < MAX_LEVEL and xp_for_level(level + 1) <= total_xp:
         level += 1
     return level

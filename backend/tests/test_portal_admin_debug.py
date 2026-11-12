@@ -95,6 +95,7 @@ async def test_grant_xp_negative_clamps_to_zero(client, db_session):
     )
     assert resp.status_code == 200
     assert resp.json()["xp"] == 0
+    assert resp.json()["level"] == 1  # back to the start, never below it
 
 
 @pytest.mark.asyncio

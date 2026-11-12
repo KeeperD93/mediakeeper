@@ -71,7 +71,8 @@ async def test_nothing_is_simulated_before_a_zone_is_saved(client, db_session):
 async def test_apply_takes_back_the_trophy_its_xp_and_its_badge(client, db_session, backups):
     alice = await alice_with_early_bird(client, db_session)
     profile = await profile_of(db_session, alice)
-    profile.level, profile.selected_badges = 1, [EARLY]
+    # Past the level 2 threshold (300 XP): taking the trophy's 40 XP back costs a level.
+    profile.xp, profile.level, profile.selected_badges = 320, 2, [EARLY]
     await db_session.commit()
     daily_digest._cache_set(alice, "2026-02-02", "fr", {"cached": True})
     simulated = (await client.get(SIMULATE)).json()
@@ -89,7 +90,7 @@ async def test_apply_takes_back_the_trophy_its_xp_and_its_badge(client, db_sessi
     ))).scalar_one()
     assert (row.unlocked, row.unlocked_at, row.progress) == (False, None, 0)
     profile = await profile_of(db_session, alice)
-    assert (profile.xp, profile.level, profile.selected_badges) == (70, 0, None)
+    assert (profile.xp, profile.level, profile.selected_badges) == (280, 1, None)
     assert (await db_session.execute(select(XpLedger).where(XpLedger.user_id == alice))).first() is None
     assert all(key[0] != alice for key in daily_digest._digest_cache)
 
@@ -97,7 +98,7 @@ async def test_apply_takes_back_the_trophy_its_xp_and_its_badge(client, db_sessi
         row.action: row.payload for row in (await db_session.execute(select(AdminAuditLog))).scalars()
     }
     assert audits[ACTION_DEBUG_ZONE_CORRECTION_PLAYER]["removed"] == [EARLY]
-    assert audits[ACTION_DEBUG_ZONE_CORRECTION_PLAYER]["level"] == [1, 0]
+    assert audits[ACTION_DEBUG_ZONE_CORRECTION_PLAYER]["level"] == [2, 1]
     assert audits[ACTION_DEBUG_ZONE_CORRECTION]["backup"] == ARCHIVE
 
 
@@ -111,14 +112,15 @@ async def _player_audit(db) -> dict:
 async def test_the_audit_keeps_what_undoing_a_player_needs(client, db_session, backups):
     alice = await alice_with_early_bird(client, db_session)
     profile = await profile_of(db_session, alice)
-    profile.level, profile.selected_badges, profile.selected_title = 1, [EARLY], "Test Title"
+    profile.xp, profile.level = 320, 2
+    profile.selected_badges, profile.selected_title = [EARLY], "Test Title"
     await db_session.commit()
     ledger_id = (await db_session.execute(select(XpLedger.id).where(XpLedger.user_id == alice))).scalar_one()
 
     assert (await client.post(APPLY, json=await confirmation(client))).status_code == 200
 
     audit = await _player_audit(db_session)
-    assert (audit["xp"], audit["level"]) == ([110, 70], [1, 0])
+    assert (audit["xp"], audit["level"]) == ([320, 280], [2, 1])
     undo = audit["undo"]
     assert undo["trophies"] == {EARLY: {"unlocked_at": BEFORE_SAVE.isoformat(), "progress": 1}}
     assert undo["decorations"] == {"selected_badges": [EARLY], "selected_title": "Test Title"}

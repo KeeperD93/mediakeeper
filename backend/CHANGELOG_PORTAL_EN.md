@@ -14,6 +14,9 @@ This section intentionally has no date so it is not shown to users.
 
 ## [Unreleased]
 
+### Fixed
+- Levels — a player under 100 XP stays at level 1, on every screen.
+
 ## [1.0.0-rc.10] - 2026-11-11
 
 ### Added

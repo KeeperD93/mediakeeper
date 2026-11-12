@@ -46,3 +46,8 @@ def test_offline_sql_renders_064():
 def test_offline_sql_renders_067():
     sql = _render("066_last_login_from_sign_ins:067_drop_can_earn_xp_offline")
     assert "ALTER TABLE user_profiles DROP COLUMN can_earn_xp_offline" in sql
+
+
+def test_offline_sql_renders_069():
+    sql = _render("068_unlinked_profiles_local:069_profile_level_floor")
+    assert "UPDATE user_profiles SET level = 1 WHERE level < 1" in sql

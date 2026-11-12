@@ -16,6 +16,9 @@ utilisateurs.
 
 ## [Unreleased]
 
+### Fixed
+- Niveaux — un joueur sous 100 XP reste au niveau 1, sur tous les écrans.
+
 ## [1.0.0-rc.10] - 2026-11-11
 
 ### Added
