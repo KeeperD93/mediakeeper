@@ -194,7 +194,7 @@ describe('LoginView — leaving the page after a sign-in', () => {
     expect(router.currentRoute.value.name).toBe('home')
   })
 
-  it('frees the button when a newer navigation takes over and lands back here', async () => {
+  it('frees the button when a newer navigation lands back here before the cancellation shows', async () => {
     const letPortalThrough = holdRoute('portal')
     loginMock.mockResolvedValue(MEMBER)
     await signInPage()
@@ -205,6 +205,28 @@ describe('LoginView — leaving the page after a sign-in', () => {
     await flushPromises()
 
     expect(router.currentRoute.value.name).toBe('login')
+    expect(button().attributes('disabled')).toBeUndefined()
+  })
+
+  it('frees the button when a newer navigation lands back here after the cancellation shows', async () => {
+    const letPortalThrough = holdRoute('portal')
+    loginMock.mockResolvedValue(MEMBER)
+    await signInPage()
+    await submit()
+
+    let letBackThrough
+    const back = new Promise(resolve => {
+      letBackThrough = () => resolve(true)
+    })
+    router.beforeEach(to => (to.hash === '#main-content' ? back : true))
+    router.replace({ name: 'login', hash: '#main-content' })
+    letPortalThrough()
+    await flushPromises()
+    expect(button().attributes('disabled')).toBeDefined()
+
+    letBackThrough()
+    await flushPromises()
+    expect(router.currentRoute.value.hash).toBe('#main-content')
     expect(button().attributes('disabled')).toBeUndefined()
   })
 
