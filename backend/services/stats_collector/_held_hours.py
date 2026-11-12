@@ -54,8 +54,9 @@ class HeldHours:
         if held is not None and proof is Proof.SAVED:
             _pay(row, self._pending.pop(key).hours)
             return
-        if proof is Proof.AT_ZERO:
-            # Only a saved 0 judges the player: a failed or other read keeps the last judgement.
+        if proof in (Proof.AT_ZERO, Proof.ZERO_UNJUDGED):
+            # Only a saved 0 judges the player, lost or not: a save far from the
+            # session or a failed read keeps the last judgement.
             held = _Held(held.hours if held else {}, verdict.lost)
         self._pending[key] = held
         self._this_poll.add(key)

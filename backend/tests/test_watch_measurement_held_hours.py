@@ -87,6 +87,30 @@ async def test_a_player_switched_off_at_the_start_of_a_long_film_fills_no_day(db
     assert not held_hours._held
 
 
+async def test_a_player_switched_off_at_the_start_of_a_title_carried_to_its_end_is_dropped(db_session):
+    await known_application(db_session)
+    _library_saves_from(3)
+    at, position = await _real(db_session, BEGIN, 5, 5, runtime_s=1440)
+    at, _ = await _alone(db_session, at, position, 1440, runtime_s=1440)  # never saved, never marked played
+    await poll(db_session, at)
+    assert (await _movie(db_session)).watched_by_hour == {HOUR: 5}
+
+
+@pytest.mark.parametrize("settings_read", [True, False], ids=["settings read", "settings unknown"])
+async def test_the_ending_watched_after_a_jump_from_the_start_keeps_its_hours(db_session, settings_read):
+    # 20 s in, a jump to the last minutes watched to the end. Past 90 % Emby saves 0 and marks
+    # the title played, from the report after the jump.
+    await known_application(db_session)
+    if settings_read:
+        _library_saves_from(3)
+    at, _ = await _real(db_session, BEGIN, 5, 20, runtime_s=7200)
+    at, _ = await _real(db_session, at, 6600, 7180, runtime_s=7200,
+                        stored=lambda position, runtime_s: saved(0, played=position > 6600))
+    await poll(db_session, at)
+    row = await _movie(db_session)
+    assert row.watched_seconds == 605 and row.watched_by_hour == {HOUR: 605}
+
+
 async def test_a_real_playback_keeps_each_second_in_the_hour_it_was_watched(db_session):
     await known_application(db_session)
     _library_saves_from(3)

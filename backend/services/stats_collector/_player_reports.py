@@ -67,8 +67,9 @@ class Proof(Enum):
     """What the saved position read now tells of the player, until it proves it plays."""
 
     SAVED = "saved"  # saved next to the session: the player itself reports
+    FAR = "far"  # saved far from the session (another device of the account): proves nothing
     AT_ZERO = "at_zero"  # still 0 where the rule of a save left at 0 may yet judge the player lost
-    NONE = "none"  # read, but neither
+    ZERO_UNJUDGED = "zero_unjudged"  # still 0 where that rule cannot judge the player (e.g. title marked played)
 
 
 @dataclass(frozen=True)
@@ -243,14 +244,15 @@ def judge_player(
         return Verdict(known and last is not None and _far(position, last.ticks))
     if stored.ticks > 0:
         lost = known and _runs_from_save(position, stored.ticks, row)
-        proof = Proof.NONE if _far(position, stored.ticks) else Proof.SAVED
+        proof = Proof.FAR if _far(position, stored.ticks) else Proof.SAVED
     else:
         runtime = item.get("RunTimeTicks") or 0
         saving = device in _saving_devices
         confirmed = _last_confirmed(row, previous_row, key) if saving else None
         judged = known and not stored.played
         lost = judged and _left_unsaved(position, confirmed, runtime, library)
-        proof = Proof.AT_ZERO if judged and saving and _may_be_left_unsaved(runtime, library) else Proof.NONE
+        may_judge = judged and saving and _may_be_left_unsaved(runtime, library)
+        proof = Proof.AT_ZERO if may_judge else Proof.ZERO_UNJUDGED
     _learn(key, client, device, library, position, stored, now)
     return Verdict(lost, proof)
 
