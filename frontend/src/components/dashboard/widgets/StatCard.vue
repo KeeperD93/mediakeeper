@@ -33,6 +33,7 @@
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { usePrefersReducedMotion } from '@/composables/usePrefersReducedMotion'
 import { STAT_CARD_ACCENT } from '@/constants/dashboardStatColors'
 
 const props = defineProps({
@@ -69,11 +70,7 @@ const isLoading = computed(() => props.value == null || props.value === '—')
 // ---- Animated counter ----
 const displayValue = ref('—')
 const animFrame = ref(null)
-
-function prefersReducedMotion() {
-  if (typeof window === 'undefined' || !window.matchMedia) return false
-  return window.matchMedia('(prefers-reduced-motion: reduce)').matches
-}
+const reducedMotion = usePrefersReducedMotion()
 
 function parseNumeric(val) {
   if (val == null || val === '—') return null
@@ -96,7 +93,7 @@ function formatLike(target, num) {
 
 function animateCounter(target) {
   const num = parseNumeric(target)
-  if (num === null || num === 0 || prefersReducedMotion()) {
+  if (num === null || num === 0 || reducedMotion.value) {
     displayValue.value = target
     return
   }
@@ -108,11 +105,20 @@ function animateCounter(target) {
     const eased = 1 - Math.pow(1 - progress, 3)
     const current = num * eased
     displayValue.value = formatLike(target, current)
-    if (progress < 1) animFrame.value = requestAnimationFrame(tick)
+    animFrame.value = progress < 1 ? requestAnimationFrame(tick) : null
   }
   if (animFrame.value) cancelAnimationFrame(animFrame.value)
   animFrame.value = requestAnimationFrame(tick)
 }
+
+// A count under way ends at once on the figure it was heading for when reduced
+// motion is turned on.
+watch(reducedMotion, reduced => {
+  if (!reduced || !animFrame.value) return
+  cancelAnimationFrame(animFrame.value)
+  animFrame.value = null
+  displayValue.value = formatLike(props.value, parseNumeric(props.value))
+})
 
 onMounted(() => {
   if (props.value && props.value !== '—') animateCounter(props.value)
@@ -135,7 +141,7 @@ const tiltStyle = computed(() => ({
 }))
 
 function onTilt(e) {
-  if (props.editing || prefersReducedMotion()) return
+  if (props.editing || reducedMotion.value) return
   const rect = e.currentTarget.getBoundingClientRect()
   const x = (e.clientX - rect.left) / rect.width - 0.5
   const y = (e.clientY - rect.top) / rect.height - 0.5

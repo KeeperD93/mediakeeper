@@ -39,7 +39,11 @@ async function barText(locale, stats) {
 describe('LeaderboardStatsBar.vue', () => {
   beforeEach(() => {
     // Reduced motion makes the counters snap to their final value.
-    window.matchMedia = vi.fn(() => ({ matches: true }))
+    window.matchMedia = vi.fn(() => ({
+      matches: true,
+      addEventListener: () => {},
+      removeEventListener: () => {},
+    }))
   })
 
   afterEach(() => {
