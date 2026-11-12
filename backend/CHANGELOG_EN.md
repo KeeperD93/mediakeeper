@@ -29,7 +29,7 @@ This section intentionally has no date so it is not shown to users.
 - Sign-in — animations stop with "Reduce motion".
 - Sign-in — a double press no longer opens two sessions, Enter retries after a refusal.
 - Statistics — watch time: playback cut off early in a title no longer counted to the end.
-- Statistics — a device switched off right after starting no longer fills the day.
+- Statistics — day streak: a device switched off at the start of an unwatched title no longer counts.
 
 ## [1.0.0-rc.10] - 2026-11-11
 
