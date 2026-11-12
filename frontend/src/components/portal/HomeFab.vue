@@ -227,11 +227,6 @@ onBeforeUnmount(() => document.removeEventListener('click', onClickOutside, true
   outline: var(--portal-focus-ring);
   outline-offset: var(--portal-focus-ring-offset);
 }
-.pt-fab-btn--disabled {
-  opacity: 0.35;
-  cursor: not-allowed;
-  color: rgb(255, 255, 255, 0.45);
-}
 @media (min-width: 640px) {
   .pt-fab-btn {
     width: 48px;
