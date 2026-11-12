@@ -23,7 +23,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Outils de debug — « Lancer la vérification » compte aussi les trophées accordés avant une erreur.
 - Nombres — écrits dans la langue de l'application, plus dans celle du navigateur.
 - Niveaux — niveau 1 partout dès 0 XP, barre qui avance aussitôt.
-- Statistiques — temps de visionnage : lecture coupée en début de titre non comptée.
+- Statistiques — temps de visionnage : lecture coupée en début de titre plus comptée jusqu'au bout.
 
 ## [1.0.0-rc.10] - 2026-11-11
 
