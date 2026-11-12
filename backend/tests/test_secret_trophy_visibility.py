@@ -105,14 +105,16 @@ async def test_unlocked_secret_shows_everything(client, db_session):
 async def test_other_player_trophies_never_reveal_an_unearned_secret(client, db_session):
     await _alice(client, db_session)
     bob, _ = await make_portal_user(db_session, username="bob")
+    await _set_progress(db_session, bob.id, STANDARD_ID, 10, unlocked=True)
     await _set_progress(db_session, bob.id, SECRET_ID, 30)
 
     r = await client.get(f"/api/portal/achievements/user/{bob.id}")
 
     assert r.status_code == 200, r.text
     body = r.json()
-    assert all(i["status"] == "unlocked" for i in body["items"])
+    assert [i["id"] for i in body["items"]] == [STANDARD_ID]
     assert body["next_achievement"] is None
+    assert DEFS[SECRET_ID]["description_key"] not in r.text
 
 
 @pytest.mark.asyncio
