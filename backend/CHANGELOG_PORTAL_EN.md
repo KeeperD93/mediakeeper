@@ -23,6 +23,7 @@ This section intentionally has no date so it is not shown to users.
 - My profile — weekdays and durations in the app's language.
 - My profile — "Favorite day": always 7 bars after a language change.
 - Numbers — written in the app's language, no longer the browser's.
+- Levels — level 1 everywhere from 0 XP, the bar moves right away.
 - "+" button — announced by screen readers (unread messages), menu reachable by keyboard.
 - Phone tab bar — full labels on small screens.
 - "+" button and its chat — now stay below open windows.

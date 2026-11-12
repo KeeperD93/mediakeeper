@@ -60,15 +60,15 @@
           v-model.number="levelTarget"
           type="number"
           class="pt-debug-input"
-          min="0"
-          max="50"
+          :min="MIN_LEVEL"
+          :max="MAX_LEVEL"
           :placeholder="$t('portal.admin.debug.levelTarget')"
           :disabled="!selectedUserId"
         />
         <button
           type="button"
           class="pt-debug-btn pt-debug-btn--primary"
-          :disabled="!selectedUserId || levelTarget == null"
+          :disabled="!selectedUserId || !levelInRange"
           @click="applyLevel"
         >
           {{ $t('portal.admin.debug.levelApply') }}
@@ -138,6 +138,7 @@ import AdminDebugZoneCorrection from '@/components/portal/admin/AdminDebugZoneCo
 import { useToast } from '@/composables/useToast'
 import { usePortalAdminDebug } from '@/composables/portal/usePortalAdminDebug'
 import { USER_ROLE } from '@/constants/auth'
+import { MAX_LEVEL, MIN_LEVEL } from '@/constants/portal'
 import { TOAST_TYPE } from '@/constants/toast'
 import { getLocale } from '@/i18n'
 
@@ -160,6 +161,14 @@ const categories = computed(() => {
   const set = new Set(achievements.value.map(a => a.category).filter(Boolean))
   return Array.from(set).sort()
 })
+
+// min/max only bound the arrows: a typed value outside the server's bounds stays unsent.
+const levelInRange = computed(
+  () =>
+    Number.isInteger(levelTarget.value) &&
+    levelTarget.value >= MIN_LEVEL &&
+    levelTarget.value <= MAX_LEVEL,
+)
 
 const filteredAchievements = computed(() => {
   const q = achQuery.value.trim().toLowerCase()
@@ -219,13 +228,14 @@ async function applyXp() {
     )
     xpAmount.value = null
     xpNote.value = ''
-  } catch {
+  } catch (err) {
+    console.error('[AdminDebug.applyXp]', err)
     showToast(t('portal.admin.debug.errorGeneric'), TOAST_TYPE.ERR)
   }
 }
 
 async function applyLevel() {
-  if (!selectedUserId.value || levelTarget.value == null) return
+  if (!selectedUserId.value || !levelInRange.value) return
   try {
     const body = await debugApi.setLevel(selectedUserId.value, levelTarget.value)
     syncSelectedFromResponse(body)
@@ -233,7 +243,8 @@ async function applyLevel() {
       t('portal.admin.debug.levelApplied', { level: body?.level ?? levelTarget.value }),
       TOAST_TYPE.OK,
     )
-  } catch {
+  } catch (err) {
+    console.error('[AdminDebug.applyLevel]', err)
     showToast(t('portal.admin.debug.errorGeneric'), TOAST_TYPE.ERR)
   }
 }
@@ -243,7 +254,8 @@ async function unlockAch(ach) {
   try {
     await debugApi.unlockAchievement(selectedUserId.value, ach.id)
     showToast(t('portal.admin.debug.achievementUnlocked'), TOAST_TYPE.OK)
-  } catch {
+  } catch (err) {
+    console.error('[AdminDebug.unlockAch]', err)
     showToast(t('portal.admin.debug.errorGeneric'), TOAST_TYPE.ERR)
   }
 }
@@ -253,7 +265,8 @@ async function lockAch(ach) {
   try {
     await debugApi.lockAchievement(selectedUserId.value, ach.id)
     showToast(t('portal.admin.debug.achievementLocked'), TOAST_TYPE.OK)
-  } catch {
+  } catch (err) {
+    console.error('[AdminDebug.lockAch]', err)
     showToast(t('portal.admin.debug.errorGeneric'), TOAST_TYPE.ERR)
   }
 }
