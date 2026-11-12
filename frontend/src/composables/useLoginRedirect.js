@@ -43,10 +43,17 @@ export function useLoginRedirect({ username, remember, errorMsg, loggedOutMsg, s
     return destination(false)
   }
 
-  // The redirect comes from the address bar: a full load never leaves this site.
+  // The redirect comes from the address bar: a full load never leaves this site, and
+  // one too broken to read goes to the home page rather than nowhere.
   function loadInFull(target) {
-    const url = new URL(router.resolve(target).href, window.location.origin)
-    window.location.assign(url.origin === window.location.origin ? url.href : '/')
+    let href = '/'
+    try {
+      const url = new URL(router.resolve(target).href, window.location.origin)
+      if (url.origin === window.location.origin) href = url.href
+    } catch (err) {
+      console.error('[useLoginRedirect.loadInFull]', err)
+    }
+    window.location.assign(href)
   }
 
   /**

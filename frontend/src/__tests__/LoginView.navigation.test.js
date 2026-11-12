@@ -251,7 +251,7 @@ describe('LoginView — leaving the page after a sign-in', () => {
     expect(button().attributes('disabled')).toBeDefined()
   })
 
-  it.each(['//elsewhere.example/page', '/\\elsewhere.example/page'])(
+  it.each(['//elsewhere.example/page', '/\\elsewhere.example/page', '//['])(
     'keeps that full load on this site when the redirect is %s',
     async redirect => {
       loginMock.mockResolvedValue(ADMIN)
