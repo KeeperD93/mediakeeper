@@ -110,7 +110,7 @@
                 </div>
                 <LeaderboardTrophies class="lb-rest-trophies" :count="entry.trophies_won" />
                 <LeaderboardMove :movement="entry.movement" :period="period" />
-                <span class="gc-lb-v">{{ (entry.period_xp || 0).toLocaleString() }} XP</span>
+                <span class="gc-lb-v">{{ localizedNumber(entry.period_xp || 0) }} XP</span>
               </component>
             </div>
           </div>
@@ -137,6 +137,7 @@ import LeaderboardTopTenRow from '@/components/portal/leaderboard/LeaderboardTop
 import LeaderboardTrophies from '@/components/portal/leaderboard/LeaderboardTrophies.vue'
 import { useActivityLeaderboard } from '@/composables/portal/useActivityLeaderboard'
 import { LEADERBOARD_PAGE_LIMIT, LEADERBOARD_PERIOD } from '@/constants/leaderboard'
+import { localizedNumber } from '@/utils/localizedNumber'
 
 const MY_ROW_ID = 'lb-my-row'
 

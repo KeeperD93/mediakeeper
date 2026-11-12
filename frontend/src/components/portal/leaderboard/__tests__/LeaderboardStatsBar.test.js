@@ -6,6 +6,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { flushPromises, mount } from '@vue/test-utils'
 import { createI18n } from 'vue-i18n'
 
+import { applyLocaleEphemeral, getLocale } from '@/i18n'
 import en from '@/locales/en.json'
 import fr from '@/locales/fr.json'
 import LeaderboardStatsBar from '../LeaderboardStatsBar.vue'
@@ -60,6 +61,18 @@ describe('LeaderboardStatsBar.vue', () => {
     expect(await barText('en')).toContain('7 trophies awarded')
     expect(await barText('fr', { total_trophies: 1 })).toContain('1 trophée distribué')
     expect(await barText('en', { total_trophies: 1 })).toContain('1 trophy awarded')
+  })
+
+  it('groups the digits as the app language does, whatever the browser speaks', async () => {
+    const initial = getLocale()
+    try {
+      await applyLocaleEphemeral('fr')
+      expect(await barText('fr', { total_xp: 12345 })).toContain("12 345 XP d'activité")
+      await applyLocaleEphemeral('en')
+      expect(await barText('en', { total_xp: 12345 })).toContain('12,345 activity XP')
+    } finally {
+      await applyLocaleEphemeral(initial)
+    }
   })
 
   it('shows zero trophies when the payload has none', async () => {

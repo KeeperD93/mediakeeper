@@ -32,7 +32,7 @@
           <LeaderboardChosenTitle :entry="entry" />
         </span>
       </div>
-      <div class="pt-lb-podium-xp">{{ (entry.period_xp || 0).toLocaleString() }} XP</div>
+      <div class="pt-lb-podium-xp">{{ localizedNumber(entry.period_xp || 0) }} XP</div>
       <div class="pt-lb-podium-figures">
         <LeaderboardTrophies :count="entry.trophies_won" />
         <LeaderboardMove
@@ -54,6 +54,7 @@ import LeaderboardMePill from '@/components/portal/leaderboard/LeaderboardMePill
 import LeaderboardMove from '@/components/portal/leaderboard/LeaderboardMove.vue'
 import LeaderboardTrophies from '@/components/portal/leaderboard/LeaderboardTrophies.vue'
 import { LEADERBOARD_PERIOD } from '@/constants/leaderboard'
+import { localizedNumber } from '@/utils/localizedNumber'
 
 defineProps({
   entries: { type: Array, default: () => [] },

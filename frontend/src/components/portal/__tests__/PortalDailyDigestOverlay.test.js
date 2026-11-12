@@ -12,7 +12,10 @@ import LeaderboardCard from '@/components/portal/profile/LeaderboardCard.vue'
 const apiGet = vi.fn()
 
 vi.mock('vue-router', () => ({ useRouter: () => ({ push: vi.fn() }) }))
-vi.mock('vue-i18n', () => ({ useI18n: () => ({ locale: ref('fr'), t: key => key }) }))
+vi.mock('vue-i18n', async importOriginal => ({
+  ...(await importOriginal()),
+  useI18n: () => ({ locale: ref('fr'), t: key => key }),
+}))
 vi.mock('@/composables/useApi', () => ({ useApi: () => ({ apiGet, apiPost: vi.fn() }) }))
 vi.mock('@/composables/portal/usePortalAuth', () => ({
   usePortalAuth: () => ({ profile: ref({ display_name: 'Alice' }) }),

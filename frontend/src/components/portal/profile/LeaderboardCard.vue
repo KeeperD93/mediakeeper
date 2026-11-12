@@ -68,7 +68,7 @@
           <span class="gc-lb-figures">
             <LeaderboardTrophies :count="entry.trophies_won" />
             <LeaderboardMove :movement="entry.movement" :period="period || undefined" />
-            <span class="gc-lb-v">{{ (entry.period_xp || 0).toLocaleString() }} XP</span>
+            <span class="gc-lb-v">{{ localizedNumber(entry.period_xp || 0) }} XP</span>
           </span>
         </component>
       </template>
@@ -86,6 +86,7 @@ import LeaderboardMove from '@/components/portal/leaderboard/LeaderboardMove.vue
 import LeaderboardPeriodTabs from '@/components/portal/leaderboard/LeaderboardPeriodTabs.vue'
 import LeaderboardTrophies from '@/components/portal/leaderboard/LeaderboardTrophies.vue'
 import { LEADERBOARD_PERIODS, LEADERBOARD_PROFILE_LIMIT } from '@/constants/leaderboard'
+import { localizedNumber } from '@/utils/localizedNumber'
 
 const props = defineProps({
   entries: { type: Array, default: () => [] },

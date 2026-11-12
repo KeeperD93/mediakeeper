@@ -20,6 +20,8 @@ This section intentionally has no date so it is not shown to users.
 - Scheduler and alerts — errors summed up by their type, details stay in the logs.
 - Statistics — Tools: removing an exclusion removes the one shown.
 - Statistics — a failed load is reported, the playback cards offer to try again.
+- Debug tools — "Run recheck" also counts trophies granted before an error.
+- Numbers — written in the app's language, no longer the browser's.
 
 ## [1.0.0-rc.10] - 2026-11-11
 

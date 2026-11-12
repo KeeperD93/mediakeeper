@@ -35,7 +35,7 @@
       </div>
       <div class="pt-settings-info-row">
         <dt>{{ $t('portal.settings.account.currentLevel') }}</dt>
-        <dd>{{ profileData?.level ?? '—' }} · {{ (profileData?.xp ?? 0).toLocaleString() }} XP</dd>
+        <dd>{{ profileData?.level ?? '—' }} · {{ localizedNumber(profileData?.xp ?? 0) }} XP</dd>
       </div>
     </dl>
   </div>
@@ -45,6 +45,7 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { ExternalLink } from 'lucide-vue-next'
+import { localizedNumber } from '@/utils/localizedNumber'
 import { safeHref } from '@/utils/safeUrl'
 
 const props = defineProps({
