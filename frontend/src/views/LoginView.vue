@@ -250,6 +250,21 @@ function ignoreHeldEnter(event) {
   if (event.repeat) event.preventDefault()
 }
 
+// A member goes to the portal, an admin with a temporary password to the dashboard
+// to change it, anyone else back where the sign-in was asked for.
+function targetAfterSignIn(data) {
+  const redirect = getRedirectTarget()
+  if (data.scope === 'portal') return redirect.startsWith('/portal') ? redirect : '/portal'
+  if (data.must_change_password) return '/?force_change_password=1'
+  return redirect || '/'
+}
+
+// The redirect comes from the address bar: a full load never leaves this site.
+function loadInFull(target) {
+  const url = new URL(router.resolve(target).href, window.location.origin)
+  window.location.assign(url.origin === window.location.origin ? url.href : '/')
+}
+
 async function doLogin() {
   // One sign-in at a time. A refusal comes back fast, so a double press would
   // otherwise reach the server twice.
@@ -262,10 +277,9 @@ async function doLogin() {
   }
 
   submitting.value = true
+  let target = ''
   try {
     const data = await login(username.value.trim(), password.value)
-    const redirect = getRedirectTarget()
-    const isPortalRedirect = redirect.startsWith('/portal')
 
     if (remember.value) {
       localStorage.setItem(STORAGE_KEYS.SAVED_USERNAME, username.value.trim())
@@ -273,19 +287,20 @@ async function doLogin() {
       localStorage.removeItem(STORAGE_KEYS.SAVED_USERNAME)
     }
 
+    target = targetAfterSignIn(data)
     // The button stays busy while the page is left: a press during that navigation
     // would sign in a second time.
-    if (data.scope === 'portal') {
-      await router.push(isPortalRedirect ? redirect : '/portal')
-    } else if (data.must_change_password) {
-      await router.push('/?force_change_password=1')
-    } else {
-      await router.push(redirect || '/')
-    }
+    await router.push(target)
     // A navigation that failed or was sent back here leaves the page in place.
     if (router.currentRoute.value.name === 'login') submitting.value = false
   } catch (e) {
     console.error('[LoginView.doLogin]', e)
+    if (target) {
+      // Signed in, but the next page could not load here (its files replaced by an
+      // update): load it from the server, the session is open.
+      loadInFull(target)
+      return
+    }
     refusedAt = Date.now()
     errorMsg.value = signInErrorMessage(e)
     submitting.value = false

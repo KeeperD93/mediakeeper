@@ -70,7 +70,7 @@ const landing = name => ({
 let router
 let w
 
-async function signInPage() {
+async function signInPage(query = {}) {
   router = createRouter({
     history: createMemoryHistory(),
     routes: [
@@ -79,7 +79,7 @@ async function signInPage() {
       landing('portal'),
     ],
   })
-  router.push('/login')
+  router.push({ path: '/login', query })
   await router.isReady()
   w = mount(RouterView, { global: { plugins: [router] } })
   for (let i = 0; i < 10; i++) await flushPromises()
@@ -104,6 +104,19 @@ function holdRoute(name) {
   return () => open(true)
 }
 
+// Any navigation from now on throws, as when the next page's files are gone.
+function breakNavigation() {
+  router.beforeEach(() => {
+    throw new Error('unexpected')
+  })
+}
+
+function stubLocation() {
+  const location = { origin: 'http://localhost', assign: vi.fn() }
+  vi.stubGlobal('location', location)
+  return location
+}
+
 beforeEach(() => {
   vi.useFakeTimers({ toFake: ['Date'] })
   loginMock.mockReset()
@@ -116,6 +129,7 @@ afterEach(() => {
   w.unmount()
   vi.useRealTimers()
   vi.restoreAllMocks()
+  vi.unstubAllGlobals()
 })
 
 describe('LoginView — leaving the page after a sign-in', () => {
@@ -140,16 +154,9 @@ describe('LoginView — leaving the page after a sign-in', () => {
   })
 
   it.each([
-    ['is stopped by a guard', () => false, false],
-    ['is sent back to this page', () => ({ name: 'login', query: { redirect: '/portal' } }), false],
-    [
-      'throws',
-      () => {
-        throw new Error('unexpected')
-      },
-      true,
-    ],
-  ])('frees the button when the navigation after a sign-in %s', async (_, guard, told) => {
+    ['is stopped by a guard', () => false],
+    ['is sent back to this page', () => ({ name: 'login', query: { redirect: '/portal' } })],
+  ])('frees the button when the navigation after a sign-in %s', async (_, guard) => {
     gates.portal = guard
     loginMock.mockResolvedValue(MEMBER)
     await signInPage()
@@ -157,7 +164,7 @@ describe('LoginView — leaving the page after a sign-in', () => {
     await submit()
     expect(router.currentRoute.value.name).toBe('login')
     expect(button().attributes('disabled')).toBeUndefined()
-    expect(w.find('.login-error').exists()).toBe(told)
+    expect(w.find('.login-error').exists()).toBe(false)
 
     delete gates.portal
     vi.setSystemTime(Date.now() + PAUSE_OVER)
@@ -165,4 +172,39 @@ describe('LoginView — leaving the page after a sign-in', () => {
     expect(loginMock).toHaveBeenCalledTimes(2)
     expect(router.currentRoute.value.name).toBe('portal')
   })
+
+  it.each([
+    ['an admin', ADMIN, 'http://localhost/'],
+    [
+      'an admin with a temporary password',
+      PENDING_ADMIN,
+      'http://localhost/?force_change_password=1',
+    ],
+    ['a member', MEMBER, 'http://localhost/portal'],
+  ])('loads the next page in full when the navigation of %s throws', async (_, signedIn, url) => {
+    loginMock.mockResolvedValue(signedIn)
+    await signInPage()
+    const location = stubLocation()
+    breakNavigation()
+
+    await submit()
+
+    expect(location.assign).toHaveBeenCalledExactlyOnceWith(url)
+    expect(w.find('.login-error').exists()).toBe(false)
+    expect(button().attributes('disabled')).toBeDefined()
+  })
+
+  it.each(['//elsewhere.example/page', '/\\elsewhere.example/page'])(
+    'keeps that full load on this site when the redirect is %s',
+    async redirect => {
+      loginMock.mockResolvedValue(ADMIN)
+      await signInPage({ redirect })
+      const location = stubLocation()
+      breakNavigation()
+
+      await submit()
+
+      expect(location.assign).toHaveBeenCalledExactlyOnceWith('/')
+    },
+  )
 })
