@@ -542,9 +542,6 @@
     "C901": 1,
     "I001": 1
   },
-  "backend/services/portal/achievements_profile.py": {
-    "I001": 1
-  },
   "backend/services/portal/achievements_seasonal.py": {
     "I001": 1
   },

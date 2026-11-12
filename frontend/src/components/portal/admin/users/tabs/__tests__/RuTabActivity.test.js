@@ -35,9 +35,9 @@ const reqPage = (start, n) =>
     created_at: null,
   }))
 
-function mountTab() {
+function mountTab(activity = ACTIVITY) {
   return mount(RuTabActivity, {
-    props: { user: { id: 7 }, activity: ACTIVITY },
+    props: { user: { id: 7 }, activity },
     global: { stubs: { RuUserBadge: true, PortalLoadMore: LOAD_MORE_STUB } },
   })
 }
@@ -67,6 +67,36 @@ describe('RuTabActivity — feed load more', () => {
     expect(fetchUserRequests).toHaveBeenLastCalledWith(7, { limit: 100, cursor: 'cur-100' })
     expect(w.findAll('.ru-feed-row')).toHaveLength(110)
     expect(w.findAll('.lm')).toHaveLength(0) // partial page → no more
+  })
+})
+
+describe('RuTabActivity — 30-day XP', () => {
+  it.each([
+    [20, '+20'],
+    [-20, '-20'],
+    [0, '0'],
+  ])('shows %i as %s', async (xp, shown) => {
+    const empty = { items: [], has_more: false, next_cursor: null }
+    fetchUserRequests.mockResolvedValue(empty)
+    fetchUserTickets.mockResolvedValue(empty)
+    const w = mountTab({ ...ACTIVITY, xp: { last_30_days: xp, total: 0 } })
+    await flushPromises()
+
+    const card = w.findAll('.ru-act-card').find(c => c.text().includes('activity.xp30'))
+    expect(card.find('.ru-act-val').text()).toBe(shown)
+  })
+})
+
+describe('RuTabActivity — total XP', () => {
+  it('writes the total in the app language', async () => {
+    const empty = { items: [], has_more: false, next_cursor: null }
+    fetchUserRequests.mockResolvedValue(empty)
+    fetchUserTickets.mockResolvedValue(empty)
+    const w = mountTab({ ...ACTIVITY, xp: { last_30_days: 0, total: 12345 } })
+    await flushPromises()
+
+    const card = w.findAll('.ru-act-card').find(c => c.text().includes('activity.xpTotal'))
+    expect(card.find('.ru-act-val').text()).toBe('12\u202f345')
   })
 })
 

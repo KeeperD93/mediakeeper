@@ -31,11 +31,13 @@
       <section class="pc-section" data-test="pc-opensubtitles">
         <h2 class="pc-h2">OpenSubtitles</h2>
         <p>
-          {{ t('attribution.opensubtitles.text') }}
-          <a :href="links.opensubtitles" target="_blank" rel="noopener noreferrer">
-            opensubtitles.org
-          </a>
-          .
+          <i18n-t keypath="attribution.opensubtitles.text" tag="span" scope="global">
+            <template #link>
+              <a :href="links.opensubtitles" target="_blank" rel="noopener noreferrer">
+                {{ linkLabels.opensubtitles }}
+              </a>
+            </template>
+          </i18n-t>
         </p>
       </section>
 
@@ -67,7 +69,8 @@
 </template>
 
 <script setup>
-import { useI18n } from 'vue-i18n'
+// Local import: vue-i18n is installed without its global components (fullInstall off).
+import { useI18n, I18nT } from 'vue-i18n'
 // Named import: the bundle keeps this field only, not the whole package.json.
 import { version as appVersion } from '../../../package.json'
 
@@ -78,6 +81,12 @@ const repoUrl = 'https://github.com/KeeperD93/mediakeeper'
 const links = {
   tmdb: 'https://www.themoviedb.org',
   opensubtitles: 'https://www.opensubtitles.org',
+}
+
+// Shown through {{ }}: the line breaks Prettier puts around an interpolation
+// vanish, around raw text they become a space before the full stop.
+const linkLabels = {
+  opensubtitles: 'opensubtitles.org',
 }
 
 const tmdbLogoUrl = '/assets/icons/tmdb.svg'

@@ -75,11 +75,16 @@
                 >
                   <div class="tb-notif-content">
                     <p class="tb-notif-text">
-                      <span v-if="a.kind === 'chat_report'" class="tb-notif-pill">CHAT</span>
-                      <span v-else-if="a.kind === 'feedback_pending'" class="tb-notif-pill">
-                        {{ t('feedback.moderation.pill') }}
-                      </span>
-                      {{ a.name }}
+                      <template v-if="a.kind === 'chat_report'">
+                        <span class="tb-notif-pill">{{ t('requestsAdmin.chatReport.pill') }}</span>
+                        {{ t('requestsAdmin.chatReport.reportedMessage', { message: a.name }) }}
+                      </template>
+                      <template v-else>
+                        <span v-if="a.kind === 'feedback_pending'" class="tb-notif-pill">
+                          {{ t('feedback.moderation.pill') }}
+                        </span>
+                        {{ a.name }}
+                      </template>
                     </p>
                     <p v-if="a.author_name" class="tb-notif-date">
                       — {{ a.author_name }} · {{ formatDate(a.date) }}

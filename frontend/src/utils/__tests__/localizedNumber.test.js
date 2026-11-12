@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it } from 'vitest'
 
 import { applyLocaleEphemeral, getLocale } from '@/i18n'
-import { localizedNumber } from '@/utils/localizedNumber'
+import { localizedNumber, signedNumber } from '@/utils/localizedNumber'
 
 // French groups digits with a narrow no-break space.
 const FRENCH_12345 = '12 345'
@@ -26,5 +26,13 @@ describe('localizedNumber', () => {
   it('passes its options on', async () => {
     await applyLocaleEphemeral('fr')
     expect(localizedNumber(0.5, { style: 'percent' })).toBe('50 %')
+  })
+
+  it.each([
+    ['fr', [`+${FRENCH_12345}`, '-20', '0']],
+    ['en', ['+12,345', '-20', '0']],
+  ])('signs a change by its value in %s, never zero', async (locale, shown) => {
+    await applyLocaleEphemeral(locale)
+    expect([12345, -20, 0].map(signedNumber)).toEqual(shown)
   })
 })

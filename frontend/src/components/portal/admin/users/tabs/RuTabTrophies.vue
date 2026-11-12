@@ -8,7 +8,7 @@
           <div class="ru-act-body">
             <span class="ru-act-label">{{ $t('requestsAdmin.users.labels.level') }}</span>
             <span class="ru-act-val">{{ user.level }}</span>
-            <span class="ru-act-foot">{{ user.xp }} XP</span>
+            <span class="ru-act-foot">{{ localizedNumber(user.xp) }} XP</span>
           </div>
         </article>
         <article class="ru-act-card ru-act-card--success">
@@ -56,7 +56,9 @@
             >
               {{ $t(`portal.profile.rarity.${trophy.rarity}`) }}
             </span>
-            <span v-if="trophy.xp_reward" class="ru-trophy-xp">+{{ trophy.xp_reward }} XP</span>
+            <span v-if="trophy.xp_reward" class="ru-trophy-xp">
+              {{ signedNumber(trophy.xp_reward) }} XP
+            </span>
           </div>
         </li>
       </ul>
@@ -87,7 +89,7 @@
         <li v-for="entry in xp" :key="entry.id" class="ru-feed-row">
           <span class="ru-feed-date">{{ fmt(entry.created_at) }}</span>
           <span class="ru-feed-main">{{ formatXpAction(entry) }}</span>
-          <span class="ru-feed-tail">+{{ entry.xp }} XP</span>
+          <span class="ru-feed-tail">{{ signedNumber(entry.xp) }} XP</span>
         </li>
       </ol>
       <PortalLoadMore :show="xpHasMore" :loading="loadingMoreXp" @load="loadMoreXp" />
@@ -105,6 +107,7 @@ import { TOAST_TYPE } from '@/constants/toast'
 import RuTrophyIcon from '../RuTrophyIcon.vue'
 import PortalLoadMore from '@/components/portal/PortalLoadMore.vue'
 import { localizedDateTime } from '@/utils/datetime'
+import { localizedNumber, signedNumber } from '@/utils/localizedNumber'
 import '@/assets/styles/portal/admin-users-feed.css'
 
 const props = defineProps({

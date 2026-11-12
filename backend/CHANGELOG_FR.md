@@ -13,6 +13,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 ### Changed
 - Tableau de bord — widget du classement aligné sur la page Classement.
 - Statistiques — série de jours dès 5 min regardées ; musique et livres audio exclus.
+- Portail — trophées secrets : nom et icône visibles, description et progression cachées jusqu'au déblocage.
 
 ### Fixed
 - Barre d'XP — même pourcentage dans le résumé du jour et le profil.
@@ -30,6 +31,11 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Connexion — un double appui n'ouvre plus deux sessions, Entrée relance après un refus.
 - Statistiques — temps de visionnage : lecture coupée en début de titre plus comptée jusqu'au bout.
 - Statistiques — série de jours : un appareil éteint au début d'un titre non vu ne compte plus.
+- Cloche des notifications — message de chat signalé traduit, pastille comprise.
+- À propos — le point suit directement chaque lien.
+- Portail — Crédits : le point suit directement le lien.
+- Signalement — compteur de la description sur sa vraie limite (1 500), envoi bloqué avant toute coupure.
+- Utilisateurs — historique XP : retraits en « -20 XP », aucune ligne si l'XP ne bouge pas.
 
 ## [1.0.0-rc.10] - 2026-11-11
 

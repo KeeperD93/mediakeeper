@@ -2,7 +2,7 @@
 
 These helpers bypass the anti-abuse rules of ``grant_xp`` (daily caps,
 unique-action dedup, watch percentage) so an administrator can repair
-state, reward early adopters, or test trophy logic. Every operation
+state, reward early adopters, or test trophy logic. Every XP change
 records a row in ``XpLedger`` (for audit) and recomputes the level
 from the total XP so the cached ``UserProfile.level`` never drifts.
 """
@@ -12,7 +12,7 @@ import logging
 import uuid
 from datetime import datetime, timezone
 
-from sqlalchemy import select, delete
+from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from models.portal.achievement import Achievement, UserAchievement
@@ -27,7 +27,6 @@ from services.portal.admin_users_constants import (
     ACTION_DEBUG_XP_GRANTED,
 )
 from services.portal.xp import MAX_LEVEL, MIN_LEVEL, level_floor_xp, level_from_xp
-
 
 logger = logging.getLogger("mediakeeper.portal.admin_debug")
 
@@ -109,13 +108,13 @@ async def admin_set_level(
     target_xp_floor = level_floor_xp(target)
     delta = target_xp_floor - (profile.xp or 0)
 
-    entry = XpLedger(
-        user_id=user_id,
-        action=ADMIN_GRANT_ACTION,
-        reference=f"set_level:{datetime.now(timezone.utc).timestamp()}:{uuid.uuid4().hex[:8]}",
-        xp=delta,
-    )
-    db.add(entry)
+    if delta:  # an unchanged XP total leaves nothing for the XP history
+        db.add(XpLedger(
+            user_id=user_id,
+            action=ADMIN_GRANT_ACTION,
+            reference=f"set_level:{datetime.now(timezone.utc).timestamp()}:{uuid.uuid4().hex[:8]}",
+            xp=delta,
+        ))
 
     profile.xp = target_xp_floor
     profile.level = target

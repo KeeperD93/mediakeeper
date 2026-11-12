@@ -11,6 +11,8 @@ const h = vi.hoisted(() => ({ apiPost: vi.fn(), showToast: vi.fn(), push: vi.fn(
 const routeName = ref('stats')
 const routeTab = ref('users')
 
+// Counters format their numbers in the app's language: English here.
+vi.mock('@/i18n', () => ({ getLocale: () => 'en' }))
 vi.mock('vue-i18n', () => ({ useI18n: () => ({ t: k => k }) }))
 vi.mock('vue-router', () => ({
   useRoute: () => ({

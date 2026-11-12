@@ -86,9 +86,7 @@
         <div
           class="gc-trophy-icon-wrap"
           :class="[
-            ach.status === TROPHY_STATUS.LOCKED || ach.status === TROPHY_STATUS.PROGRESS
-              ? 'gc-trophy-icon--dim'
-              : '',
+            ach.status !== TROPHY_STATUS.UNLOCKED ? 'gc-trophy-icon--dim' : '',
             ach.status === TROPHY_STATUS.UNLOCKED
               ? ach.secret
                 ? `gc-icon-glow gc-icon-glow--${ach.secret_theme || ach.tier_name}`
@@ -96,13 +94,10 @@
               : '',
           ]"
         >
-          <HelpCircle v-if="ach.status === TROPHY_STATUS.SECRET" :size="24" />
-          <component :is="iconMap[ach.icon] || HelpCircle" v-else :size="24" />
+          <component :is="iconMap[ach.icon] || HelpCircle" :size="24" />
         </div>
 
-        <div class="gc-trophy-label">
-          {{ ach.status === TROPHY_STATUS.SECRET ? '???' : $t(ach.name_key) }}
-        </div>
+        <div class="gc-trophy-label">{{ $t(ach.name_key) }}</div>
 
         <template v-if="ach.status === TROPHY_STATUS.UNLOCKED">
           <div class="gc-trophy-rarity" :class="`gc-trophy-rarity--${ach.rarity}`">

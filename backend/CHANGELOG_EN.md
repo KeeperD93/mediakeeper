@@ -13,6 +13,7 @@ This section intentionally has no date so it is not shown to users.
 ### Changed
 - Dashboard — leaderboard widget matches the Leaderboard page.
 - Statistics — day streak from 5 min watched; music and audiobooks left out.
+- Portal — secret trophies: name and icon shown, description and progress hidden until unlocked.
 
 ### Fixed
 - XP bar — same percentage in today's digest and the profile.
@@ -30,6 +31,11 @@ This section intentionally has no date so it is not shown to users.
 - Sign-in — a double press no longer opens two sessions, Enter retries after a refusal.
 - Statistics — watch time: playback cut off early in a title no longer counted to the end.
 - Statistics — day streak: a device switched off at the start of an unwatched title no longer counts.
+- Notification bell — reported chat messages translated, tag included.
+- About — the full stop follows each link directly.
+- Portal — Credits: the full stop follows the link directly.
+- Report form — description counter shows its real limit (1,500), sending stops before any cut.
+- Users — XP history: removals shown as "-20 XP", no line when XP stays the same.
 
 ## [1.0.0-rc.10] - 2026-11-11
 
