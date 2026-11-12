@@ -132,6 +132,8 @@
 import { computed } from 'vue'
 import { HelpCircle } from 'lucide-vue-next'
 import MkAvatar from '@/components/common/MkAvatar.vue'
+import { xpForLevel } from '@/composables/portal/useProfileXp'
+import { MIN_LEVEL } from '@/constants/portal'
 import { localizedNumber } from '@/utils/localizedNumber'
 
 const props = defineProps({
@@ -142,7 +144,7 @@ const props = defineProps({
   ranking: { type: Object, default: () => ({ position: 0, percentile: 0, movement: 0 }) },
   memberSince: { type: [Number, String], default: '—' },
   xpPercent: { type: Number, default: 0 },
-  nextLevelXp: { type: Number, default: 100 },
+  nextLevelXp: { type: Number, default: xpForLevel(MIN_LEVEL + 1) },
   trophies: { type: Array, default: () => [] },
   iconMap: { type: Object, default: () => ({}) },
 })

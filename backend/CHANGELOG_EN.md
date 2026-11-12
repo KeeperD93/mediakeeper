@@ -22,6 +22,7 @@ This section intentionally has no date so it is not shown to users.
 - Statistics — a failed load is reported, the playback cards offer to try again.
 - Debug tools — "Run recheck" also counts trophies granted before an error.
 - Numbers — written in the app's language, no longer the browser's.
+- Levels — level 1 everywhere from 0 XP, the bar moves right away.
 
 ## [1.0.0-rc.10] - 2026-11-11
 

@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { flushPromises, mount } from '@vue/test-utils'
 
+import RankSidebarCard from '@/components/portal/profile/RankSidebarCard.vue'
 import PortalUserProfile from '@/views/portal/PortalUserProfile.vue'
 
 const apiGet = vi.fn()
@@ -51,6 +52,18 @@ describe('PortalUserProfile.vue, ranking stat', () => {
     const wrapper = await mountWith({ ...profile, ranking: { position: 0, percentile: 0 } })
 
     expect(wrapper.find('.pt-up-stats small').exists()).toBe(false)
+  })
+})
+
+describe('PortalUserProfile.vue, level bar', () => {
+  beforeEach(() => apiGet.mockReset())
+
+  it('fills the level 1 bar from 0 XP', async () => {
+    const wrapper = await mountWith({ ...profile, level: 1, xp: 50 })
+    const card = wrapper.findComponent(RankSidebarCard)
+
+    expect(card.props('nextLevelXp')).toBe(300)
+    expect(card.props('xpPercent')).toBe(17)
   })
 })
 

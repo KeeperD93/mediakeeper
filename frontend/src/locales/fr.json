@@ -2741,6 +2741,7 @@
       "wrapped": "Wrapped"
     },
     "chat": "Chat",
+    "chatUnread": "Chat, 1 message non lu | Chat, {n} messages non lus",
     "chatEmpty": "Aucun message",
     "chatPlaceholder": "Écrire un message...",
     "chatReport": "Signaler ce message",
@@ -2987,7 +2988,9 @@
     },
     "nav": {
       "brand": "MediaKeeper",
-      "bottomNav": "Navigation principale"
+      "bottomNav": "Navigation principale",
+      "quickActions": "Actions rapides",
+      "quickActionsUnread": "Actions rapides, 1 message non lu | Actions rapides, {n} messages non lus"
     },
     "avatar": {
       "menu": "Menu du compte",
