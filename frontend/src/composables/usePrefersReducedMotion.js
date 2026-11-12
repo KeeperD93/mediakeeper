@@ -24,3 +24,8 @@ export function usePrefersReducedMotion() {
 
   return reduced
 }
+
+/** The setting at this moment, for code outside a component (the router's scroll). */
+export function prefersReducedMotion() {
+  return typeof window.matchMedia === 'function' && window.matchMedia(REDUCED_MOTION_QUERY).matches
+}

@@ -22,6 +22,15 @@ describe('AdminAboutView', () => {
     expect(stack.text()).not.toContain('Docker')
   })
 
+  it('leaves the colon after each stack label to the translation', () => {
+    const w = mount(AdminAboutView, {
+      global: { stubs: { 'router-link': { template: '<a><slot /></a>' } } },
+    })
+    const labels = w.findAll('[data-test="ab-stack"] strong').map(label => label.text())
+
+    expect(labels).toEqual(['attribution.about.backendLabel', 'attribution.about.frontendLabel'])
+  })
+
   it('renders the FFmpeg LGPL license credit with the official legal URL', () => {
     const w = mount(AdminAboutView, {
       global: { stubs: { 'router-link': { template: '<a><slot /></a>' } } },

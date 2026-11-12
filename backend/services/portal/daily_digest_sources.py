@@ -183,15 +183,14 @@ async def current_streak(db: AsyncSession, user: User, profile: UserProfile) -> 
 async def ranking_snapshot(
     db: AsyncSession, user: User, *, lang: str = "fr"
 ) -> dict:
-    """Rank + slimmed top-3 slice for the digest's mini-leaderboard widget."""
+    """Rank + slimmed top-3 slice for the digest's monthly ranking card."""
     try:
         r = await compute_ranking(db, user, zone=await get_instance_zone(db), lang=lang)
     except Exception as e:  # noqa: BLE001
         logger.debug("[DIGEST] ranking failed: %s", e)
         return {"position": 0, "total": 0, "movement": 0, "top3": []}
-    # Same shape as the dashboard ``LeaderboardCard`` widget so the
-    # daily-digest top 3 can render through the exact same component
-    # (visual parity with the "Classement de ce mois" widget).
+    # Same row shape as the leaderboard entries, so the digest's top 3 renders
+    # through ``LeaderboardCard`` with the rows of "My profile".
     def _project(entry: dict) -> dict:
         return {
             "rank": entry.get("rank"),
@@ -212,9 +211,8 @@ async def ranking_snapshot(
     full_board = r.get("leaderboard") or []
     top3 = [_project(e) for e in full_board[:3]]
 
-    # Append the current user as a 4th row when they're outside the
-    # podium so the digest mirrors the leaderboard widget's "you sit
-    # here" affordance rather than hiding their position entirely.
+    # Append the current user as a 4th row when they're outside the podium,
+    # as on the leaderboard page, rather than hiding their position entirely.
     if not any(row["is_current_user"] for row in top3):
         me = next((e for e in full_board if e.get("is_current_user")), None)
         if me:

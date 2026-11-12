@@ -10,7 +10,14 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 
 ## [Unreleased]
 
+### Changed
+- Tableau de bord — widget du classement aligné sur la page Classement.
+
 ### Fixed
+- Notifications — en-tête au nom de la page, barre à la bonne durée, message entier sur petits téléphones.
+- Textes — deux-points à la bonne place en français et en anglais.
+- Carrousels, défilements et compteurs — instantanés avec « Réduire les animations ».
+- Planificateur et alertes — erreurs résumées par leur type, le détail reste dans les journaux.
 - Statistiques — Outils : supprimer une exclusion retire bien celle affichée.
 - Statistiques — un chargement raté est signalé, les cartes de lecture proposent de réessayer.
 
