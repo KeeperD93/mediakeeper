@@ -1725,6 +1725,7 @@
     "neverRun": "Jamais exécutée",
     "runCount": "{n} exécution(s)",
     "lastError": "Dernière erreur",
+    "lastErrorDetail": "La dernière exécution a échoué ({type}). Le détail est dans les journaux du serveur.",
     "moreActions": "Autres actions",
     "description": "Description",
     "intervalAmountAria": "Valeur de l'intervalle",

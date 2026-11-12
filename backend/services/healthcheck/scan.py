@@ -7,6 +7,7 @@ from datetime import datetime, timezone
 from sqlalchemy import delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from constants.background_jobs import SCAN_FAILED
 from core.http_client import get_internal_client
 from models.healthcheck import HealthCheckResult
 from services.settings import get_active_media_source
@@ -174,5 +175,5 @@ async def run_healthcheck(db: AsyncSession, progress_cb=None) -> dict:
         if db.in_transaction():
             await db.rollback()
         logger.exception("[healthcheck] Error scan: %s", e)
-        _scan_state.update(running=False, error=str(e)[:500])
-        return {"error": str(e)[:500]}
+        _scan_state.update(running=False, error=SCAN_FAILED)
+        return {"error": SCAN_FAILED}

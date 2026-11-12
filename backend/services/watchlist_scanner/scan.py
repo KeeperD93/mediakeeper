@@ -6,6 +6,7 @@ from datetime import date
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from constants.background_jobs import SCAN_FAILED
 from services.settings import set_watchlist_data
 
 from . import _state
@@ -61,8 +62,9 @@ async def full_scan(db: AsyncSession, library_id: str = "", progress_cb=None) ->
         logger.info("[WATCHLIST] Scan complete : %s series, %s missing, %s upcoming", len(results), total_m, total_u)
         _state.finish_scan()
         return data
-    except Exception as exc:
-        _state.finish_scan(error=str(exc)[:500])
+    except Exception:
+        # The status shows a code; the caller logs the exception itself.
+        _state.finish_scan(error=SCAN_FAILED)
         raise
 
 
@@ -172,8 +174,8 @@ async def incremental_scan(db: AsyncSession) -> dict:
         logger.info("[WATCHLIST] Incremental: +%s new, -%s removed, %s missing", len(new_ids), len(removed_ids), total_m)
         _state.finish_scan()
         return data
-    except Exception as exc:
-        _state.finish_scan(error=str(exc)[:500])
+    except Exception:
+        _state.finish_scan(error=SCAN_FAILED)
         raise
 
 
@@ -188,4 +190,4 @@ async def run_background_scan():
             else:
                 await full_scan(db)
     except Exception as e:
-        logger.error("[WATCHLIST] Error scan background: %s", e)
+        logger.exception("[WATCHLIST] Error scan background: %s", e)

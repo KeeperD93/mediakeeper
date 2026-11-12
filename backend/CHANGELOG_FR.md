@@ -10,6 +10,9 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 
 ## [Unreleased]
 
+### Fixed
+- Planificateur et alertes — erreurs résumées par leur type, le détail reste dans les journaux.
+
 ## [1.0.0-rc.10] - 2026-11-11
 
 ### Action

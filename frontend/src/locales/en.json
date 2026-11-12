@@ -1725,6 +1725,7 @@
     "neverRun": "Never run",
     "runCount": "{n} run(s)",
     "lastError": "Last error",
+    "lastErrorDetail": "The last run failed ({type}). Details are in the server logs.",
     "moreActions": "More actions",
     "description": "Description",
     "intervalAmountAria": "Interval value",
