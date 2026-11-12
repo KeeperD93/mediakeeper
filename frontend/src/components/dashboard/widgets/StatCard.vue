@@ -31,7 +31,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
 import { usePrefersReducedMotion } from '@/composables/usePrefersReducedMotion'
 import { STAT_CARD_ACCENT } from '@/constants/dashboardStatColors'
@@ -122,6 +122,9 @@ watch(reducedMotion, reduced => {
 
 onMounted(() => {
   if (props.value && props.value !== '—') animateCounter(props.value)
+})
+onBeforeUnmount(() => {
+  if (animFrame.value) cancelAnimationFrame(animFrame.value)
 })
 
 watch(

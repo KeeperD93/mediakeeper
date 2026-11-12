@@ -1,7 +1,7 @@
 /**
  * Dashboard stat card: the figure counts up, shows at once under reduced motion, and a
  * count under way lands at once on the figure it was heading for when the setting is
- * turned on.
+ * turned on. A card that goes away stops its count.
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
@@ -71,6 +71,15 @@ describe('StatCard.vue — reduced motion', () => {
     await nextTick()
     expect(figure(wrapper)).toBe(last)
     wrapper.unmount()
+  })
+
+  it('stops its count when the card goes away midway', () => {
+    stubReducedMotion(false)
+    const wrapper = mountCard()
+    vi.advanceTimersByTime(450)
+    const cancel = vi.spyOn(globalThis, 'cancelAnimationFrame')
+    wrapper.unmount()
+    expect(cancel).toHaveBeenCalled()
   })
 
   it('leaves a finished count alone when reduced motion is turned on', async () => {
