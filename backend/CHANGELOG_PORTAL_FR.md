@@ -37,6 +37,8 @@ utilisateurs.
 - Connexion — le navigateur remplit le nom et le mot de passe enregistrés.
 - Connexion — animations coupées avec « Réduire les animations ».
 - Connexion — un double appui n'ouvre plus deux sessions, Entrée relance après un refus.
+- Signalement — compteur de la description sur sa vraie limite (1 500), envoi bloqué avant toute coupure.
+- Crédits — le point suit directement le lien.
 
 ## [1.0.0-rc.10] - 2026-11-11
 

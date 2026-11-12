@@ -42,15 +42,20 @@
               <input v-model="title" type="text" :maxlength="FEEDBACK_MAX.title" required />
             </label>
 
-            <label class="fbk-field">
-              <span class="fbk-flabel">{{ $t('feedback.modal.descField') }} *</span>
+            <div class="fbk-field">
+              <label :for="descId" class="fbk-flabel">{{ $t('feedback.modal.descField') }} *</label>
               <textarea
+                :id="descId"
                 v-model="description"
                 rows="4"
                 :maxlength="FEEDBACK_MAX.description"
+                :aria-describedby="descCountId"
                 required
               />
-            </label>
+              <p :id="descCountId" class="fbk-budget">
+                {{ $t('feedback.modal.budget', descriptionCount) }}
+              </p>
+            </div>
 
             <label class="fbk-field">
               <span class="fbk-flabel">{{ $t('feedback.modal.reproField') }}</span>
@@ -157,8 +162,9 @@
               <span>{{ $t('feedback.modal.anonymous') }}</span>
             </label>
 
-            <p class="fbk-budget" :class="{ over: used > FEEDBACK_MAX_CHARS }">
-              {{ $t('feedback.modal.budget', { used, max: FEEDBACK_MAX_CHARS }) }}
+            <p v-if="used > FEEDBACK_MAX_CHARS" class="fbk-budget over">
+              <span role="alert">{{ $t('feedback.modal.tooLong') }}</span>
+              {{ $t('feedback.modal.budget', totalCount) }}
             </p>
           </div>
 
@@ -240,6 +246,8 @@ const {
   busy,
   tabOptions,
   used,
+  descriptionCount,
+  totalCount,
   canSubmit,
   canUseCurrentPage,
   toggleTag,
@@ -254,6 +262,8 @@ const {
   showLocation: () => props.showLocation,
 })
 const pageSelectId = useId()
+const descId = useId()
+const descCountId = useId()
 const panelRef = ref(null)
 const closeBtnRef = ref(null)
 const pageSelectRef = ref(null)

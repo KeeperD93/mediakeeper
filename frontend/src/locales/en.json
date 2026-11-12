@@ -263,7 +263,7 @@
       "logoAlt": "TMDB"
     },
     "opensubtitles": {
-      "text": "Subtitles powered by OpenSubtitles. Visit"
+      "text": "Subtitles powered by OpenSubtitles. Visit {link}."
     },
     "emby": {
       "text": "Emby is a trademark of Emby LLC. MediaKeeper is not affiliated with or endorsed by Emby LLC."
@@ -281,10 +281,10 @@
       "backendLabel": "Backend:",
       "frontendLabel": "Frontend:",
       "licensesTitle": "Open-source licenses",
-      "ffmpegText": "MediaKeeper uses tools from the FFmpeg project under the LGPLv2.1+ license. See",
-      "dependenciesText": "See requirements.txt and package.json for the full open-source dependency tree on",
+      "ffmpegText": "MediaKeeper uses tools from the FFmpeg project under the LGPLv2.1+ license. See {link}.",
+      "dependenciesText": "See requirements.txt and package.json for the full open-source dependency tree on {link}.",
       "thirdPartyTitle": "Third-party API attributions",
-      "thirdPartyText": "User-facing attributions for TMDB, OpenSubtitles, Emby, Imgur and YouTube are listed on"
+      "thirdPartyText": "User-facing attributions for TMDB, OpenSubtitles, Emby, Imgur and YouTube are listed on {link}."
     },
     "settings": {
       "tmdb": "By using the TMDB API, you agree to their Terms of Use.",
@@ -370,6 +370,7 @@
       "tags": "Tags",
       "anonymous": "Send anonymously",
       "budget": "{used} / {max} characters",
+      "tooLong": "Report too long: shorten a field.",
       "submit": "Send",
       "reset": "Reset",
       "moderate": "View pending reports",
@@ -2185,7 +2186,9 @@
   "requestsAdmin": {
     "chatReport": {
       "dismiss": "Dismiss",
-      "delete": "Delete"
+      "delete": "Delete",
+      "pill": "CHAT",
+      "reportedMessage": "Reported message: {message}"
     },
     "title": "Requests users",
     "subtitle": "Emby import, activation and management of Requests module accounts",
