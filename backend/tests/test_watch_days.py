@@ -27,9 +27,12 @@ class _Frozen(datetime):
         return LONG_RUN_NOW
 
 
-def _play(started: datetime, seconds: int, item_type: str = "Movie") -> PlaybackSession:
+def _play(
+    started: datetime, seconds: int, item_type: str = "Movie", user: str = "alice",
+) -> PlaybackSession:
     """A play as the collector leaves it: only films and episodes keep their seconds per hour."""
     return PlaybackSession(
+        user_id=f"emby-{user}",
         item_type=item_type,
         started_at=started,
         watched_seconds=seconds,
@@ -118,6 +121,57 @@ def test_other_video_counts_from_its_watched_time(item_type):
     assert watch_days([clip], PARIS) == {date(2026, 10, 15)}
 
 
+@pytest.mark.parametrize(("second_start", "counts"), [(0, False), (150, True)])
+def test_two_videos_of_one_account_at_once_count_once(second_start, counts):
+    """Two and a half minutes on each: at the same time they make 2:30, one after the other 5:00."""
+    noon = utc(2026, 10, 14, 12)
+    clips = [_play(noon, 150, "Video"), _play(noon + timedelta(seconds=second_start), 150, "Video")]
+
+    assert watch_days(clips, PARIS) == ({date(2026, 10, 14)} if counts else set())
+
+
+@pytest.mark.parametrize(("minutes", "days"), [(12, {14}), (13, {14, 15})])
+def test_only_the_union_of_overlapping_videos_counts(minutes, days):
+    """From 23:50 to 00:02 in Paris, and from 23:52: after midnight only what the second adds."""
+    first = _play(utc(2026, 10, 14, 21, 50), 12 * 60, "Video")
+    second = _play(utc(2026, 10, 14, 21, 52), minutes * 60, "Video")
+
+    assert watch_days([first, second], PARIS) == {date(2026, 10, day) for day in days}
+
+
+def test_two_accounts_at_once_are_never_merged():
+    """Alice and Bob, two and a half minutes each at noon: the instance watched five."""
+    noon = utc(2026, 10, 14, 12)
+    clips = [_play(noon, 150, "Video", "alice"), _play(noon, 150, "Video", "bob")]
+
+    assert watch_days(clips, PARIS) == {date(2026, 10, 14)}
+
+
+def test_films_keep_their_hours_and_music_stays_apart():
+    """A film resumed the next morning counts then; music beside a video adds nothing."""
+    film = PlaybackSession(
+        item_type="Movie",
+        started_at=utc(2026, 10, 14, 12),
+        watched_seconds=10 * 60,
+        watched_by_hour={"2026-10-15T08": 10 * 60},
+    )
+    clip = _play(utc(2026, 10, 16, 12), 3 * 60, "Video")
+    song = _play(utc(2026, 10, 16, 12, 2), 3 * 60, "Audio")
+
+    assert watch_days([film, clip, song], PARIS) == {date(2026, 10, 15)}
+
+
+@pytest.mark.parametrize(("second_minute", "days"), [(40, {10, 11}), (21, set())])
+def test_a_generous_count_merges_too_and_loses_no_day(second_minute, days):
+    """Three minutes from 23:50 in Kolkata, three more apart or overlapping: the hour across
+    midnight gives both days six minutes, or nothing once they make four."""
+    first = _play(utc(2026, 1, 10, 18, 20), 3 * 60, "Video")
+    second = _play(utc(2026, 1, 10, 18, second_minute), 3 * 60, "Video")
+
+    days_watched = watch_days([first, second], ZoneInfo("Asia/Kolkata"), generous=True)
+    assert days_watched == {date(2026, 1, day) for day in days}
+
+
 def test_a_day_without_enough_watching_breaks_the_run():
     days = watch_days([
         _play(utc(2026, 10, 14, 12), 10 * 60),
@@ -141,6 +195,22 @@ async def test_excluded_titles_fill_no_day(db_session):
     filters = [PlaybackSession.user_name == "alice", *await get_exclusion_filters(db_session)]
 
     assert await load_watch_days(db_session, filters, PARIS) == {date(2026, 10, 15)}
+
+
+@pytest.mark.asyncio
+async def test_the_profile_merges_one_account_and_the_records_never_two(db_session):
+    """Alice plays two videos at noon, Bob one, 2:30 each: Alice's day holds 2:30, the instance's 5."""
+    noon = utc(2026, 10, 14, 12)
+    for user, item in (("alice", "Test Clip"), ("alice", "Test Clip 2"), ("bob", "Test Clip")):
+        db_session.add(PlaybackSession(
+            session_key=f"{user}-{item}", user_id=f"emby-{user}", user_name=user,
+            item_id=item, item_name=item, item_type="Video", started_at=noon, watched_seconds=150,
+        ))
+    await db_session.commit()
+    await save_paris(db_session)
+
+    assert await load_watch_days(db_session, [PlaybackSession.user_name == "alice"], PARIS) == set()
+    assert (await get_records(db_session))["longest_streak"] == 1
 
 
 @pytest.mark.asyncio
