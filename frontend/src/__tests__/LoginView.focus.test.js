@@ -105,7 +105,10 @@ describe('LoginView — the focus after a refusal', () => {
     expect(w.find('.login-error').attributes('role')).toBe('alert')
   })
 
-  it('leaves it on a field the user went to while waiting', async () => {
+  it.each([
+    ['a field', NAME],
+    ['a link', '[data-test="login-github-link"]'],
+  ])('leaves it on %s the user went to while waiting', async (_, selector) => {
     let refuse
     loginMock.mockReturnValueOnce(
       new Promise((_, reject) => {
@@ -116,10 +119,10 @@ describe('LoginView — the focus after a refusal', () => {
     w.find('button.login-submit').element.focus()
 
     await submit(w)
-    w.find(NAME).element.focus()
+    w.find(selector).element.focus()
     refuse(wrongPassword())
     await flushPromises()
 
-    expect(document.activeElement).toBe(w.find(NAME).element)
+    expect(document.activeElement).toBe(w.find(selector).element)
   })
 })

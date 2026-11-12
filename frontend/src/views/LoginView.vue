@@ -120,7 +120,7 @@
               <span>{{ $t('login.remember') }}</span>
             </label>
 
-            <button type="submit" class="login-submit" :disabled="submitting">
+            <button ref="submitRef" type="submit" class="login-submit" :disabled="submitting">
               <MkSpinner v-if="submitting" size="sm" inline />
               <template v-else>
                 <LogIn :size="15" />
@@ -205,6 +205,7 @@ const submitting = ref(false)
 const pageRef = ref(null)
 const canvasRef = ref(null)
 const passwordRef = ref(null)
+const submitRef = ref(null)
 const usernameId = useId()
 const passwordId = useId()
 useLoginParticles(canvasRef, pageRef, particlesEnabled)
@@ -288,9 +289,10 @@ async function doLogin() {
     refusedAt = Date.now()
     errorMsg.value = signInErrorMessage(e)
     submitting.value = false
-    // After a press on the button, the focus can fall on the page, where Enter does
-    // nothing: put it on the password, unless a field has it.
-    if (!(document.activeElement instanceof HTMLInputElement)) passwordRef.value?.focus()
+    // A press on the button can leave the focus on the page, where Enter does nothing:
+    // put it back on the password. Anywhere else, the user moved it there.
+    const lostOn = [document.body, pageRef.value, submitRef.value]
+    if (lostOn.includes(document.activeElement)) passwordRef.value?.focus()
   }
 }
 </script>
