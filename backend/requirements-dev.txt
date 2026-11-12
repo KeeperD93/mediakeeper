@@ -1,4 +1,4 @@
-# Dev / CI-only dependencies — installed in CI (tests + coverage), NEVER
+# Dev / CI-only dependencies — installed in CI (tests, coverage, lint), NEVER
 # shipped in the production image. The Dockerfile installs requirements.txt
 # alone; CI installs this file, which pulls in the runtime set via ``-r``.
 -r requirements.txt
@@ -8,5 +8,6 @@ pytest-cov==7.1.0
 pytest-randomly==5.0.0
 pytest-xdist==3.8.0
 aiosqlite==0.22.1
+ruff==0.17.3
 # Time zone data for the tests on Windows; the image has the system package.
 tzdata==2026.6

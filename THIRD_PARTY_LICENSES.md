@@ -90,6 +90,7 @@ Installed in CI and for local test runs only, never shipped in the Docker image.
 | `pytest-randomly` | MIT | Randomises test order to surface hidden coupling. |
 | `pytest-xdist` | MIT | Runs the test suite on several CPU cores. |
 | `aiosqlite` | MIT | Async SQLite driver used by the test suite. |
+| `ruff` | MIT | Python linter, run in CI and by the commit hook. |
 
 ---
 
