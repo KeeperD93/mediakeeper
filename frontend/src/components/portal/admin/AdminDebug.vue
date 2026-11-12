@@ -68,7 +68,7 @@
         <button
           type="button"
           class="pt-debug-btn pt-debug-btn--primary"
-          :disabled="!selectedUserId || levelTarget == null"
+          :disabled="!selectedUserId || !levelInRange"
           @click="applyLevel"
         >
           {{ $t('portal.admin.debug.levelApply') }}
@@ -162,6 +162,14 @@ const categories = computed(() => {
   return Array.from(set).sort()
 })
 
+// min/max only bound the arrows: a typed value outside the server's bounds stays unsent.
+const levelInRange = computed(
+  () =>
+    Number.isInteger(levelTarget.value) &&
+    levelTarget.value >= MIN_LEVEL &&
+    levelTarget.value <= MAX_LEVEL,
+)
+
 const filteredAchievements = computed(() => {
   const q = achQuery.value.trim().toLowerCase()
   return achievements.value.filter(a => {
@@ -226,7 +234,7 @@ async function applyXp() {
 }
 
 async function applyLevel() {
-  if (!selectedUserId.value || levelTarget.value == null) return
+  if (!selectedUserId.value || !levelInRange.value) return
   try {
     const body = await debugApi.setLevel(selectedUserId.value, levelTarget.value)
     syncSelectedFromResponse(body)
@@ -234,7 +242,8 @@ async function applyLevel() {
       t('portal.admin.debug.levelApplied', { level: body?.level ?? levelTarget.value }),
       TOAST_TYPE.OK,
     )
-  } catch {
+  } catch (err) {
+    console.error('[AdminDebug.applyLevel]', err)
     showToast(t('portal.admin.debug.errorGeneric'), TOAST_TYPE.ERR)
   }
 }

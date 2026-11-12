@@ -1,15 +1,16 @@
 /**
  * Portal admin → debug tools: the player picker reads its labels from the translations,
- * a list that fails to load says so, and the level field keeps the server's bounds.
+ * a list that fails to load says so, and the level field sends only the server's bounds.
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
 
 const listUsers = vi.fn()
 const listAchievements = vi.fn()
+const setLevel = vi.fn()
 const showToast = vi.fn()
 vi.mock('@/composables/portal/usePortalAdminDebug', () => ({
-  usePortalAdminDebug: () => ({ listUsers, listAchievements }),
+  usePortalAdminDebug: () => ({ listUsers, listAchievements, setLevel }),
 }))
 vi.mock('@/composables/useToast', () => ({ useToast: () => ({ showToast }) }))
 vi.mock('vue-i18n', () => ({
@@ -33,6 +34,16 @@ async function mountPage() {
   return wrapper
 }
 
+// Picks Bob, then returns the level field and its button.
+async function mountLevelTool() {
+  listUsers.mockResolvedValue(USERS)
+  const wrapper = await mountPage()
+  await wrapper.findAll('select')[0].setValue(2)
+  const input = wrapper.find('input[placeholder="portal.admin.debug.levelTarget"]')
+  const button = wrapper.findAll('button').find(b => b.text() === 'portal.admin.debug.levelApply')
+  return { input, button }
+}
+
 describe('AdminDebug', () => {
   beforeEach(() => {
     vi.clearAllMocks()
@@ -48,11 +59,38 @@ describe('AdminDebug', () => {
     expect(options).toContain('Bob · portal.admin.debug.level=1 · portal.admin.debug.xp=0')
   })
 
-  it('accepts only levels 1 to 50 in the level field, like the server', async () => {
-    listUsers.mockResolvedValue(USERS)
-    const input = (await mountPage()).find('input[placeholder="portal.admin.debug.levelTarget"]')
+  it('sends only whole levels from 1 to 50, like the server', async () => {
+    setLevel.mockResolvedValue({ xp: 0, level: 1 })
+    const { input, button } = await mountLevelTool()
     expect(input.attributes('min')).toBe('1')
     expect(input.attributes('max')).toBe('50')
+
+    for (const typed of ['0', '-4', '51', '1.5', '']) {
+      await input.setValue(typed)
+      expect(button.attributes('disabled'), typed).toBeDefined()
+      await button.trigger('click')
+    }
+    expect(setLevel).not.toHaveBeenCalled()
+
+    for (const level of [1, 50]) {
+      await input.setValue(String(level))
+      expect(button.attributes('disabled')).toBeUndefined()
+      await button.trigger('click')
+      await flushPromises()
+      expect(setLevel).toHaveBeenLastCalledWith(2, level)
+    }
+  })
+
+  it('logs a failed level change and says so', async () => {
+    const failure = new Error('http_500')
+    setLevel.mockRejectedValue(failure)
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const { input, button } = await mountLevelTool()
+    await input.setValue('3')
+    await button.trigger('click')
+    await flushPromises()
+    expect(consoleError).toHaveBeenCalledWith('[AdminDebug.applyLevel]', failure)
+    expect(showToast).toHaveBeenCalledWith('portal.admin.debug.errorGeneric', TOAST_TYPE.ERR)
   })
 
   it('says so when the player list fails to load', async () => {

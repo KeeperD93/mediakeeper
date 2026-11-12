@@ -100,7 +100,7 @@ async def admin_set_level(
 ) -> dict | None:
     """Force the user to a specific level. ``profile.xp`` is set to the
     XP at which that level starts (``level_floor_xp``, 0 for level 1),
-    up or down, so the level bar starts empty."""
+    up or down, so the level bar starts empty (full at ``MAX_LEVEL``)."""
     profile = await _get_profile(db, user_id)
     if not profile:
         return None
