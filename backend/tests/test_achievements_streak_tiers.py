@@ -4,6 +4,7 @@ from datetime import UTC, datetime, timedelta
 import pytest
 from sqlalchemy import select
 
+from constants.playback import WATCH_ITEM_TYPES
 from core.security import hash_password
 from models.playback_stats import PlaybackSession
 from models.portal.achievement import UserAchievement
@@ -13,6 +14,7 @@ from services.instance_time import INSTANCE_TIMEZONE_KEY
 from services.portal import achievements_checks_local_time
 from services.portal.achievements import check_all_achievements, seed_achievements
 from services.settings import set_setting
+from services.watch_hours import spread_over_hours
 
 
 def _at(*parts: int) -> datetime:
@@ -38,19 +40,22 @@ async def _viewer(db, username: str = "alice") -> User:
 
 
 def _session(db, started: datetime, *, user: str = "alice", item: str = "item-1", **fields) -> None:
-    seconds = fields.pop("seconds", 60)
+    seconds = fields.pop("seconds", 10 * 60)
+    item_type = fields.pop("item_type", "Movie")
     db.add(PlaybackSession(
         session_key=f"{user}-{item}-{started.timestamp()}",
         user_id=f"emby-{user}",
         user_name=user,
         item_id=item,
         item_name=fields.pop("item_name", "Test Movie"),
-        item_type=fields.pop("item_type", "Movie"),
+        item_type=item_type,
         started_at=started,
         last_seen_at=started,
         ended_at=fields.pop("ended_at", started + timedelta(seconds=seconds)),
         measured=True,
         exclusive_seconds=seconds,
+        # As the collector writes it: only video keeps watched hours.
+        watched_by_hour=spread_over_hours(started, seconds) if item_type in WATCH_ITEM_TYPES else None,
         **fields,
     ))
 
@@ -194,3 +199,82 @@ async def test_today_of_the_day_streak_follows_the_saved_zone(db_session, monkey
     await check_all_achievements(db_session, alice.id)
 
     assert (await _progress(db_session, alice, "regular_1")).progress == 0
+
+
+@pytest.mark.asyncio
+async def test_a_film_finished_after_midnight_extends_the_run(db_session, monkeypatch):
+    """The 25th only holds the end of a film started at 23:00 in Paris: four days in a row."""
+    alice = await _viewer(db_session)
+    await seed_achievements(db_session)
+    await set_setting(db_session, INSTANCE_TIMEZONE_KEY, "Europe/Paris")
+    _session(db_session, _at(2026, 9, 23, 18))
+    # 23:00 to 00:15 in Paris, nothing started on the 25th.
+    _session(db_session, _at(2026, 9, 24, 21), seconds=75 * 60)
+    _session(db_session, _at(2026, 9, 26, 16))
+    await db_session.commit()
+    _freeze(monkeypatch, achievements_checks_local_time, _at(2026, 9, 26, 18))
+
+    await check_all_achievements(db_session, alice.id)
+
+    assert await _unlocked(db_session, alice, "regular_1")
+    assert (await _progress(db_session, alice, "regular_2")).progress == 4
+
+
+@pytest.mark.asyncio
+async def test_music_fills_no_day_and_a_tier_won_stays(db_session, monkeypatch):
+    alice = await _viewer(db_session)
+    await seed_achievements(db_session)
+    await set_setting(db_session, INSTANCE_TIMEZONE_KEY, "Europe/Paris")
+    db_session.add(UserAchievement(
+        user_id=alice.id, achievement_id="regular_1", progress=3, unlocked=True,
+        unlocked_at=_at(2026, 9, 1), notified=True,
+    ))
+    now = _at(2026, 10, 16, 18)
+    for day, item_type in enumerate(("Audio", "Audio", "AudioBook")):
+        _session(db_session, now - timedelta(days=day), item=f"track-{day}", item_type=item_type, seconds=3600)
+    await db_session.commit()
+    _freeze(monkeypatch, achievements_checks_local_time, now)
+
+    await check_all_achievements(db_session, alice.id)
+
+    assert await _unlocked(db_session, alice, "regular_1")
+    assert (await _progress(db_session, alice, "regular_2")).progress == 0
+
+
+@pytest.mark.asyncio
+async def test_faithful_keeps_counting_the_days_a_play_started_on(db_session, monkeypatch):
+    """A minute a day: no day of Regular, three of Faithful, whose own rule is yet to come."""
+    alice = await _viewer(db_session)
+    await seed_achievements(db_session)
+    await set_setting(db_session, INSTANCE_TIMEZONE_KEY, "Europe/Paris")
+    now = _at(2026, 10, 16, 18)
+    for day in range(3):
+        _session(db_session, now - timedelta(days=day), seconds=60)
+    await db_session.commit()
+    _freeze(monkeypatch, achievements_checks_local_time, now)
+
+    await check_all_achievements(db_session, alice.id)
+
+    regular = await _progress(db_session, alice, "regular_1")
+    assert (regular.unlocked, regular.progress) == (False, 0)
+    assert (await _progress(db_session, alice, "secret_dedication")).progress == 3
+
+
+@pytest.mark.asyncio
+async def test_a_long_run_of_late_films_earns_its_tiers(db_session, monkeypatch):
+    """124 days in Paris: a film each evening until 00:30, nothing started every tenth day."""
+    alice = await _viewer(db_session)
+    await seed_achievements(db_session)
+    await set_setting(db_session, INSTANCE_TIMEZONE_KEY, "Europe/Paris")
+    first = _at(2026, 6, 1, 20, 30)  # 22:30 in Paris, summer time
+    for n in range(123):
+        if n % 10 != 5:
+            _session(db_session, first + timedelta(days=n), seconds=2 * 3600)
+    await db_session.commit()
+    _freeze(monkeypatch, achievements_checks_local_time, _at(2026, 10, 2, 16))
+
+    await check_all_achievements(db_session, alice.id)
+
+    for tier in ("regular_1", "regular_2", "regular_3", "regular_4"):
+        assert await _unlocked(db_session, alice, tier)
+    assert (await _progress(db_session, alice, "regular_5")).progress == 124

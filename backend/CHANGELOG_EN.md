@@ -12,6 +12,7 @@ This section intentionally has no date so it is not shown to users.
 
 ### Changed
 - Dashboard — leaderboard widget matches the Leaderboard page.
+- Statistics — day streak from 5 min watched; music and audiobooks left out.
 
 ### Fixed
 - XP bar — same percentage in today's digest and the profile.
