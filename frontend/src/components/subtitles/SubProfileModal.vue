@@ -91,7 +91,7 @@
             </div>
 
             <div class="sub-prof-field">
-              <label>{{ $t('subtitles.minScore') }}: {{ form.min_score }}</label>
+              <label>{{ $t('subtitles.minScore') }} {{ form.min_score }}</label>
               <input
                 v-model.number="form.min_score"
                 type="range"
