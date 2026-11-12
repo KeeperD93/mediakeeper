@@ -8,6 +8,7 @@ vi.mock('vue-i18n', () => ({
 }))
 
 import PortalCreditsView from '@/views/portal/PortalCreditsView.vue'
+import pkg from '../../package.json'
 
 const ImgStub = {
   inheritAttrs: false,
@@ -51,5 +52,11 @@ describe('PortalCreditsView', () => {
     expect(footer.exists()).toBe(true)
     const link = footer.find('a')
     expect(link.attributes('href')).toContain('github.com/KeeperD93/mediakeeper')
+  })
+
+  it('shows the app version from package.json in the footer', () => {
+    const footer = mount(PortalCreditsView, mountOpts).find('[data-test="pc-footer"]')
+    expect(pkg.version).toBeTruthy()
+    expect(footer.text()).toContain(`MediaKeeper v${pkg.version}`)
   })
 })

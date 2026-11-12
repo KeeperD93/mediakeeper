@@ -15,7 +15,9 @@
   border: 1px solid var(--portal-border-default);
   border-radius: var(--portal-radius-lg);
   box-shadow: var(--portal-shadow-popup);
-  z-index: 9998;
+  /* The FAB's layer, under the windows: HomeFab renders the panel after the
+     button, so it paints above the "+" it covers on phones. */
+  z-index: var(--portal-z-fab);
   overflow: hidden;
   color: var(--portal-text-primary);
 }

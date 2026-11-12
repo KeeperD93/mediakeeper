@@ -9,18 +9,49 @@
   -->
   <Teleport to="body">
     <div ref="fabRef" class="pt-fab">
-      <!-- Sub-buttons (expand upward when open) -->
-      <transition-group name="pt-fab-pop" tag="div" class="pt-fab-sub">
-        <!-- Event creation -->
+      <!-- Main toggle button — a disclosure, not aria-haspopup: the sub-buttons
+           are plain buttons in the tab order, not a role="menu" with arrow keys. -->
+      <button
+        class="pt-fab-main"
+        :class="{ 'pt-fab-main--open': open }"
+        :aria-label="
+          showMainBadge
+            ? $t('portal.nav.quickActionsUnread', { n: unreadCount }, unreadCount)
+            : $t('portal.nav.quickActions')
+        "
+        :aria-expanded="open"
+        :aria-controls="subId"
+        @click.stop="open = !open"
+      >
+        <Plus :size="24" :stroke-width="2.5" />
+        <!-- Unread chat badge — shown on the collapsed FAB only; once
+             expanded, the chat sub-button carries its own badge. -->
+        <span v-if="showMainBadge" class="pt-fab-badge pt-fab-badge--main">
+          {{ unreadCount > 99 ? '99+' : unreadCount }}
+        </span>
+      </button>
+
+      <!-- Sub-buttons after the toggle, nearest first, so Tab walks them once
+           open; both columns are reversed to stack them upward on screen. -->
+      <transition-group :id="subId" name="pt-fab-pop" tag="div" class="pt-fab-sub">
+        <!-- Chat -->
         <button
-          v-if="open"
-          key="event"
+          v-if="open && chatAllowed"
+          key="chat"
           class="pt-fab-btn"
-          :title="$t('portal.mkEvents.create.title')"
-          :style="{ transitionDelay: '0.04s' }"
-          @click="((eventModalOpen = true), (open = false))"
+          :title="$t('portal.chat')"
+          :aria-label="
+            unreadCount > 0
+              ? $t('portal.chatUnread', { n: unreadCount }, unreadCount)
+              : $t('portal.chat')
+          "
+          :style="{ transitionDelay: '0s' }"
+          @click="onChat"
         >
-          <CalendarPlus :size="20" />
+          <MessageSquare :size="20" />
+          <span v-if="unreadCount > 0" class="pt-fab-badge">
+            {{ unreadCount > 99 ? '99+' : unreadCount }}
+          </span>
         </button>
 
         <!-- Surprise -->
@@ -35,43 +66,28 @@
           <Dices :size="20" />
         </button>
 
-        <!-- Chat -->
+        <!-- Event creation -->
         <button
-          v-if="open && chatAllowed"
-          key="chat"
+          v-if="open"
+          key="event"
           class="pt-fab-btn"
-          :title="$t('portal.chat')"
-          :style="{ transitionDelay: '0s' }"
-          @click="onChat"
+          :title="$t('portal.mkEvents.create.title')"
+          :style="{ transitionDelay: '0.04s' }"
+          @click="((eventModalOpen = true), (open = false))"
         >
-          <MessageSquare :size="20" />
-          <span v-if="unreadCount > 0" class="pt-fab-badge">
-            {{ unreadCount > 99 ? '99+' : unreadCount }}
-          </span>
+          <CalendarPlus :size="20" />
         </button>
       </transition-group>
-
-      <!-- Main toggle button -->
-      <button class="pt-fab-main" :class="{ 'pt-fab-main--open': open }" @click.stop="open = !open">
-        <Plus :size="24" :stroke-width="2.5" />
-        <!-- Unread chat badge — shown on the collapsed FAB only; the
-             expanded sub-button below carries its own badge. -->
-        <span
-          v-if="!open && chatAllowed && unreadCount > 0"
-          class="pt-fab-badge pt-fab-badge--main"
-        >
-          {{ unreadCount > 99 ? '99+' : unreadCount }}
-        </span>
-      </button>
     </div>
 
+    <!-- After the cluster on purpose: same layer, so the panel paints above the "+". -->
     <ChatPanel v-if="chatOpen" @close="closeChat" />
     <EventCreateModal v-if="eventModalOpen" @close="eventModalOpen = false" />
   </Teleport>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount, useId } from 'vue'
 import ChatPanel from './ChatPanel.vue'
 import EventCreateModal from './EventCreateModal.vue'
 import { usePortalChat } from '@/composables/portal/usePortalChat'
@@ -87,7 +103,9 @@ const open = ref(false)
 const chatOpen = ref(false)
 const eventModalOpen = ref(false)
 const fabRef = ref(null)
+const subId = useId()
 const chatAllowed = computed(() => profile.value?.chat_enabled !== false)
+const showMainBadge = computed(() => !open.value && chatAllowed.value && unreadCount.value > 0)
 
 function onChat() {
   if (!chatAllowed.value) return
@@ -114,9 +132,9 @@ onBeforeUnmount(() => document.removeEventListener('click', onClickOutside, true
   position: fixed;
   right: 14px;
   bottom: calc(14px + 72px + env(safe-area-inset-bottom, 0px));
-  z-index: 9997;
+  z-index: var(--portal-z-fab);
   display: flex;
-  flex-direction: column;
+  flex-direction: column-reverse;
   align-items: center;
   gap: 10px;
 }
@@ -127,10 +145,10 @@ onBeforeUnmount(() => document.removeEventListener('click', onClickOutside, true
   }
 }
 
-/* Sub-buttons column (above the main button) */
+/* Sub-buttons column (above the main button, nearest first in the DOM) */
 .pt-fab-sub {
   display: flex;
-  flex-direction: column;
+  flex-direction: column-reverse;
   align-items: center;
   gap: 10px;
 }
@@ -164,9 +182,11 @@ onBeforeUnmount(() => document.removeEventListener('click', onClickOutside, true
 .pt-fab-main--open svg {
   transform: rotate(45deg);
 }
-.pt-fab-main:hover {
-  background: rgb(79, 70, 229, 0.95);
-  transform: scale(1.06);
+@media (hover: hover) {
+  .pt-fab-main:hover {
+    background: color-mix(in srgb, var(--portal-accent-600) 95%, transparent);
+    transform: scale(1.06);
+  }
 }
 @media (min-width: 640px) {
   .pt-fab-main {
@@ -196,14 +216,16 @@ onBeforeUnmount(() => document.removeEventListener('click', onClickOutside, true
     opacity var(--portal-dur-base);
   position: relative;
 }
-.pt-fab-btn:hover:not(:disabled) {
-  background: rgb(67, 56, 202, 0.85);
-  transform: translateY(-2px);
+@media (hover: hover) {
+  .pt-fab-btn:hover:not(:disabled) {
+    background: rgb(var(--portal-accent-rgb), 0.85);
+    transform: translateY(-2px);
+  }
 }
-.pt-fab-btn--disabled {
-  opacity: 0.35;
-  cursor: not-allowed;
-  color: rgb(255, 255, 255, 0.45);
+.pt-fab-main:focus-visible,
+.pt-fab-btn:focus-visible {
+  outline: var(--portal-focus-ring);
+  outline-offset: var(--portal-focus-ring-offset);
 }
 @media (min-width: 640px) {
   .pt-fab-btn {
