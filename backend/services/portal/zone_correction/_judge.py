@@ -4,7 +4,7 @@ Same rules as the pass, read on the plays it would read, with nothing written: t
 clock rules, the day streak, the lonely new year, the all-nighter, the king, Competitor.
 """
 from dataclasses import dataclass
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -55,6 +55,7 @@ class Judge:
         self._ctx = ctx
         self._plays = plays
         self._local: dict[tuple[int, bool], list[LocalPlay]] = {}
+        self._days: dict[tuple[int, bool, bool], set[date]] = {}
 
     def _rows(self, native: bool) -> list[PlaybackSession]:
         rows = self._plays.rows
@@ -65,6 +66,19 @@ class Judge:
         if key not in self._local:
             self._local[key] = local_plays(self._rows(native), side.zone)
         return self._local[key]
+
+    def _streak(self, ach: AchievementInfo, side: Side, native: bool, *, started: bool) -> int:
+        """The day streak on the start days of the plays, or on the days watched."""
+        key = (id(side), native, started)
+        if key not in self._days:
+            self._days[key] = (
+                {play.at.date() for play in self._local_plays(side, native)} if started
+                else watch_days(self._rows(native), side.zone)
+            )
+        days = self._days[key]
+        today = to_local(datetime.now(UTC), side.zone).date()
+        longest = longest_streak(day for day in days if day <= today)
+        return longest if longest >= ach.threshold else current_streak(days, today)
 
     async def value(self, ach: AchievementInfo, side: Side, *, native: bool = False) -> int:
         condition = ach.condition_type
@@ -82,12 +96,13 @@ class Judge:
             return int(all_night_chain_in(spans, side.zone))
         if condition == _STREAK:
             if ach.id in START_DAY_STREAKS:
-                days = {play.at.date() for play in self._local_plays(side, native)}
-            else:
-                days = watch_days(self._rows(native), side.zone)
-            today = to_local(datetime.now(UTC), side.zone).date()
-            longest = longest_streak(day for day in days if day <= today)
-            return longest if longest >= ach.threshold else current_streak(days, today)
+                return self._streak(ach, side, native, started=True)
+            value = self._streak(ach, side, native, started=False)
+            if side is self._ctx.local:
+                # Regular moved from start days to days watched: a tier either rule holds on the
+                # zone's clock stays, so the change of rule alone never takes one back.
+                value = max(value, self._streak(ach, side, native, started=True))
+            return value
 
         plays = self._local_plays(side, native)
         if condition in LOCAL_TIME_RULES:
