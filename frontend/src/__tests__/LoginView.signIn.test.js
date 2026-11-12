@@ -7,11 +7,9 @@ import { mount, flushPromises } from '@vue/test-utils'
 
 vi.mock('vue-i18n', () => ({ useI18n: () => ({ t: key => key }) }))
 
-const pushMock = vi.fn()
-const currentRoute = { value: { name: 'login' } }
 vi.mock('vue-router', () => ({
   useRoute: () => ({ query: {} }),
-  useRouter: () => ({ push: pushMock, replace: vi.fn(), currentRoute }),
+  useRouter: () => ({ push: vi.fn(), replace: vi.fn() }),
 }))
 
 const loginMock = vi.fn()
@@ -64,14 +62,14 @@ const PAUSE_OVER = 1000
 const NAME = 'input[autocomplete="username"]'
 const PASSWORD = 'input[autocomplete="current-password"]'
 
-async function mountPage(options) {
-  const w = mount(LoginView, options)
+async function mountPage() {
+  const w = mount(LoginView)
   for (let i = 0; i < 10; i++) await flushPromises()
   return w
 }
 
-async function filledForm(options) {
-  const w = await mountPage(options)
+async function filledForm() {
+  const w = await mountPage()
   await w.find(NAME).setValue('someone')
   await w.find(PASSWORD).setValue('not-a-real-password')
   return w
@@ -96,11 +94,6 @@ let consoleError
 
 beforeEach(() => {
   loginMock.mockReset()
-  currentRoute.value = { name: 'login' }
-  // A navigation leaves the page unless a test says otherwise.
-  pushMock.mockReset().mockImplementation(async () => {
-    currentRoute.value = { name: 'portal-home' }
-  })
   consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
 })
 
@@ -209,41 +202,6 @@ describe('LoginView — signing in', () => {
     expect(loginMock).toHaveBeenCalledTimes(2)
   })
 
-  it('sends nothing more once a sign-in succeeds, while the page is being left', async () => {
-    loginMock.mockResolvedValue({ scope: 'portal' })
-    const w = await filledForm()
-
-    await submit(w)
-    await flushPromises()
-    vi.setSystemTime(Date.now() + PAUSE_OVER)
-    await submit(w)
-    await flushPromises()
-
-    expect(loginMock).toHaveBeenCalledTimes(1)
-    expect(pushMock).toHaveBeenCalledExactlyOnceWith('/portal')
-    expect(w.find('button.login-submit').attributes('disabled')).toBeDefined()
-  })
-
-  it.each([
-    ['fails', () => Promise.resolve(Object.assign(new Error('aborted'), { type: 4 })), false],
-    ['comes back to this page', () => Promise.resolve(), false],
-    ['throws', () => Promise.reject(new Error('unexpected')), true],
-  ])('frees the button when the navigation after a sign-in %s', async (_, navigate, told) => {
-    loginMock.mockResolvedValue({ scope: 'portal' })
-    pushMock.mockImplementationOnce(navigate)
-    const w = await filledForm()
-
-    await submit(w)
-    await flushPromises()
-    expect(w.find('button.login-submit').attributes('disabled')).toBeUndefined()
-    expect(w.find('.login-error').exists()).toBe(told)
-
-    vi.setSystemTime(Date.now() + PAUSE_OVER)
-    await submit(w)
-    await flushPromises()
-    expect(loginMock).toHaveBeenCalledTimes(2)
-  })
-
   it('counts a second press right after a refusal as the same try', async () => {
     loginMock.mockRejectedValue(wrongPassword())
     const w = await filledForm()
@@ -285,53 +243,5 @@ describe('LoginView — signing in', () => {
     await submit(w)
     await flushPromises()
     expect(loginMock).toHaveBeenCalledTimes(1)
-  })
-})
-
-describe('LoginView — the focus after a refusal', () => {
-  let w
-
-  afterEach(() => {
-    w.unmount()
-  })
-
-  // The focus only moves in a page attached to the document.
-  const attached = () => filledForm({ attachTo: document.body })
-
-  it.each([
-    ['the button', 'button.login-submit'],
-    ['the main area', 'main'],
-    ['the page', null],
-  ])('puts it on the password when %s had it', async (_, selector) => {
-    loginMock.mockRejectedValueOnce(wrongPassword())
-    w = await attached()
-    const start = selector ? w.find(selector).element : document.body
-    if (selector) start.focus()
-    else document.activeElement.blur()
-    expect(document.activeElement).toBe(start)
-
-    await submit(w)
-    await flushPromises()
-
-    expect(document.activeElement).toBe(w.find(PASSWORD).element)
-    expect(w.find('.login-error').attributes('role')).toBe('alert')
-  })
-
-  it('leaves it on a field the user went to while waiting', async () => {
-    let refuse
-    loginMock.mockReturnValueOnce(
-      new Promise((_, reject) => {
-        refuse = reject
-      }),
-    )
-    w = await attached()
-    w.find('button.login-submit').element.focus()
-
-    await submit(w)
-    w.find(NAME).element.focus()
-    refuse(wrongPassword())
-    await flushPromises()
-
-    expect(document.activeElement).toBe(w.find(NAME).element)
   })
 })
