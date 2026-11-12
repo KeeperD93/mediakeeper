@@ -59,7 +59,10 @@ async def update_progress(
     await db.flush()
 
     if newly_unlocked:
-        await _grant_xp(db, user_id, achievement.id, achievement.xp_reward)
+        # The XP grant commits the unlock with it. It grants nothing for a trophy
+        # whose XP is already in the ledger (reset from the debug tools): commit here.
+        if await _grant_xp(db, user_id, achievement.id, achievement.xp_reward) is None:
+            await db.commit()
         return {
             "achievement_id": achievement_id,
             "name_key": achievement.name_key,
@@ -111,8 +114,8 @@ async def _insert_user_achievement(
 
 async def _grant_xp(
     db: AsyncSession, user_id: int, achievement_id: str, amount: int
-):
-    await grant_xp(
+) -> dict | None:
+    return await grant_xp(
         db,
         user_id,
         ACHIEVEMENT_XP_ACTION,

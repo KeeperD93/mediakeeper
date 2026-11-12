@@ -207,9 +207,7 @@ async def safe_check_all_achievements(
     the session had not committed survives, and every instance it holds is
     expired. Callers commit their own work first and touch no ORM object
     loaded before the call. A silent failure still returns the unlocks
-    granted before it; their XP grant committed them, except a trophy whose
-    XP was already in the ledger (relocked from the debug tools), which the
-    rollback undoes.
+    granted before it: ``update_progress`` commits each one as it grants it.
 
     ``source`` is a free-form label; conventional values include
     ``"playback_close"``, ``"chat_message"``,

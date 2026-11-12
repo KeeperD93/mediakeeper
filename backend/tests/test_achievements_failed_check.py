@@ -5,7 +5,7 @@ from datetime import UTC, datetime, timedelta
 from unittest.mock import patch
 
 import pytest
-from sqlalchemy import select, update
+from sqlalchemy import func, select, update
 from sqlalchemy.exc import SQLAlchemyError
 
 from constants.requests import REQUEST_PENDING
@@ -17,7 +17,9 @@ from models.portal.emby_tmdb_index import EmbyTmdbIndex
 from models.portal.profile import UserProfile
 from models.portal.request import MediaRequest
 from models.portal.social import PRIVACY_PUBLIC_READONLY
+from models.portal.xp_ledger import XpLedger
 from services.portal import achievements
+from services.portal.admin_debug import admin_lock_achievement
 from services.portal.admin_users_constants import ACTION_DEBUG_ACHIEVEMENT_RECHECK_ALL
 from services.portal.lists import create_list, update_list
 from services.portal.lists_items import add_items
@@ -59,6 +61,20 @@ async def _closed_play(db, name: str, item: str) -> PlaybackSession:
     db.add(play)
     await db.commit()
     return play
+
+
+async def _break_the_session(db, *, user_id, **_kwargs) -> None:
+    """A last pass whose flush fails: the check then fails at its final commit."""
+    db.add(UserAchievement(user_id=user_id, achievement_id=None))  # a NOT NULL column
+    await db.flush()
+
+
+async def _unlocked_ids(db, user_id: int) -> set[str]:
+    return set((await db.execute(
+        select(UserAchievement.achievement_id).where(
+            UserAchievement.user_id == user_id, UserAchievement.unlocked.is_(True),
+        )
+    )).scalars())
 
 
 @pytest.mark.asyncio
@@ -107,24 +123,44 @@ async def test_a_failed_check_still_returns_the_trophies_granted_before(db_sessi
     await achievements.seed_achievements(db_session)
     await _closed_play(db_session, "alice", "movie-1")
 
-    async def meta(db, *, user_id, **_kwargs):
-        db.add(UserAchievement(user_id=user_id, achievement_id=None))  # a NOT NULL column
-        await db.flush()
-
-    monkeypatch.setattr(achievements, "check_meta", meta)
+    monkeypatch.setattr(achievements, "check_meta", _break_the_session)
     with caplog.at_level(logging.ERROR, logger="mediakeeper.portal.achievements"):
         unlocks = await achievements.safe_check_all_achievements(db_session, alice_id, "test")
 
     assert "achievements run failed" in caplog.text
     returned = {u["achievement_id"] for u in unlocks}
     assert "secret_first_play" in returned
-    # Each one survived the rollback: its first XP grant had committed it.
-    unlocked = set((await db_session.execute(
-        select(UserAchievement.achievement_id).where(
-            UserAchievement.user_id == alice_id, UserAchievement.unlocked.is_(True),
-        )
-    )).scalars())
-    assert returned <= unlocked
+    # Each one survived the rollback: it was committed as it was granted.
+    assert returned <= await _unlocked_ids(db_session, alice_id)
+
+
+@pytest.mark.asyncio
+async def test_a_trophy_earned_again_after_a_reset_survives_a_failed_check(db_session, monkeypatch):
+    """Reset from the debug tools, the trophy keeps its XP in the ledger: earning it
+    again grants no XP, so nothing commits its unlock but the check itself."""
+    [alice_id] = await _ids(db_session, "alice")
+    await achievements.seed_achievements(db_session)
+    await _closed_play(db_session, "alice", "movie-1")
+    await achievements.check_all_achievements(db_session, alice_id)
+    await admin_lock_achievement(db_session, alice_id, "secret_first_play")
+
+    monkeypatch.setattr(achievements, "check_meta", _break_the_session)
+    unlocks = await achievements.safe_check_all_achievements(db_session, alice_id, "test")
+
+    assert "secret_first_play" in {u["achievement_id"] for u in unlocks}
+    assert "secret_first_play" in await _unlocked_ids(db_session, alice_id)
+    # Earned twice, granted once: the profile still holds what its ledger does.
+    trophy_grants = await db_session.scalar(select(func.count()).select_from(XpLedger).where(
+        XpLedger.user_id == alice_id, XpLedger.reference == "ach:secret_first_play",
+    ))
+    ledger_xp = await db_session.scalar(
+        select(func.sum(XpLedger.xp)).where(XpLedger.user_id == alice_id)
+    )
+    profile_xp = await db_session.scalar(
+        select(UserProfile.xp).where(UserProfile.user_id == alice_id)
+    )
+    assert trophy_grants == 1
+    assert profile_xp == ledger_xp
 
 
 @pytest.mark.asyncio
