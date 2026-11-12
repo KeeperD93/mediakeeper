@@ -11,7 +11,7 @@
         {{
           $t(
             'portal.leaderboard.stats.playersRanked',
-            { n: displayedPlayers.toLocaleString() },
+            { n: localizedNumber(displayedPlayers) },
             totalPlayers,
           )
         }}
@@ -23,7 +23,7 @@
       <span class="lb-stats-chip-text">
         {{
           $t('portal.leaderboard.stats.activityXp', {
-            n: displayedXp.toLocaleString(),
+            n: localizedNumber(displayedXp),
           })
         }}
       </span>
@@ -35,7 +35,7 @@
         {{
           $t(
             'portal.leaderboard.stats.trophiesDistributed',
-            { n: displayedTrophies.toLocaleString() },
+            { n: localizedNumber(displayedTrophies) },
             totalTrophies,
           )
         }}
@@ -84,6 +84,7 @@ import { computed, toRef } from 'vue'
 import { CalendarDays, Trophy, Users, Zap } from 'lucide-vue-next'
 
 import { useCountUp } from '@/composables/portal/useCountUp'
+import { localizedNumber } from '@/utils/localizedNumber'
 
 const props = defineProps({
   stats: { type: Object, default: null },

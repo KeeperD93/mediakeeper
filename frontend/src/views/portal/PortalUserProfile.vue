@@ -72,7 +72,7 @@
             </div>
             <div class="pt-up-stat">
               <dt>XP</dt>
-              <dd>{{ (data.xp || 0).toLocaleString() }}</dd>
+              <dd>{{ localizedNumber(data.xp || 0) }}</dd>
             </div>
             <div class="pt-up-stat">
               <dt>{{ $t('portal.profile.ranking') }}</dt>
@@ -132,6 +132,7 @@ import MkSpinner from '@/components/common/MkSpinner.vue'
 import RankSidebarCard from '@/components/portal/profile/RankSidebarCard.vue'
 import { GENRE_LOOKUP } from '@/utils/portal/genreLookup'
 import { ICON_MAP } from '@/utils/portal/iconMap'
+import { localizedNumber } from '@/utils/localizedNumber'
 import { useApi } from '@/composables/useApi'
 import { usePortalAchievements } from '@/composables/portal/usePortalAchievements'
 import { xpForLevel } from '@/composables/portal/useProfileXp'

@@ -5,7 +5,7 @@
  * final value.
  *
  * Surfaces a Vue ref ``displayed`` that components can render with
- * ``toLocaleString()`` to feed the hero billboard / live stats bar
+ * ``localizedNumber()`` to feed the hero billboard / live stats bar
  * count-up effect.
  */
 import { onBeforeUnmount, onMounted, ref, toValue, watch } from 'vue'

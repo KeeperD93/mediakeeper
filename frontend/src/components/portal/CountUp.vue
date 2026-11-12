@@ -4,12 +4,13 @@
 
 <script setup>
 import { ref, watch, onMounted, onBeforeUnmount } from 'vue'
+import { localizedNumber } from '@/utils/localizedNumber'
 
 const props = defineProps({
   value: { type: Number, default: 0 },
   duration: { type: Number, default: 800 },
-  // Optional: custom formatter (toLocaleString by default).
-  formatter: { type: Function, default: n => Math.round(n).toLocaleString() },
+  // Optional: custom formatter (the app language's number format by default).
+  formatter: { type: Function, default: n => localizedNumber(Math.round(n)) },
   // Optional: delay (ms) before the animation actually starts — lets
   // siblings stagger their count-up so the screen reveals progressively.
   delay: { type: Number, default: 0 },

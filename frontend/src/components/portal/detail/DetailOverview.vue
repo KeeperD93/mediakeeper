@@ -151,6 +151,7 @@ import {
 } from 'lucide-vue-next'
 import { localizedDate } from '@/utils/datetime'
 import { formatCountry, formatLanguage } from '@/utils/formatIntlLabel'
+import { localizedNumber } from '@/utils/localizedNumber'
 import { safeHref } from '@/utils/safeUrl'
 import { tmdbWebUrl } from '@/utils/tmdb'
 
@@ -222,7 +223,7 @@ function formatMoney(n) {
   if (!n) return '0'
   if (n >= 1e9) return (n / 1e9).toFixed(1) + 'B'
   if (n >= 1e6) return (n / 1e6).toFixed(0) + 'M'
-  return n.toLocaleString()
+  return localizedNumber(n)
 }
 
 function formatDate(iso) {

@@ -61,7 +61,7 @@
           <div v-if="media.vote_count" class="vmd2-score">
             <span class="vmd2-score-dot vmd2-score-dot--muted" />
             <div>
-              <div class="vmd2-score-value">{{ media.vote_count.toLocaleString() }}</div>
+              <div class="vmd2-score-value">{{ localizedNumber(media.vote_count) }}</div>
               <div class="vmd2-score-label">{{ $t('portal.detail.votes') }}</div>
             </div>
           </div>
@@ -130,6 +130,7 @@ import { REQUEST_STATUS } from '@/constants/requests'
 import { Bookmark, Plus, RotateCcw, Video } from 'lucide-vue-next'
 import PremiumRibbon from '@/components/portal/PremiumRibbon.vue'
 import { formatCountry, formatLanguage } from '@/utils/formatIntlLabel'
+import { localizedNumber } from '@/utils/localizedNumber'
 import { safeHref } from '@/utils/safeUrl'
 import '@/assets/styles/portal/poster-card.css'
 
