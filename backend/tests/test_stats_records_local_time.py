@@ -8,6 +8,7 @@ from sqlalchemy import update
 from models.playback_stats import PlaybackSession
 from services.instance_time import INSTANCE_TIMEZONE_KEY
 from services.settings import set_setting
+from services.stats_aggregator import records
 from services.stats_aggregator.charts import get_daily_chart_data
 from services.stats_aggregator.profile import get_user_profile
 from services.stats_aggregator.records import get_records
@@ -136,6 +137,26 @@ async def test_the_records_read_the_plays_once(db_session, monkeypatch):
 
     assert (stats["record_day_date"], stats["current_streak"]) == ("2026-10-16", 1)
     assert sum("playback_sessions.started_at" in sql for sql in statements) == 1
+
+
+@pytest.mark.asyncio
+async def test_the_records_count_the_plays_off_the_event_loop(db_session, monkeypatch):
+    freeze(monkeypatch, utc(2026, 10, 16, 18))
+    _watch(db_session, utc(2026, 10, 16, 12))
+    await db_session.commit()
+    run_in_thread = records.asyncio.to_thread
+    sent = []
+
+    async def spy(func, *args, **kwargs):
+        sent.append(func.__name__)
+        return await run_in_thread(func, *args, **kwargs)
+
+    monkeypatch.setattr(records.asyncio, "to_thread", spy)
+    stats = await get_records(db_session)
+
+    assert sent == ["_count_days_and_hours"]
+    # No zone saved: the instance reads UTC.
+    assert (stats["record_day_date"], stats["peak_hour"], stats["current_streak"]) == ("2026-10-16", 12, 1)
 
 
 @pytest.mark.asyncio
