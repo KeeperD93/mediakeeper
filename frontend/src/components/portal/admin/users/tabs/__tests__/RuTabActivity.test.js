@@ -87,6 +87,19 @@ describe('RuTabActivity — 30-day XP', () => {
   })
 })
 
+describe('RuTabActivity — total XP', () => {
+  it('writes the total in the app language', async () => {
+    const empty = { items: [], has_more: false, next_cursor: null }
+    fetchUserRequests.mockResolvedValue(empty)
+    fetchUserTickets.mockResolvedValue(empty)
+    const w = mountTab({ ...ACTIVITY, xp: { last_30_days: 0, total: 12345 } })
+    await flushPromises()
+
+    const card = w.findAll('.ru-act-card').find(c => c.text().includes('activity.xpTotal'))
+    expect(card.find('.ru-act-val').text()).toBe('12\u202f345')
+  })
+})
+
 describe('RuTabActivity — stale navigation', () => {
   it('discards a slow response from a user the admin already navigated away from', async () => {
     const resolvers = []

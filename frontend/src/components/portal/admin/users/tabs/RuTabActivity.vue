@@ -74,7 +74,7 @@
             <span class="ru-act-label">
               {{ $t('requestsAdmin.users.drawer.activity.xpTotal') }}
             </span>
-            <span class="ru-act-val">{{ activity.xp.total }}</span>
+            <span class="ru-act-val">{{ localizedNumber(activity.xp.total) }}</span>
             <span class="ru-act-foot">
               {{ $t('requestsAdmin.users.drawer.activity.xpTotalFoot') }}
             </span>
@@ -142,7 +142,7 @@ import i18n from '@/i18n'
 import RuUserBadge from '../RuUserBadge.vue'
 import PortalLoadMore from '@/components/portal/PortalLoadMore.vue'
 import { localizedDate } from '@/utils/datetime'
-import { signedNumber } from '@/utils/localizedNumber'
+import { localizedNumber, signedNumber } from '@/utils/localizedNumber'
 import '@/assets/styles/portal/admin-users-feed.css'
 
 const props = defineProps({

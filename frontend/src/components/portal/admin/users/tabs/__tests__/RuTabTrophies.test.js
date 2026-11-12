@@ -26,9 +26,9 @@ const LOAD_MORE_STUB = {
   template: '<button v-if="show" class="lm" @click="$emit(\'load\')">more</button>',
 }
 
-function mountTab() {
+function mountTab(user = { id: 42, level: 1, xp: 55 }) {
   return mount(RuTabTrophies, {
-    props: { user: { id: 42, level: 1, xp: 55 }, activity: null },
+    props: { user, activity: null },
     global: { stubs: { RuTrophyIcon: true, PortalLoadMore: LOAD_MORE_STUB } },
   })
 }
@@ -99,6 +99,23 @@ describe('RuTabTrophies — XP history amounts', () => {
 
     const amounts = w.findAll('.ru-feed-tail').map(r => r.text())
     expect(amounts).toEqual(['+20 XP', '-20 XP', '0 XP', '+1\u202f500 XP'])
+  })
+})
+
+describe('RuTabTrophies — XP figures', () => {
+  it('writes the level card and the trophy rewards in the app language', async () => {
+    fetchTrophies.mockResolvedValue({
+      unlocked: [{ id: 'curator-1', name_key: 'portal.trophies.curator_1.name', xp_reward: 1500 }],
+      in_progress: [],
+      unlocked_count: 1,
+      in_progress_count: 0,
+    })
+    fetchXpHistory.mockResolvedValue({ items: [] })
+    const w = mountTab({ id: 42, level: 30, xp: 12345 })
+    await flushPromises()
+
+    expect(w.find('.ru-act-foot').text()).toBe('12\u202f345 XP')
+    expect(w.find('.ru-trophy-xp').text()).toBe('+1\u202f500 XP')
   })
 })
 
