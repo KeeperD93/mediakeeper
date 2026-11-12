@@ -20,7 +20,7 @@ Revises: 069_profile_level_floor
 Create Date: 2026-11-12
 """
 from collections import defaultdict
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import sqlalchemy as sa
 from alembic import op
@@ -59,7 +59,7 @@ _COMPLETIONS = sa.table(
 def _utc(value: datetime | None) -> datetime | None:
     if value is None:
         return None
-    return value.replace(tzinfo=timezone.utc) if value.tzinfo is None else value.astimezone(timezone.utc)
+    return value.replace(tzinfo=UTC) if value.tzinfo is None else value.astimezone(UTC)
 
 
 def _has_column(bind) -> bool:
