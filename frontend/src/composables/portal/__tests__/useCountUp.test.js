@@ -7,6 +7,7 @@
  *    zero and the target at mid-progress and exactly on the target
  *    when the duration elapses.
  * 4. A ref target counts again each time it changes.
+ * 5. Reduced motion turned on during a count ends it at once on the target.
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { defineComponent, h, nextTick, ref } from 'vue'
@@ -41,6 +42,25 @@ function stubMatchMedia(matches) {
       removeEventListener: () => {},
     })),
   )
+}
+
+// A setting the test can change while the page is open.
+function stubLiveMatchMedia(matches) {
+  const listeners = new Set()
+  const query = {
+    matches,
+    addEventListener: (_event, handler) => listeners.add(handler),
+    removeEventListener: (_event, handler) => listeners.delete(handler),
+    flip(next) {
+      query.matches = next
+      for (const handler of listeners) handler({ matches: next })
+    },
+  }
+  vi.stubGlobal(
+    'matchMedia',
+    vi.fn(() => query),
+  )
+  return query
 }
 
 describe('useCountUp', () => {
@@ -126,6 +146,24 @@ describe('useCountUp', () => {
     await nextTick()
 
     expect(host.displayed).toBe(20)
+  })
+
+  it('jumps to the target when reduced motion is turned on midway, and stays there', async () => {
+    vi.useFakeTimers({ toFake: ['performance', 'requestAnimationFrame', 'cancelAnimationFrame'] })
+    const setting = stubLiveMatchMedia(false)
+    const host = makeHost(1000, { duration: 1200 })
+    await nextTick()
+    vi.advanceTimersByTime(600)
+    expect(host.displayed).toBeLessThan(1000)
+
+    setting.flip(true)
+    await nextTick()
+    expect(host.displayed).toBe(1000)
+
+    setting.flip(false)
+    await nextTick()
+    vi.advanceTimersByTime(600)
+    expect(host.displayed).toBe(1000)
   })
 
   it('stops counting once its component is gone', async () => {

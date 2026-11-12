@@ -327,7 +327,7 @@ function scrollPosters(dir) {
   const el = postersRef.value
   if (!el) return
   const step = Math.max(180, el.clientWidth * 0.7)
-  el.scrollBy({ left: dir * step, behavior: 'smooth' })
+  el.scrollBy({ left: dir * step })
 }
 
 watch([digest, visible], async () => {

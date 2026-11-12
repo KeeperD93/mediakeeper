@@ -9,7 +9,8 @@ import { ref, onMounted, onUnmounted, nextTick, watch } from 'vue'
  *
  * `scroll(dir)` moves by one full "page" of visible cards, sized from
  * the actual card widths + gap read from the DOM — robust to any
- * card size and to responsive breakpoints.
+ * card size and to responsive breakpoints. The track's CSS chooses the
+ * motion: smooth, or a jump under reduced motion.
  *
  * Pass a reactive `itemsRef` so the flags update when the underlying
  * list changes (new items appended, filter applied, …).
@@ -50,7 +51,7 @@ export function useCarouselArrows(itemsRef = null) {
 
     const visible = Math.max(1, Math.floor(trackRect.width / step))
     const amount = visible * step
-    el.scrollBy({ left: dir * amount, behavior: 'smooth' })
+    el.scrollBy({ left: dir * amount })
   }
 
   let resizeObs = null
