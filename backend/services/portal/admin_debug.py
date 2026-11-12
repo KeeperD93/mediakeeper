@@ -58,7 +58,7 @@ async def admin_grant_xp(
 
     delta = int(amount)
     if delta == 0:
-        return {"xp": profile.xp or 0, "level": profile.level or 0, "leveled_up": False}
+        return {"xp": profile.xp or 0, "level": profile.level or MIN_LEVEL, "leveled_up": False}
 
     ref_suffix = (note or uuid.uuid4().hex)[:48]
     entry = XpLedger(
@@ -69,7 +69,7 @@ async def admin_grant_xp(
     )
     db.add(entry)
 
-    previous_level = profile.level or 0
+    previous_level = profile.level or MIN_LEVEL
     profile.xp = max(0, (profile.xp or 0) + delta)
     profile.level = level_from_xp(profile.xp)
     db.add(profile)

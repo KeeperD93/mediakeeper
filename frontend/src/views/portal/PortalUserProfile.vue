@@ -196,7 +196,7 @@ const rankingShape = computed(() => ({
 }))
 
 const nextLevelXp = computed(() => {
-  if (!data.value) return 100
+  if (!data.value) return xpForLevel(MIN_LEVEL + 1)
   const level = Math.max(MIN_LEVEL, data.value.level || MIN_LEVEL)
   if (level >= MAX_LEVEL) return xpForLevel(MAX_LEVEL)
   return xpForLevel(level + 1)

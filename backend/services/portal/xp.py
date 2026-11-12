@@ -187,7 +187,7 @@ async def grant_xp(
     if profile:
         profile.xp = (profile.xp or 0) + xp_amount
         new_level = level_from_xp(profile.xp)
-        leveled_up = new_level > (profile.level or 0)
+        leveled_up = new_level > (profile.level or MIN_LEVEL)
         profile.level = new_level
         db.add(profile)
 

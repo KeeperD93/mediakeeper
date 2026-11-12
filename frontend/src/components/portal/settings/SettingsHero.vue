@@ -49,6 +49,8 @@ import { computed } from 'vue'
 import { Eye, Flame } from 'lucide-vue-next'
 
 import RankSidebarCard from '@/components/portal/profile/RankSidebarCard.vue'
+import { xpForLevel } from '@/composables/portal/useProfileXp'
+import { MIN_LEVEL } from '@/constants/portal'
 
 const props = defineProps({
   profileData: { type: Object, default: null },
@@ -59,7 +61,7 @@ const props = defineProps({
   ranking: { type: Object, default: () => ({ position: 0, percentile: 0, movement: 0 }) },
   memberSince: { type: [Number, String], default: '—' },
   xpPercent: { type: Number, default: 0 },
-  nextLevelXp: { type: Number, default: 100 },
+  nextLevelXp: { type: Number, default: xpForLevel(MIN_LEVEL + 1) },
   trophies: { type: Array, default: () => [] },
   iconMap: { type: Object, default: () => ({}) },
   streakDays: { type: Number, default: 0 },
