@@ -135,7 +135,7 @@ import { ICON_MAP } from '@/utils/portal/iconMap'
 import { localizedNumber } from '@/utils/localizedNumber'
 import { useApi } from '@/composables/useApi'
 import { usePortalAchievements } from '@/composables/portal/usePortalAchievements'
-import { levelFloorXp, xpForLevel } from '@/composables/portal/useProfileXp'
+import { levelBarPercent, xpForLevel } from '@/composables/portal/useProfileXp'
 import { MAX_LEVEL, MIN_LEVEL } from '@/constants/portal'
 
 import '@/assets/styles/portal/settings-premium.css'
@@ -202,16 +202,11 @@ const nextLevelXp = computed(() => {
   if (level >= MAX_LEVEL) return xpForLevel(MAX_LEVEL)
   return xpForLevel(level + 1)
 })
-const xpPercent = computed(() => {
-  if (!data.value) return 0
-  const level = Math.max(MIN_LEVEL, data.value.level || MIN_LEVEL)
-  if (level >= MAX_LEVEL) return 100
-  const floor = levelFloorXp(level)
-  const ceiling = xpForLevel(level + 1)
-  const span = Math.max(1, ceiling - floor)
-  const pos = (data.value.xp || 0) - floor
-  return Math.max(0, Math.min(100, Math.round((pos / span) * 100)))
-})
+const xpPercent = computed(() =>
+  data.value
+    ? levelBarPercent(Math.max(MIN_LEVEL, data.value.level || MIN_LEVEL), data.value.xp || 0)
+    : 0,
+)
 
 const favoriteGenresLabels = computed(() => {
   const ids = data.value?.favorite_genres || []

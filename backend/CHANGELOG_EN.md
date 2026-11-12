@@ -14,6 +14,7 @@ This section intentionally has no date so it is not shown to users.
 - Dashboard — leaderboard widget matches the Leaderboard page.
 
 ### Fixed
+- XP bar — same percentage in today's digest and the profile.
 - Notifications — header names the page, bar lasts as long as the message, full message on small phones.
 - Labels — colons placed right in English and French.
 - Carousels, scrolling and counters — instant with "Reduce motion".

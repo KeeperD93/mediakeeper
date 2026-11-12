@@ -15,6 +15,7 @@ from ._grants import grant_daily_login_xp as grant_daily_login_xp
 from ._grants import grant_xp as grant_xp
 from ._levels import MAX_LEVEL as MAX_LEVEL
 from ._levels import MIN_LEVEL as MIN_LEVEL
+from ._levels import level_bar_percent as level_bar_percent
 from ._levels import level_floor_xp as level_floor_xp
 from ._levels import level_from_xp as level_from_xp
 from ._levels import xp_for_level as xp_for_level
@@ -37,6 +38,7 @@ __all__ = [
     "grant_daily_login_xp",
     "grant_watch_xp",
     "grant_xp",
+    "level_bar_percent",
     "level_floor_xp",
     "level_from_xp",
     "xp_for_level",
