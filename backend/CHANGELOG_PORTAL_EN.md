@@ -34,7 +34,7 @@ This section intentionally has no date so it is not shown to users.
 - Sign-in — the browser fills in the saved username and password.
 - Sign-in — animations stop with "Reduce motion".
 - Sign-in — a double press no longer opens two sessions, Enter retries after a refusal.
-- Days in a row — a player switched off at the start of a title no longer fills the day.
+- Days in a row — a device switched off right after starting no longer counts.
 
 ## [1.0.0-rc.10] - 2026-11-11
 
