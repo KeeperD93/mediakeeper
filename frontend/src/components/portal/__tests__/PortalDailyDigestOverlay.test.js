@@ -1,6 +1,6 @@
 /**
  * Daily digest: its top 3 of the month draws the rows of "My profile", the viewer's
- * label included, and not those of the admin widget.
+ * label included, framed by its section rather than as the admin widget.
  */
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { flushPromises, mount } from '@vue/test-utils'
