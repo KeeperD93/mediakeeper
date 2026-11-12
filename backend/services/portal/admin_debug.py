@@ -12,7 +12,7 @@ import logging
 import uuid
 from datetime import datetime, timezone
 
-from sqlalchemy import select, delete
+from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from models.portal.achievement import Achievement, UserAchievement
@@ -25,7 +25,15 @@ from services.portal.admin_users_constants import (
     ACTION_DEBUG_LEVEL_SET,
     ACTION_DEBUG_XP_GRANTED,
 )
-from services.portal.xp import MAX_LEVEL, MIN_LEVEL, level_floor_xp, level_from_xp, locked_profile
+from services.portal.xp import (
+    ACHIEVEMENT_XP_ACTION,
+    MAX_LEVEL,
+    MIN_LEVEL,
+    achievement_xp_reference,
+    level_floor_xp,
+    level_from_xp,
+    locked_profile,
+)
 
 
 logger = logging.getLogger("mediakeeper.portal.admin_debug")
@@ -221,51 +229,46 @@ async def admin_reset_achievement_for_all(
 ) -> dict | None:
     """Reset a specific achievement for **every** user.
 
-    Drops every ``UserAchievement`` row for ``achievement_id`` and refunds
-    the matching ``achievement_unlocked`` XP grants from ``XpLedger``.
-    Each affected profile's ``xp`` / ``level`` is recomputed from the
-    sum of remaining ledger entries so the cached values stay coherent.
-
-    Used to scrub trophies that were unlocked because of a counter bug —
-    after a recheck-all, only users who genuinely qualify will get them
-    back.
+    Drops its ``UserAchievement`` rows and its ``achievement_unlocked``
+    ledger rows. Each player loses exactly the XP those rows gave, never
+    below 0: XP from before the ledger stays. Used to scrub trophies that
+    were unlocked because of a counter bug — after a recheck-all, only
+    users who genuinely qualify will get them back.
     """
     achievement = await db.get(Achievement, achievement_id)
     if not achievement:
         return None
 
-    ua_rows = (await db.execute(
-        select(UserAchievement.user_id).where(
-            UserAchievement.achievement_id == achievement_id,
-            UserAchievement.unlocked == True,  # noqa: E712
-        )
-    )).scalars().all()
-    affected_user_ids = sorted({uid for uid in ua_rows if uid is not None})
-
-    deleted_ua = await db.execute(
-        delete(UserAchievement).where(
-            UserAchievement.achievement_id == achievement_id,
-        )
+    rewarded = (
+        XpLedger.action == ACHIEVEMENT_XP_ACTION,
+        XpLedger.reference == achievement_xp_reference(achievement_id),
     )
+    # Trophy rows first and locked, as the trophy check takes them: an unlock
+    # in flight ends before the list is read, and lands in it.
+    rows = (await db.execute(
+        select(UserAchievement.user_id, UserAchievement.unlocked.is_(True))
+        .where(UserAchievement.achievement_id == achievement_id)
+        .with_for_update()
+    )).all()
+    owners = set((await db.execute(select(XpLedger.user_id).where(*rewarded))).scalars())
+    affected = sorted({uid for uid, held in rows if held} | owners)
     # Profiles before the ledger, in id order, like every other XP writer.
-    profiles = [await locked_profile(db, uid) for uid in affected_user_ids]
-    deleted_ledger = await db.execute(
-        delete(XpLedger).where(
-            XpLedger.action == "achievement_unlocked",
-            XpLedger.reference == f"ach:{achievement_id}",
-        )
-    )
+    profiles = [await locked_profile(db, uid) for uid in affected]
+    taken = dict((await db.execute(
+        select(XpLedger.user_id, func.sum(XpLedger.xp))
+        .where(*rewarded, XpLedger.user_id.in_(affected))
+        .group_by(XpLedger.user_id)
+    )).all())
+    # Only the players read above: one unlocking right now keeps the trophy and its XP.
+    deleted_ua = await db.execute(delete(UserAchievement).where(
+        UserAchievement.achievement_id == achievement_id,
+        UserAchievement.user_id.in_(sorted({uid for uid, _ in rows} | owners)),
+    ))
+    deleted_ledger = await db.execute(delete(XpLedger).where(*rewarded, XpLedger.user_id.in_(affected)))
 
-    # Recompute xp/level for every affected profile from the surviving
-    # ledger sum — the simplest authoritative source of truth.
-    from sqlalchemy import func
     rebuilt = 0
     for profile in filter(None, profiles):
-        total = (await db.execute(
-            select(func.coalesce(func.sum(XpLedger.xp), 0))
-            .where(XpLedger.user_id == profile.user_id)
-        )).scalar_one()
-        profile.xp = max(0, int(total or 0))
+        profile.xp = max(0, (profile.xp or 0) - int(taken.get(profile.user_id) or 0))
         profile.level = level_from_xp(profile.xp)
         rebuilt += 1
 

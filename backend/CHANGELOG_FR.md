@@ -32,6 +32,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Statistiques — temps de visionnage : lecture coupée en début de titre plus comptée jusqu'au bout.
 - Événements bonus — XP arrondie au plus proche, les moitiés vers le haut.
 - Outils de debug — historique XP : un retrait n'inscrit que l'XP vraiment retirée.
+- Outils de debug — « Réinitialiser pour tous » ne reprend que l'XP donnée par le trophée.
 
 ## [1.0.0-rc.10] - 2026-11-11
 

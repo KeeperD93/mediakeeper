@@ -96,6 +96,7 @@ async def test_reset_for_all_locks_the_profiles_in_id_order_then_rebuilds_their_
         condition_type="watch_movies",
     ))
     for profile in reversed(holders):
+        profile.xp = 25
         db_session.add(UserAchievement(user_id=profile.user_id, achievement_id="test-trophy", unlocked=True))
         db_session.add_all([
             XpLedger(user_id=profile.user_id, action="achievement_unlocked", reference="ach:test-trophy", xp=20),
