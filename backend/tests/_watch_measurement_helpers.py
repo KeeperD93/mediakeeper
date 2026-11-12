@@ -5,7 +5,7 @@ from unittest.mock import AsyncMock, patch
 from sqlalchemy import select
 
 from models.playback_stats import PlaybackCompletion, PlaybackSession
-from services.stats_collector._player_reports import StoredPosition
+from services.stats_collector._player_reports import StoredPosition, _writers
 from services.stats_collector.collect import collect_active_sessions
 
 TICK = 10_000_000
@@ -21,13 +21,14 @@ def _emby_date(at: datetime) -> str:
 def emby_session(
     *, at: datetime, position_s: float, paused: bool = False, item: str = "MOVIE-1",
     item_type: str = "Movie", runtime_s: int = 6000, user: str = "EMBY-1",
-    session: str = "S-1", silent_since: datetime | None = None, client: str = "Web",
+    session: str = "S-1", silent_since: datetime | None = None, client: str = "Web", device: str = "DEVICE-1",
 ) -> dict:
     return {
         "Id": session,
         "UserId": user,
         "UserName": "viewer",
         "Client": client,
+        "DeviceId": device,
         "DeviceName": "PC",
         "LastActivityDate": _emby_date(silent_since or at),
         "NowPlayingItem": {
@@ -42,11 +43,15 @@ def saved(position_s: float, *, played: bool = False, user: str = "EMBY-1", item
     return {(user, item): StoredPosition(int(position_s * TICK), played)}
 
 
-async def poll(db, at: datetime, *sessions: dict, stored: dict | None = None, grant: AsyncMock | None = None) -> None:
+async def poll(
+    db, at: datetime, *sessions: dict, stored: dict | None = None, grant: AsyncMock | None = None,
+    refresh: AsyncMock | None = None,
+) -> None:
     source = {"source": "emby", "url": "http://emby.test", "api_key": "k"}
     with patch("services.stats_collector.collect.get_active_media_source", new=AsyncMock(return_value=source)), \
          patch("services.stats_collector.collect.get_raw_sessions", new=AsyncMock(return_value=list(sessions))), \
          patch("services.stats_collector.collect.fetch_stored_positions", new=AsyncMock(return_value=stored or {})), \
+         patch("services.stats_collector.collect.refresh_resume_zones", new=refresh or AsyncMock()), \
          patch("services.stats_collector.collect._session_library_name", new=AsyncMock(return_value="Films")), \
          patch("services.stats_collector.collect._grant_post_session_xp", new=grant or AsyncMock()):
         await collect_active_sessions(db, now=at)
@@ -77,6 +82,12 @@ async def play_reporting(db, first_position: float, count: int, **kw):
         at, position, position_saved = T0 + STEP * i, first_position + 5 * i, first_position + 10 * (i // 2)
         await poll(db, at, emby_session(at=at, position_s=position, **kw), stored=saved(position_saved, item=item))
     return at, position, position_saved
+
+
+async def known_application(db) -> None:
+    """The player application of the tests, seen saving its position on another title."""
+    await play_reporting(db, 1000, 6, item="OTHER", session="S-0")
+    assert _writers
 
 
 async def emby_alone(db, last, position: float, position_saved: float, count: int, **kw):
