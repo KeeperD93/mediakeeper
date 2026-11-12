@@ -10,6 +10,9 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 
 ## [Unreleased]
 
+### Fixed
+- Statistiques — Outils : supprimer une exclusion retire bien celle affichée.
+
 ## [1.0.0-rc.10] - 2026-11-11
 
 ### Action

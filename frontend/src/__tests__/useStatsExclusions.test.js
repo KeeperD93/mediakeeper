@@ -7,9 +7,9 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { TOAST_TYPE } from '@/constants/toast'
 
 const m = vi.hoisted(() => ({
+  apiFetch: vi.fn(),
   apiGet: vi.fn(),
   apiPost: vi.fn(),
-  apiDelete: vi.fn(),
   showToast: vi.fn(),
   loadTotals: vi.fn(),
 }))
@@ -18,7 +18,7 @@ const m = vi.hoisted(() => ({
 vi.mock('@/i18n', () => ({ default: { global: { t: key => key } } }))
 vi.mock('@/composables/useApi', async importOriginal => ({
   ...(await importOriginal()),
-  useApi: () => ({ apiGet: m.apiGet, apiPost: m.apiPost, apiDelete: m.apiDelete }),
+  useApi: () => ({ apiFetch: m.apiFetch, apiGet: m.apiGet, apiPost: m.apiPost }),
 }))
 vi.mock('@/composables/useToast', () => ({ useToast: () => ({ showToast: m.showToast }) }))
 vi.mock('@/composables/useStats', () => ({ useStats: () => ({ loadTotals: m.loadTotals }) }))
@@ -27,6 +27,8 @@ import { useStatsExclusions } from '@/composables/useStatsExclusions'
 
 const LIST = [{ mode: 'contains', value: 'Trailer' }]
 const lostConnection = () => new TypeError('Failed to fetch')
+// The raw answer of apiFetch, read with json().
+const answer = body => ({ json: async () => body })
 
 let consoleError
 
@@ -88,11 +90,11 @@ describe('useStatsExclusions', () => {
 
   it('changes nothing when the session expired (no answer)', async () => {
     m.apiPost.mockResolvedValue(null)
-    m.apiDelete.mockResolvedValue(null)
+    m.apiFetch.mockResolvedValue(null)
     const s = useStatsExclusions()
     s.exclValue.value = 'Trailer'
     await s.addExclusion()
-    await s.removeExclusion(0)
+    await s.removeExclusion(LIST[0])
     expect(s.exclusions.value).toEqual([])
     expect(s.exclValue.value).toBe('Trailer')
     expect(m.loadTotals).not.toHaveBeenCalled()
@@ -111,16 +113,20 @@ describe('useStatsExclusions', () => {
     )
   })
 
-  it('removes by position and says when it failed', async () => {
+  it('removes an entry by its mode and title, not its position, and says when it failed', async () => {
     const s = useStatsExclusions()
-    m.apiDelete.mockResolvedValueOnce([])
-    await s.removeExclusion(0)
-    expect(m.apiDelete).toHaveBeenCalledWith('/api/stats/exclusions/0')
-    expect(s.exclusions.value).toEqual([])
+    m.apiFetch.mockResolvedValueOnce(answer(LIST))
+    await s.removeExclusion({ mode: 'exact', value: 'Sample title' })
+    expect(m.apiFetch).toHaveBeenCalledWith('/api/stats/exclusions', {
+      method: 'DELETE',
+      body: JSON.stringify({ mode: 'exact', value: 'Sample title' }),
+    })
+    // The answer is the current list, whatever this tab was showing.
+    expect(s.exclusions.value).toEqual(LIST)
     expect(m.loadTotals).toHaveBeenCalledOnce()
 
-    m.apiDelete.mockRejectedValueOnce(lostConnection())
-    await s.removeExclusion(0)
+    m.apiFetch.mockRejectedValueOnce(lostConnection())
+    await s.removeExclusion(LIST[0])
     expect(m.showToast).toHaveBeenCalledWith('common.apiError.deleteFailed', TOAST_TYPE.ERR)
     expect(consoleError).toHaveBeenCalledWith(
       '[useStatsExclusions.removeExclusion]',
