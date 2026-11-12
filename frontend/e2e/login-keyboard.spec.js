@@ -112,11 +112,6 @@ test.describe('Login — keyboard sign-in', () => {
     test(`after a refusal sent by ${how} the button, Enter retries`, async ({ page }) => {
       const state = await openRefusingLoginPage(page)
       const error = page.locator('.login-error')
-      // A click while the card still slides in is retried by scrolling the clipped
-      // page, which can carry the message out of view: let the card settle first.
-      await page
-        .locator('.login-card')
-        .evaluate(card => Promise.all(card.getAnimations().map(motion => motion.finished)))
 
       await send(page.locator('button.login-submit'))
       await expect.poll(() => state.tries).toBe(1)

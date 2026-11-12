@@ -7,7 +7,8 @@
   justify-content: center;
   background: var(--bg-primary);
   position: relative;
-  overflow: hidden;
+  /* clip, not hidden: a hidden box can still be scrolled, by a focus or a script. */
+  overflow: clip;
 }
 
 .login-particles {
