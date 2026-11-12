@@ -19,7 +19,7 @@ from services.watch_hours import hour_start, spread_over_hours
 MIN_WATCHED_SECONDS_PER_DAY = 5 * 60
 
 # What ``watch_days`` reads of each play.
-_COLUMNS = (
+WATCH_DAY_COLUMNS = (
     PlaybackSession.item_type,
     PlaybackSession.started_at,
     PlaybackSession.watched_seconds,
@@ -39,7 +39,7 @@ def _watched_by_hour(play) -> dict[str, int] | None:
 
 
 def watch_days(plays: Iterable, zone: tzinfo) -> set[date]:
-    """The days of ``zone`` holding enough watching, summed over ``plays`` (rows of ``_COLUMNS``).
+    """The days of ``zone`` holding enough watching, summed over ``plays`` (``WATCH_DAY_COLUMNS``).
 
     An hour goes to the day it starts in: in a zone off by half an hour, the half
     past midnight stays with the day before.
@@ -55,5 +55,5 @@ def watch_days(plays: Iterable, zone: tzinfo) -> set[date]:
 
 async def load_watch_days(db: AsyncSession, filters: Iterable, zone: tzinfo) -> set[date]:
     """``watch_days`` of the plays matching ``filters``."""
-    result = await db.execute(select(*_COLUMNS).where(*filters))
+    result = await db.execute(select(*WATCH_DAY_COLUMNS).where(*filters))
     return watch_days(result.all(), zone)

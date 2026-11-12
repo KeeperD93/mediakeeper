@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from models.playback_stats import PlaybackSession
 from services.instance_time import get_instance_zone, to_local
 from services.portal.play_streak import current_streak, longest_streak, most_played
-from services.portal.watch_days import load_watch_days
+from services.portal.watch_days import WATCH_DAY_COLUMNS, watch_days
 
 from ._helpers import _apply_filters
 from .exclusions import _get_exclusion_filters
@@ -20,14 +20,15 @@ async def get_records(db: AsyncSession):
     zone = await get_instance_zone(db)
 
     # Days and hours on the clock of the instance: SQL only knows its session's zone.
-    started = await db.execute(_apply_filters(select(PlaybackSession.started_at), exc_filters))
-    starts = [to_local(moment, zone) for moment in started.scalars() if moment]
+    # One read serves the start of each play and the days watched.
+    plays = (await db.execute(_apply_filters(select(*WATCH_DAY_COLUMNS), exc_filters))).all()
+    starts = [to_local(play.started_at, zone) for play in plays if play.started_at]
     plays_per_day = Counter(start.date() for start in starts)
     plays_per_hour = Counter(start.hour for start in starts)
     record_day = most_played(plays_per_day) if plays_per_day else None
     peak_hour = most_played(plays_per_hour) if plays_per_hour else None
     today = to_local(datetime.now(UTC), zone).date()
-    watched_days = await load_watch_days(db, exc_filters, zone)
+    watched_days = watch_days(plays, zone)
 
     # Top user percentage
     top_user_q = select(

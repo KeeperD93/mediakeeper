@@ -120,6 +120,25 @@ async def test_a_film_finished_after_midnight_holds_the_streak(db_session, monke
 
 
 @pytest.mark.asyncio
+async def test_the_records_read_the_plays_once(db_session, monkeypatch):
+    freeze(monkeypatch, utc(2026, 10, 16, 18))
+    _watch(db_session, utc(2026, 10, 16, 12))
+    await db_session.commit()
+    statements = []
+    execute = db_session.execute
+
+    async def spy(statement, *args, **kwargs):
+        statements.append(str(statement))
+        return await execute(statement, *args, **kwargs)
+
+    monkeypatch.setattr(db_session, "execute", spy)
+    stats = await get_records(db_session)
+
+    assert (stats["record_day_date"], stats["current_streak"]) == ("2026-10-16", 1)
+    assert sum("playback_sessions.started_at" in sql for sql in statements) == 1
+
+
+@pytest.mark.asyncio
 async def test_today_of_the_streak_follows_the_zone(db_session, monkeypatch):
     """18:00 UTC on the 16th is the 17th in Auckland: its 16th stayed empty, so the run is over."""
     freeze(monkeypatch, utc(2026, 10, 16, 18))
