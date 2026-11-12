@@ -19,6 +19,7 @@ from core.http_client import get_internal_client
 from models.playback_stats import PlaybackSession
 
 from ._measure import MAX_CARRY_SECONDS, POLL_INTERVAL_SECONDS, as_utc
+from ._resume_zones import resume_zone
 
 logger = logging.getLogger("mediakeeper.stats.collector")
 
@@ -116,15 +117,39 @@ def _on_hold(row: PlaybackSession, now: datetime) -> bool:
     return reference is not None and now - reference > _ON_HOLD_AFTER
 
 
-def _runs_alone(position: int, stored: StoredPosition, row: PlaybackSession | None, runtime_ticks: int) -> bool:
-    if stored.ticks > 0:
-        if not _far(position, stored.ticks):
-            return False
-        # Without a row, a known application only opens one next to what it saved.
-        return row is None or (
-            (row.watched_seconds or 0) >= _MIN_WATCHED_SECONDS and not _far(row.position_ticks or 0, stored.ticks)
-        )
-    return not stored.played and runtime_ticks >= _ZERO_MIN_RUNTIME_TICKS and position >= runtime_ticks * _ZERO_MIN_SHARE
+def _runs_from_save(position: int, saved_ticks: int, row: PlaybackSession | None) -> bool:
+    if not _far(position, saved_ticks):
+        return False
+    # Without a row, a known application only opens one next to what it saved.
+    return row is None or (
+        (row.watched_seconds or 0) >= _MIN_WATCHED_SECONDS and not _far(row.position_ticks or 0, saved_ticks)
+    )
+
+
+def _last_confirmed(row: PlaybackSession | None, previous_row: PlaybackSession | None, key: str) -> int | None:
+    """Where the player was last seen playing: its open row, or its last closed
+    one when the session has stayed listed with nothing saved since."""
+    if row is not None:
+        return row.position_ticks or 0
+    last = _last_stored.get(key)
+    if previous_row is None or last is None or last.ticks or last.changed_at > as_utc(previous_row.last_seen_at):
+        return None
+    return previous_row.position_ticks or 0
+
+
+def _left_unsaved(position: int, confirmed: int | None, runtime_ticks: int, library: str | None) -> bool:
+    """Saved at 0: True when the session is past where the player would have saved."""
+    deep_in_long_title = runtime_ticks >= _ZERO_MIN_RUNTIME_TICKS and position >= runtime_ticks * _ZERO_MIN_SHARE
+    zone = resume_zone(library)
+    if zone is None:
+        return deep_in_long_title
+    start = zone.start_ticks(runtime_ticks)
+    if start is None or position - start <= _MAX_REPORT_GAP_TICKS:
+        return False  # Emby rightly keeps 0 there
+    # The playback crossed the first position Emby saves without a single save;
+    # one that started past it is judged as before.
+    crossed = confirmed is not None and confirmed - start <= _MAX_REPORT_GAP_TICKS
+    return crossed or deep_in_long_title
 
 
 def _moves_like_the_clock(last: _LastStored, ticks: int, now: datetime) -> bool:
@@ -180,7 +205,12 @@ def player_is_lost(
             return known and _on_hold(row, now)
         last = _last_stored.get(key)
         return known and last is not None and _far(position, last.ticks)
-    lost = known and _runs_alone(position, stored, row, item.get("RunTimeTicks") or 0)
+    if stored.ticks > 0:
+        lost = known and _runs_from_save(position, stored.ticks, row)
+    else:
+        lost = known and not stored.played and _left_unsaved(
+            position, _last_confirmed(row, previous_row, key), item.get("RunTimeTicks") or 0, library,
+        )
     _learn(key, client, library, position, stored, now)
     return lost
 
