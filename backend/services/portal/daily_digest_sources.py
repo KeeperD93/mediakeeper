@@ -30,7 +30,7 @@ from services.portal.exclusions import get_exclusion_filters
 from services.portal.personal_utils import _playback_user_filter
 from services.portal.profile_stats_playback import compute_streak
 from services.portal.achievements_profile import get_achievements_for_profile
-from services.portal.xp import MAX_LEVEL, xp_for_level
+from services.portal.xp import MAX_LEVEL, MIN_LEVEL, level_floor_xp, xp_for_level
 
 logger = logging.getLogger("mediakeeper.portal.daily_digest")
 
@@ -229,10 +229,10 @@ async def ranking_snapshot(
 
 def level_info(profile: UserProfile) -> dict:
     """Current-level XP progress so the frontend can draw a progress bar."""
-    level = int(getattr(profile, "level", 1) or 1)
+    level = int(getattr(profile, "level", MIN_LEVEL) or MIN_LEVEL)
     xp = int(getattr(profile, "xp", 0) or 0)
     maxed = level >= MAX_LEVEL
-    xp_curr = xp_for_level(level)
+    xp_curr = level_floor_xp(level)
     # At the cap there is no next level: the bar reads full and the next
     # threshold collapses onto the current one (mirrors useProfileXp).
     xp_next = xp_curr if maxed else xp_for_level(level + 1)

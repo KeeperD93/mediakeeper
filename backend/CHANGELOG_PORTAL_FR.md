@@ -17,7 +17,7 @@ utilisateurs.
 ## [Unreleased]
 
 ### Fixed
-- Niveaux — un joueur sous 100 XP reste au niveau 1, sur tous les écrans.
+- Niveaux — niveau 1 partout dès 0 XP, barre qui avance aussitôt.
 
 ## [1.0.0-rc.10] - 2026-11-11
 

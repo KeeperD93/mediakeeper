@@ -187,6 +187,15 @@ def test_level_info_below_max_progresses_to_next():
     assert 40 <= info["percent"] <= 60
 
 
+def test_level_info_first_level_starts_at_0_xp():
+    """Level 1 runs from 0 XP: at 50 XP the bar reads 50 / 300 and moves."""
+    info = dd_sources.level_info(UserProfile(level=1, xp=50))
+    assert info["xp_current_level"] == 0
+    assert info["xp_next_level"] == 300
+    assert info["xp_into_level"] == 50
+    assert info["percent"] == 17
+
+
 def test_level_info_at_max_level_is_full_and_capped():
     """At the cap the bar is full and there is no phantom level 51."""
     profile = UserProfile(level=MAX_LEVEL, xp=xp_for_level(MAX_LEVEL) + 1490)

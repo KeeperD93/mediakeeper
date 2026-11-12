@@ -11,7 +11,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 ## [Unreleased]
 
 ### Fixed
-- Niveaux — un joueur sous 100 XP reste au niveau 1 (profils au niveau 0 remis à 1).
+- Niveaux — niveau 1 partout dès 0 XP, barre qui avance aussitôt.
 
 ## [1.0.0-rc.10] - 2026-11-11
 

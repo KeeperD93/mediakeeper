@@ -2,10 +2,12 @@
  * XP/level/time helpers for the profile page.
  *
  * Backend uses a quadratic XP curve: XP_for_level(n) = 50 * n * (n + 1).
- * e.g. level 1 = 100 XP, level 16 = 13 600 XP, level 50 = 127 500 XP (cap).
+ * Level 1 starts at 0 XP (levelFloorXp), level 2 = 300 XP, level 50 = 127 500 XP (cap).
  */
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+
+import { MAX_LEVEL, MIN_LEVEL } from '@/constants/portal'
 
 const DAY_LABELS = ['L', 'M', 'M', 'J', 'V', 'S', 'D']
 const DAY_NAMES = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche']
@@ -20,6 +22,11 @@ const TITLE_TIER_MAP = {
 
 export function xpForLevel(n) {
   return 50 * n * (n + 1)
+}
+
+/** Total XP at which a level starts: 0 for the first, the curve above it (server rule). */
+export function levelFloorXp(level) {
+  return level <= MIN_LEVEL ? 0 : xpForLevel(level)
 }
 
 export function formatTime(minutes) {
@@ -43,20 +50,19 @@ export function useProfileXp(profileData, stats) {
     return Math.max(1, Math.round(diff / (1000 * 60 * 60 * 24 * 30)))
   })
 
-  const MAX_LEVEL = 50
   const MAX_XP = xpForLevel(MAX_LEVEL)
 
   const nextLevelXp = computed(() => {
-    const level = profileData.value?.level || 1
+    const level = profileData.value?.level || MIN_LEVEL
     if (level >= MAX_LEVEL) return MAX_XP
     return xpForLevel(level + 1)
   })
 
   const xpPercent = computed(() => {
-    const level = profileData.value?.level || 1
+    const level = profileData.value?.level || MIN_LEVEL
     if (level >= MAX_LEVEL) return 100
     const xp = profileData.value?.xp || 0
-    const floor = xpForLevel(level)
+    const floor = levelFloorXp(level)
     const ceiling = xpForLevel(level + 1)
     const span = Math.max(1, ceiling - floor)
     return Math.min(100, Math.max(0, Math.round(((xp - floor) / span) * 100)))

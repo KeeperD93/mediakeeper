@@ -134,7 +134,8 @@ import { GENRE_LOOKUP } from '@/utils/portal/genreLookup'
 import { ICON_MAP } from '@/utils/portal/iconMap'
 import { useApi } from '@/composables/useApi'
 import { usePortalAchievements } from '@/composables/portal/usePortalAchievements'
-import { xpForLevel } from '@/composables/portal/useProfileXp'
+import { levelFloorXp, xpForLevel } from '@/composables/portal/useProfileXp'
+import { MAX_LEVEL, MIN_LEVEL } from '@/constants/portal'
 
 import '@/assets/styles/portal/settings-premium.css'
 import '@/assets/styles/portal/user-profile.css'
@@ -194,19 +195,17 @@ const rankingShape = computed(() => ({
   movement: 0,
 }))
 
-const MAX_LEVEL = 50
-
 const nextLevelXp = computed(() => {
   if (!data.value) return 100
-  const level = Math.max(1, data.value.level || 1)
+  const level = Math.max(MIN_LEVEL, data.value.level || MIN_LEVEL)
   if (level >= MAX_LEVEL) return xpForLevel(MAX_LEVEL)
   return xpForLevel(level + 1)
 })
 const xpPercent = computed(() => {
   if (!data.value) return 0
-  const level = Math.max(1, data.value.level || 1)
+  const level = Math.max(MIN_LEVEL, data.value.level || MIN_LEVEL)
   if (level >= MAX_LEVEL) return 100
-  const floor = xpForLevel(level)
+  const floor = levelFloorXp(level)
   const ceiling = xpForLevel(level + 1)
   const span = Math.max(1, ceiling - floor)
   const pos = (data.value.xp || 0) - floor

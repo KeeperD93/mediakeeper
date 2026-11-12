@@ -11,7 +11,7 @@ This section intentionally has no date so it is not shown to users.
 ## [Unreleased]
 
 ### Fixed
-- Levels — a player under 100 XP stays at level 1 (profiles at level 0 raised to 1).
+- Levels — level 1 everywhere from 0 XP, the bar moves right away.
 
 ## [1.0.0-rc.10] - 2026-11-11
 
