@@ -370,7 +370,7 @@
       "tags": "Tags",
       "anonymous": "Send anonymously",
       "budget": "{used} / {max} characters",
-      "tooLong": "Report too long: {used} / {max} characters in total. Shorten a field.",
+      "tooLong": "Report too long: shorten a field.",
       "submit": "Send",
       "reset": "Reset",
       "moderate": "View pending reports",

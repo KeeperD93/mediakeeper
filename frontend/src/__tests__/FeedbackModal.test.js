@@ -13,6 +13,8 @@ const h = vi.hoisted(() => ({ apiPost: vi.fn(), showToast: vi.fn(), push: vi.fn(
 const routeName = ref('stats')
 const routeTab = ref('users')
 
+// Counters format their numbers in the app's language: English here.
+vi.mock('@/i18n', () => ({ getLocale: () => 'en' }))
 vi.mock('vue-i18n', () => ({ useI18n: () => ({ t: k => k }) }))
 vi.mock('vue-router', () => ({
   useRoute: () => ({
@@ -205,11 +207,10 @@ describe('FeedbackModal — sending', () => {
     const field = w.findAll('textarea')[0]
     const counter = w.find(`[id="${field.attributes('aria-describedby')}"]`)
     expect(field.attributes('maxlength')).toBe(String(FEEDBACK_MAX.description))
-    expect(counter.text()).toContain(`"used":0,"max":${FEEDBACK_MAX.description}`)
+    expect(counter.text()).toContain('"used":"0","max":"1,500"')
 
     await field.setValue('x'.repeat(FEEDBACK_MAX.description))
-    const full = FEEDBACK_MAX.description
-    expect(counter.text()).toContain(`"used":${full},"max":${full}`)
+    expect(counter.text()).toContain('"used":"1,500","max":"1,500"')
     // Under the block cap, the whole-message total stays out of sight.
     expect(w.findAll('.fbk-budget')).toHaveLength(1)
   })
@@ -224,8 +225,8 @@ describe('FeedbackModal — sending', () => {
     // Fixed block (194) + longest author (208) + zone and module of Statistiques + the tab
     // label (t() returns keys here, so "stats.users") + the tag + the three typed fields.
     const over = w.find('.fbk-budget.over')
-    expect(over.text()).toContain('feedback.modal.tooLong')
-    expect(over.text()).toContain('"used":2474,"max":1990')
+    expect(over.find('[role="alert"]').text()).toBe('feedback.modal.tooLong')
+    expect(over.text()).toContain('"used":"2,474","max":"1,990"')
     expect(w.find('button[type="submit"]').attributes('disabled')).toBeDefined()
   })
 

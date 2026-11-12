@@ -163,7 +163,8 @@
             </label>
 
             <p v-if="used > FEEDBACK_MAX_CHARS" class="fbk-budget over">
-              {{ $t('feedback.modal.tooLong', { used, max: FEEDBACK_MAX_CHARS }) }}
+              <span role="alert">{{ $t('feedback.modal.tooLong') }}</span>
+              {{ $t('feedback.modal.budget', totalCount) }}
             </p>
           </div>
 
@@ -246,6 +247,7 @@ const {
   tabOptions,
   used,
   descriptionCount,
+  totalCount,
   canSubmit,
   canUseCurrentPage,
   toggleTag,
