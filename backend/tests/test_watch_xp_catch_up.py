@@ -53,28 +53,46 @@ async def test_only_the_last_48_hours_are_caught_up(db_session):
     assert (await db_session.execute(select(XpLedger.id))).all() == []
 
 
-@pytest.mark.asyncio
-async def test_the_collector_catches_up_at_start_then_every_ten_minutes():
-    clock = iter([0.0, 0.0, 5.0, WATCH_XP_CATCH_UP_SECONDS + 1.0, WATCH_XP_CATCH_UP_SECONDS + 1.0])
-    polls = 0
+async def _run_the_collector(clock: list[float], polls: int, collect: AsyncMock, catch_up: AsyncMock) -> None:
+    """``polls`` turns of the collector loop, its clock reading ``clock`` in turn."""
+    ticks, slept = iter(clock), 0
 
     async def _sleep(_seconds):
-        nonlocal polls
-        polls += 1
-        if polls > 3:  # the first sleep comes before the loop
+        nonlocal slept
+        slept += 1
+        if slept > polls:  # the first sleep comes before the loop
             raise asyncio.CancelledError
 
     @asynccontextmanager
     async def _session(*_args, **_kwargs):
         yield None
 
-    collect, catch_up = AsyncMock(), AsyncMock()
     with patch("services.background_tasks.asyncio.sleep", new=_sleep), \
             patch("services.background_tasks.AsyncSession", new=_session), \
-            patch("services.background_tasks.time", new=SimpleNamespace(monotonic=lambda: next(clock))), \
+            patch("services.background_tasks.time", new=SimpleNamespace(monotonic=lambda: next(ticks))), \
             patch("services.background_tasks.collect_active_sessions", new=collect), \
-            patch("services.background_tasks.catch_up_watch_xp", new=catch_up),             pytest.raises(asyncio.CancelledError):
+            patch("services.background_tasks.catch_up_watch_xp", new=catch_up), \
+            pytest.raises(asyncio.CancelledError):
         await BackgroundTaskManager(engine=AsyncMock())._periodic_stats_collection()
+
+
+@pytest.mark.asyncio
+async def test_the_collector_catches_up_at_start_then_every_ten_minutes():
+    later = WATCH_XP_CATCH_UP_SECONDS + 1.0
+    collect, catch_up = AsyncMock(), AsyncMock()
+
+    await _run_the_collector([0.0, 0.0, 5.0, later, later], 3, collect, catch_up)
 
     assert collect.await_count == 3
     assert catch_up.await_count == 2  # at the first poll, then once ten minutes have passed
+
+
+@pytest.mark.asyncio
+async def test_a_failed_catch_up_is_logged_with_its_trace_and_the_polls_go_on(caplog):
+    collect, catch_up = AsyncMock(), AsyncMock(side_effect=RuntimeError("test failure"))
+
+    await _run_the_collector([0.0, 0.0, 5.0], 2, collect, catch_up)
+
+    assert collect.await_count == 2
+    (failure,) = [r for r in caplog.records if r.getMessage().startswith("Error catching up watch XP")]
+    assert failure.exc_info is not None
