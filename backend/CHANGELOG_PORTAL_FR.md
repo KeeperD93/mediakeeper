@@ -37,7 +37,6 @@ utilisateurs.
 - Connexion — animations coupées avec « Réduire les animations ».
 - Connexion — un double appui n'ouvre plus deux sessions, Entrée relance après un refus.
 - Jours d'affilée — un lecteur éteint dès le début d'un titre ne remplit plus le jour.
-- Titres revus — relancé puis coupé dès le début, un titre n'est plus compté en entier.
 
 ## [1.0.0-rc.10] - 2026-11-11
 

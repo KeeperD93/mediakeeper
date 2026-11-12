@@ -157,17 +157,9 @@ def _last_confirmed(row: PlaybackSession | None, previous_row: PlaybackSession |
     return previous_row.position_ticks or 0
 
 
-def _left_unsaved(
-    position: int, confirmed: int | None, runtime_ticks: int, library: str | None, played: bool,
-) -> bool:
-    """Saved at 0: True when the session is past where the player would have saved.
-
-    ``played`` only excuses a 0 far into a long title (Emby saves 0 once it marks
-    the title played): a rewatch keeps that mark from its start.
-    """
-    deep_in_long_title = (
-        not played and runtime_ticks >= _ZERO_MIN_RUNTIME_TICKS and position >= runtime_ticks * _ZERO_MIN_SHARE
-    )
+def _left_unsaved(position: int, confirmed: int | None, runtime_ticks: int, library: str | None) -> bool:
+    """Saved at 0: True when the session is past where the player would have saved."""
+    deep_in_long_title = runtime_ticks >= _ZERO_MIN_RUNTIME_TICKS and position >= runtime_ticks * _ZERO_MIN_SHARE
     zone = resume_zone(library)
     if zone is None:
         return deep_in_long_title
@@ -180,11 +172,11 @@ def _left_unsaved(
     return crossed or deep_in_long_title
 
 
-def _may_be_left_unsaved(runtime_ticks: int, library: str | None, played: bool) -> bool:
-    """Whether ``_left_unsaved`` can judge this title: Emby saves a resume position, or it is long and not played."""
+def _may_be_left_unsaved(runtime_ticks: int, library: str | None) -> bool:
+    """Whether ``_left_unsaved`` can judge this title: Emby saves a resume position, or it is long."""
     zone = resume_zone(library)
     if zone is None:
-        return not played and runtime_ticks >= _ZERO_MIN_RUNTIME_TICKS
+        return runtime_ticks >= _ZERO_MIN_RUNTIME_TICKS
     return zone.start_ticks(runtime_ticks) is not None
 
 
@@ -256,9 +248,9 @@ def judge_player(
         runtime = item.get("RunTimeTicks") or 0
         saving = device in _saving_devices
         confirmed = _last_confirmed(row, previous_row, key) if saving else None
-        lost = known and _left_unsaved(position, confirmed, runtime, library, stored.played)
-        judged = known and saving and _may_be_left_unsaved(runtime, library, stored.played)
-        proof = Proof.AT_ZERO if judged else Proof.NONE
+        judged = known and not stored.played
+        lost = judged and _left_unsaved(position, confirmed, runtime, library)
+        proof = Proof.AT_ZERO if judged and saving and _may_be_left_unsaved(runtime, library) else Proof.NONE
     _learn(key, client, device, library, position, stored, now)
     return Verdict(lost, proof)
 
