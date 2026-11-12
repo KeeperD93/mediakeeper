@@ -190,7 +190,7 @@ async def test_who_is_recalculated_and_why_a_title_is_left_out(db_session):
 
 async def test_a_plan_applied_leaves_nothing_to_plan(db_session):
     db = db_session
-    alice, bob, carol, erin = [await account(db, name) for name in ("alice", "bob", "carol", "erin")]
+    alice, _bob, carol, _erin = [await account(db, name) for name in ("alice", "bob", "carol", "erin")]
     await db.execute(update(UserProfile).where(UserProfile.user_id == alice).values(xp=100))
     await sitting(db, "alice", "MOVIE-9", T)
     await give(db, alice, "watch_movie", "MOVIE-9:2026-03-07", 10, T - 2 * HOUR)
