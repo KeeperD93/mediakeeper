@@ -216,8 +216,8 @@ async def run_audit(
                         "issues": issues,
                     })
 
-    except Exception as e:
-        logger.exception("[audit] Error: %s", e)
+    except Exception:
+        logger.exception("[audit] Error")
         _audit_state["running"] = False
         return {"error": AUDIT_FAILED}
 

@@ -189,5 +189,5 @@ async def run_background_scan():
                 await incremental_scan(db)
             else:
                 await full_scan(db)
-    except Exception as e:
-        logger.exception("[WATCHLIST] Error scan background: %s", e)
+    except Exception:
+        logger.exception("[WATCHLIST] Error scan background")
