@@ -62,7 +62,7 @@
           <div class="ru-act-icon"><TrendingUp :size="22" /></div>
           <div class="ru-act-body">
             <span class="ru-act-label">{{ $t('requestsAdmin.users.drawer.activity.xp30') }}</span>
-            <span class="ru-act-val">+{{ activity.xp.last_30_days }}</span>
+            <span class="ru-act-val">{{ signedNumber(activity.xp.last_30_days) }}</span>
             <span class="ru-act-foot">
               {{ $t('requestsAdmin.users.drawer.activity.xp30Foot') }}
             </span>
@@ -142,6 +142,7 @@ import i18n from '@/i18n'
 import RuUserBadge from '../RuUserBadge.vue'
 import PortalLoadMore from '@/components/portal/PortalLoadMore.vue'
 import { localizedDate } from '@/utils/datetime'
+import { signedNumber } from '@/utils/localizedNumber'
 import '@/assets/styles/portal/admin-users-feed.css'
 
 const props = defineProps({

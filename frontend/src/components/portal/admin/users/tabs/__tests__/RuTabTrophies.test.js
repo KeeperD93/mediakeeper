@@ -90,6 +90,18 @@ describe('RuTabTrophies — XP ledger label', () => {
   })
 })
 
+describe('RuTabTrophies — XP history amounts', () => {
+  it('signs each change by its value', async () => {
+    const items = [20, -20, 0, 1500].map((xp, id) => ({ ...xpPage(id, 1)[0], xp }))
+    fetchXpHistory.mockResolvedValue({ items })
+    const w = mountTab()
+    await flushPromises()
+
+    const amounts = w.findAll('.ru-feed-tail').map(r => r.text())
+    expect(amounts).toEqual(['+20 XP', '-20 XP', '0 XP', '+1\u202f500 XP'])
+  })
+})
+
 describe('RuTabTrophies — XP history load more', () => {
   it('appends the next XP page and stops on a partial page', async () => {
     fetchXpHistory

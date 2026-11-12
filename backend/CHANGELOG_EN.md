@@ -33,6 +33,7 @@ This section intentionally has no date so it is not shown to users.
 - Notification bell — reported chat messages translated, tag included.
 - About — the full stop follows each link directly.
 - Report form — description counter shows its real limit, 1,500 characters.
+- Users — XP history: removals shown as "-20 XP", no line when XP stays the same.
 
 ## [1.0.0-rc.10] - 2026-11-11
 

@@ -87,7 +87,7 @@
         <li v-for="entry in xp" :key="entry.id" class="ru-feed-row">
           <span class="ru-feed-date">{{ fmt(entry.created_at) }}</span>
           <span class="ru-feed-main">{{ formatXpAction(entry) }}</span>
-          <span class="ru-feed-tail">+{{ entry.xp }} XP</span>
+          <span class="ru-feed-tail">{{ signedNumber(entry.xp) }} XP</span>
         </li>
       </ol>
       <PortalLoadMore :show="xpHasMore" :loading="loadingMoreXp" @load="loadMoreXp" />
@@ -105,6 +105,7 @@ import { TOAST_TYPE } from '@/constants/toast'
 import RuTrophyIcon from '../RuTrophyIcon.vue'
 import PortalLoadMore from '@/components/portal/PortalLoadMore.vue'
 import { localizedDateTime } from '@/utils/datetime'
+import { signedNumber } from '@/utils/localizedNumber'
 import '@/assets/styles/portal/admin-users-feed.css'
 
 const props = defineProps({
