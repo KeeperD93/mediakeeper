@@ -2185,7 +2185,9 @@
   "requestsAdmin": {
     "chatReport": {
       "dismiss": "Ignorer",
-      "delete": "Supprimer"
+      "delete": "Supprimer",
+      "pill": "CHAT",
+      "reportedMessage": "Message signalé : {message}"
     },
     "title": "Utilisateurs Demandes",
     "subtitle": "Import Emby, activation et gestion des comptes du module Demandes",

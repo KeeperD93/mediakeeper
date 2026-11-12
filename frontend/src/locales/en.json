@@ -2185,7 +2185,9 @@
   "requestsAdmin": {
     "chatReport": {
       "dismiss": "Dismiss",
-      "delete": "Delete"
+      "delete": "Delete",
+      "pill": "CHAT",
+      "reportedMessage": "Reported message: {message}"
     },
     "title": "Requests users",
     "subtitle": "Emby import, activation and management of Requests module accounts",
