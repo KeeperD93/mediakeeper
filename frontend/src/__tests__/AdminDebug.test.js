@@ -8,9 +8,19 @@ import { mount, flushPromises } from '@vue/test-utils'
 const listUsers = vi.fn()
 const listAchievements = vi.fn()
 const setLevel = vi.fn()
+const grantXp = vi.fn()
+const unlockAchievement = vi.fn()
+const lockAchievement = vi.fn()
 const showToast = vi.fn()
 vi.mock('@/composables/portal/usePortalAdminDebug', () => ({
-  usePortalAdminDebug: () => ({ listUsers, listAchievements, setLevel }),
+  usePortalAdminDebug: () => ({
+    listUsers,
+    listAchievements,
+    setLevel,
+    grantXp,
+    unlockAchievement,
+    lockAchievement,
+  }),
 }))
 vi.mock('@/composables/useToast', () => ({ useToast: () => ({ showToast }) }))
 vi.mock('vue-i18n', () => ({
@@ -34,14 +44,21 @@ async function mountPage() {
   return wrapper
 }
 
-// Picks Bob, then returns the level field and its button.
-async function mountLevelTool() {
+async function mountWithBob() {
   listUsers.mockResolvedValue(USERS)
   const wrapper = await mountPage()
   await wrapper.findAll('select')[0].setValue(2)
+  return wrapper
+}
+
+const buttonOf = (wrapper, key) =>
+  wrapper.findAll('button').find(b => b.text() === `portal.admin.debug.${key}`)
+
+// Picks Bob, then returns the level field and its button.
+async function mountLevelTool() {
+  const wrapper = await mountWithBob()
   const input = wrapper.find('input[placeholder="portal.admin.debug.levelTarget"]')
-  const button = wrapper.findAll('button').find(b => b.text() === 'portal.admin.debug.levelApply')
-  return { input, button }
+  return { input, button: buttonOf(wrapper, 'levelApply') }
 }
 
 describe('AdminDebug', () => {
@@ -91,6 +108,26 @@ describe('AdminDebug', () => {
     await flushPromises()
     expect(consoleError).toHaveBeenCalledWith('[AdminDebug.applyLevel]', failure)
     expect(showToast).toHaveBeenCalledWith('portal.admin.debug.errorGeneric', TOAST_TYPE.ERR)
+  })
+
+  it('logs the failures of the XP and trophy actions', async () => {
+    const failure = new Error('http_500')
+    for (const call of [grantXp, unlockAchievement, lockAchievement]) {
+      call.mockRejectedValue(failure)
+    }
+    listAchievements.mockResolvedValue([
+      { id: 'test_trophy', name_key: 'test.trophy', category: 'watch', tier: 1 },
+    ])
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const wrapper = await mountWithBob()
+    await wrapper.find('input[placeholder="portal.admin.debug.xpAmount"]').setValue('10')
+    for (const key of ['xpApply', 'achievementUnlock', 'achievementLock']) {
+      await buttonOf(wrapper, key).trigger('click')
+    }
+    await flushPromises()
+    for (const action of ['applyXp', 'unlockAch', 'lockAch']) {
+      expect(consoleError).toHaveBeenCalledWith(`[AdminDebug.${action}]`, failure)
+    }
   })
 
   it('says so when the player list fails to load', async () => {

@@ -228,7 +228,8 @@ async function applyXp() {
     )
     xpAmount.value = null
     xpNote.value = ''
-  } catch {
+  } catch (err) {
+    console.error('[AdminDebug.applyXp]', err)
     showToast(t('portal.admin.debug.errorGeneric'), TOAST_TYPE.ERR)
   }
 }
@@ -253,7 +254,8 @@ async function unlockAch(ach) {
   try {
     await debugApi.unlockAchievement(selectedUserId.value, ach.id)
     showToast(t('portal.admin.debug.achievementUnlocked'), TOAST_TYPE.OK)
-  } catch {
+  } catch (err) {
+    console.error('[AdminDebug.unlockAch]', err)
     showToast(t('portal.admin.debug.errorGeneric'), TOAST_TYPE.ERR)
   }
 }
@@ -263,7 +265,8 @@ async function lockAch(ach) {
   try {
     await debugApi.lockAchievement(selectedUserId.value, ach.id)
     showToast(t('portal.admin.debug.achievementLocked'), TOAST_TYPE.OK)
-  } catch {
+  } catch (err) {
+    console.error('[AdminDebug.lockAch]', err)
     showToast(t('portal.admin.debug.errorGeneric'), TOAST_TYPE.ERR)
   }
 }
