@@ -14,15 +14,14 @@ from services.settings import get_active_media_source
 from ._cache import _normalize_library_name
 from ._closure import _grant_post_session_xp
 from ._completions import record_completions
+from ._held_hours import HeldHours
 from ._measure import (
     FRESH_START_MAX_SECONDS,
     MAX_REOPEN_CREDIT_SECONDS,
     RESUME_WINDOW,
     SILENCE_LIMIT,
-    add_to_hour,
     as_utc,
     client_is_alive,
-    exclusive_shares,
     fresh_start_seconds,
     measure_progress,
     player_confirms,
@@ -32,7 +31,7 @@ from ._pauses import _process_pause_events
 from ._player_reports import (
     fetch_stored_positions,
     forget_other_sessions,
-    player_is_lost,
+    judge_player,
     title_key,
 )
 from ._resolver import _session_library_name
@@ -178,6 +177,7 @@ async def collect_active_sessions(db: AsyncSession, now: datetime | None = None)
         "by_name": {_normalize_library_name(row.name): row.name for row in library_rows if row.name},
     }
 
+    hold = HeldHours()
     progress: list[tuple[PlaybackSession, str, int]] = []
     for s in sessions:
         key = _emby_key(s)
@@ -185,7 +185,8 @@ async def collect_active_sessions(db: AsyncSession, now: datetime | None = None)
         position = s.get("PlayState", {}).get("PositionTicks") or 0
         row = active.get(key)
         previous = last_closed.get(key)
-        lost = player_is_lost(s, key, row, previous, stored.get(title_key(s)), now)
+        verdict = judge_player(s, key, row, previous, stored.get(title_key(s)), now)
+        lost = verdict.lost
         reopened = False
         if row is None:
             # Only a live, playing player opens a row: a session first seen
@@ -194,11 +195,13 @@ async def collect_active_sessions(db: AsyncSession, now: datetime | None = None)
                 continue
             if not _resumable(previous, now):
                 row = active[key] = await _open_row(db, s, key, position, now, url, api_key, aliases)
+                hold.judge(row, verdict)
                 progress.append((row, row.user_id, row.watched_seconds))
                 continue
             row = active[key] = previous
             row.is_active, row.ended_at = True, None
             reopened = True
+        hold.judge(row, verdict)
 
         # Lost or silent player: what Emby moves on its own is not counted, and
         # the reference stays on the last confirmed poll, so what the player
@@ -224,9 +227,9 @@ async def collect_active_sessions(db: AsyncSession, now: datetime | None = None)
             logger.info("Playback row %s closed: nothing played for %s (client %s)", row.id, SILENCE_LIMIT, row.client_name)
 
     video = [entry for entry in progress if entry[0].item_type in WATCH_ITEM_TYPES]
-    for row, seconds in exclusive_shares(video).items():
+    for row, seconds in hold.shares(video).items():
         row.exclusive_seconds = (row.exclusive_seconds or 0) + seconds
-        row.watched_by_hour = add_to_hour(row.watched_by_hour, now, seconds)
+        hold.add(row, now, seconds)
 
     await db.flush()
     await record_completions(db, [row for row, _, _ in progress], now)
@@ -243,9 +246,11 @@ async def collect_active_sessions(db: AsyncSession, now: datetime | None = None)
         # ``last_seen_at`` is the last poll where the session really played,
         # far more accurate than ``now`` after a collector outage.
         row.ended_at = row.last_seen_at or now
+        hold.close(row)
         closed_sessions.append(row)
 
     await db.commit()
+    hold.commit(active.values())
 
     if closed_sessions:
         await _grant_post_session_xp(db, closed_sessions)

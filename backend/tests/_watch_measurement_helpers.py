@@ -5,6 +5,7 @@ from unittest.mock import AsyncMock, patch
 from sqlalchemy import select
 
 from models.playback_stats import PlaybackCompletion, PlaybackSession
+from services.stats_collector import _resume_zones as zones
 from services.stats_collector._player_reports import StoredPosition, _writers
 from services.stats_collector.collect import collect_active_sessions
 
@@ -41,6 +42,21 @@ def emby_session(
 def saved(position_s: float, *, played: bool = False, user: str = "EMBY-1", item: str = "MOVIE-1") -> dict:
     """What Emby answers for the resume position of one title."""
     return {(user, item): StoredPosition(int(position_s * TICK), played)}
+
+
+def saved_by_emby(position_s: float, runtime_s: int, *, item: str = "MOVIE-1") -> dict:
+    """What Emby keeps for a player reporting every 10 s: 0 before 3 %, 0 and played past 90 %."""
+    reported = position_s - position_s % 10
+    if reported < runtime_s * 0.03:
+        return saved(0, item=item)
+    if reported > runtime_s * 0.90:
+        return saved(0, played=True, item=item)
+    return saved(reported, item=item)
+
+
+def library_saves_from(min_pct: float, min_duration_s: int = 120) -> None:
+    """The resume settings read for the library of the tests."""
+    zones._zones["Films"] = zones.ResumeZone(min_pct, min_duration_s * TICK)
 
 
 async def poll(

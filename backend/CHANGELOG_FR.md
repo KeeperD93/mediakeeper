@@ -30,6 +30,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Connexion — animations coupées avec « Réduire les animations ».
 - Connexion — un double appui n'ouvre plus deux sessions, Entrée relance après un refus.
 - Statistiques — temps de visionnage : lecture coupée en début de titre plus comptée jusqu'au bout.
+- Statistiques — série de jours : un appareil éteint au début d'un titre non vu ne compte plus.
 - Cloche des notifications — message de chat signalé traduit, pastille comprise.
 - À propos — le point suit directement chaque lien.
 - Portail — Crédits : le point suit directement le lien.

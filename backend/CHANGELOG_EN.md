@@ -30,6 +30,7 @@ This section intentionally has no date so it is not shown to users.
 - Sign-in — animations stop with "Reduce motion".
 - Sign-in — a double press no longer opens two sessions, Enter retries after a refusal.
 - Statistics — watch time: playback cut off early in a title no longer counted to the end.
+- Statistics — day streak: a device switched off at the start of an unwatched title no longer counts.
 - Notification bell — reported chat messages translated, tag included.
 - About — the full stop follows each link directly.
 - Portal — Credits: the full stop follows the link directly.

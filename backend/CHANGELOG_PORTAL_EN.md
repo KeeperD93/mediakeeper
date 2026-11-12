@@ -35,6 +35,7 @@ This section intentionally has no date so it is not shown to users.
 - Sign-in — the browser fills in the saved username and password.
 - Sign-in — animations stop with "Reduce motion".
 - Sign-in — a double press no longer opens two sessions, Enter retries after a refusal.
+- Days in a row — a device switched off at the start of an unwatched title no longer counts.
 - Report form — description counter shows its real limit (1,500), sending stops before any cut.
 - Credits — the full stop follows the link directly.
 

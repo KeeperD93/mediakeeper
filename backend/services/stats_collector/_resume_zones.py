@@ -17,8 +17,8 @@ from core.http_client import get_internal_client
 logger = logging.getLogger("mediakeeper.stats.collector")
 
 _READ_TIMEOUT_SECONDS = 3.0
-# Well within the 30 min after which a held row closes: a setting raised in Emby
-# releases the rows it held before they lose what they held.
+# Well within the 30 min after which a row on hold closes: a setting raised in Emby
+# releases the rows it put on hold before they close and lose that time.
 _REFRESH_EVERY = timedelta(minutes=10)
 
 
