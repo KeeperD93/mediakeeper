@@ -59,8 +59,8 @@ async def update_progress(
     await db.flush()
 
     if newly_unlocked:
-        # The XP grant commits the unlock with it. It grants nothing for a trophy
-        # whose XP is already in the ledger (reset from the debug tools): commit here.
+        # The XP grant commits the unlock with it; when it commits nothing (XP already
+        # in the ledger after a debug reset, an account that no longer earns), commit here.
         if await _grant_xp(db, user_id, achievement.id, achievement.xp_reward) is None:
             await db.commit()
         return {
