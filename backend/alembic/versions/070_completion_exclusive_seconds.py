@@ -9,11 +9,12 @@ that share as it was when the title counted as watched, which nothing kept:
 Backfilled once:
 - ``history`` completions: 062 set the exclusive time of a rebuilt row to its
   estimate, so the share equals ``watched_seconds``;
-- ``live`` completions: the exclusive seconds of the user's sittings of the
-  same title, from the previous completion of that title (or 30 days back) up
-  to the completion, plus its own row, as the collector adds them up. A row
-  keeps counting after its title is watched (end credits): the last sitting is
-  slightly overstated.
+- ``live`` completions: the exclusive seconds of the user's other sittings of
+  the same title, from the previous completion of that title (or 30 days back)
+  up to the completion, as the collector adds them up, plus its own row's. That
+  row kept counting after its title was watched (end credits): what it watched
+  since, known from the completion's watched time, is taken off as if watched
+  alone. Exact when the end was watched alone, lower otherwise.
 
 Revision ID: 070_completion_exclusive_seconds
 Revises: 069_profile_level_floor
@@ -41,6 +42,7 @@ _SESSIONS = sa.table(
     sa.column("user_id", sa.String),
     sa.column("item_id", sa.String),
     sa.column("started_at", sa.DateTime(timezone=True)),
+    sa.column("watched_seconds", sa.Integer),
     sa.column("exclusive_seconds", sa.Integer),
 )
 _COMPLETIONS = sa.table(
@@ -66,22 +68,33 @@ def _has_column(bind) -> bool:
     return _COLUMN in {c["name"] for c in sa.inspect(bind).get_columns(_TABLE)}
 
 
+def _share(done, own, others: list) -> int:
+    """The exclusive time the collector fixed on ``done``, from its own row and
+    the ``others`` sittings it added up."""
+    others_watched = sum(s.watched_seconds or 0 for s in others)
+    # What the own row watched after the title counted. At least 0: a sitting
+    # deleted since would make it negative and credit its time as watched alone.
+    after = max(0, (own.watched_seconds or 0) - (done.watched_seconds - others_watched))
+    return sum(s.exclusive_seconds or 0 for s in others) + max(0, (own.exclusive_seconds or 0) - after)
+
+
 def _live_shares(bind) -> list[dict]:
     """``{"_id", "_exclusive"}`` for each live completion, in completion order."""
     done = bind.execute(
         sa.select(
-            _COMPLETIONS.c.id, _COMPLETIONS.c.session_id, _COMPLETIONS.c.user_id,
-            _COMPLETIONS.c.item_id, _COMPLETIONS.c.completed_at, _COMPLETIONS.c.source,
+            _COMPLETIONS.c.id, _COMPLETIONS.c.session_id, _COMPLETIONS.c.user_id, _COMPLETIONS.c.item_id,
+            _COMPLETIONS.c.completed_at, _COMPLETIONS.c.source, _COMPLETIONS.c.watched_seconds,
         ).order_by(_COMPLETIONS.c.completed_at, _COMPLETIONS.c.id)
     ).all()
     if not any(c.source == "live" for c in done):
         return []
-    # Only rows with exclusive time can add to a share.
+    # The sittings of the titles watched live only.
+    live = _COMPLETIONS.alias("live")
     sittings: dict[tuple, list] = defaultdict(list)
-    for s in bind.execute(
-        sa.select(_SESSIONS).where(_SESSIONS.c.exclusive_seconds > 0)
-    ).all():
-        sittings[(s.user_id, s.item_id)].append((s.id, _utc(s.started_at), s.exclusive_seconds))
+    for s in bind.execute(sa.select(_SESSIONS).where(sa.exists().where(
+        live.c.source == "live", live.c.user_id == _SESSIONS.c.user_id, live.c.item_id == _SESSIONS.c.item_id,
+    ))).all():
+        sittings[(s.user_id, s.item_id)].append(s)
 
     shares, previous = [], {}
     for c in done:
@@ -90,11 +103,13 @@ def _live_shares(bind) -> list[dict]:
             since = at - _COMPLETION_WINDOW
             if title in previous and previous[title] > since:
                 since = previous[title]
-            share = sum(
-                seconds for row_id, started, seconds in sittings[title]
-                if row_id == c.session_id or (started is not None and since <= started <= at)
-            )
-            shares.append({"_id": c.id, "_exclusive": share})
+            # The own row moves with its watched title (statistics merge): always in the group.
+            own = next(s for s in sittings[title] if s.id == c.session_id)
+            others = [
+                s for s in sittings[title]
+                if s.id != c.session_id and s.started_at is not None and since <= _utc(s.started_at) <= at
+            ]
+            shares.append({"_id": c.id, "_exclusive": _share(c, own, others)})
         previous[title] = at
     return shares
 

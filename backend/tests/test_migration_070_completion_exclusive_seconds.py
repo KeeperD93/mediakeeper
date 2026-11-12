@@ -1,16 +1,23 @@
 """Migration 070: each watched title keeps the time its user watched it alone."""
+import importlib.util
 from datetime import UTC, datetime, timedelta
 
 import pytest
 import sqlalchemy as sa
 from alembic import command
+from alembic.migration import MigrationContext
+from alembic.operations import Operations
+from sqlalchemy import select
 
 from models.base import Base
-from tests._migration_helpers import alembic_db_at
+from models.playback_stats import PlaybackCompletion
+from tests._migration_helpers import BACKEND_ROOT, alembic_db_at
+from tests._watch_measurement_helpers import STEP, emby_session, poll
 
 REVISION = "070_completion_exclusive_seconds"
 PREVIOUS = "069_profile_level_floor"
 T0 = datetime(2026, 3, 7, 20, 0, tzinfo=UTC)
+RUNTIME = 600
 # The table as it stands before 070 (the model already has the new column).
 _COMPLETIONS_BEFORE = sa.table(
     "playback_completions",
@@ -87,6 +94,15 @@ def test_upgrade_adds_the_column_and_backfills_each_watched_title(alembic_db):
             _completion(conn, session_id, "dave", item, T0 + timedelta(minutes=10), 600)
         # Another user's sitting of the same title never counts.
         _sitting(conn, "erin", "MOVIE-1", T0, 600)
+        # Watched alone with its end credits: the 90 s after the title counted are not part of it.
+        credits = _sitting(conn, "frank", "MOVIE-4", T0, 600)
+        _completion(conn, credits, "frank", "MOVIE-4", T0 + timedelta(minutes=9), 510)
+        # Two titles at once for its first 120 s, then alone through the credits.
+        mixed = _sitting(conn, "grace", "MOVIE-5", T0, 480, watched=600)
+        _completion(conn, mixed, "grace", "MOVIE-5", T0 + timedelta(minutes=9), 510)
+        # A sitting deleted since: its time is never credited as watched alone.
+        kept = _sitting(conn, "heidi", "MOVIE-6", T0, 300)
+        _completion(conn, kept, "heidi", "MOVIE-6", T0 + timedelta(minutes=5), 600)
 
     command.upgrade(cfg, REVISION)
 
@@ -97,6 +113,9 @@ def test_upgrade_adds_the_column_and_backfills_each_watched_title(alembic_db):
         ("carol", "MOVIE-3"): [600, 580],
         ("dave", "M-A"): [600],
         ("dave", "M-B"): [0],
+        ("frank", "MOVIE-4"): [510],
+        ("grace", "MOVIE-5"): [390],
+        ("heidi", "MOVIE-6"): [300],
     }
 
 
@@ -107,3 +126,62 @@ def test_upgrade_with_no_watched_title_and_downgrade(alembic_db):
 
     command.downgrade(cfg, PREVIOUS)
     assert "exclusive_seconds" not in _columns(engine)
+
+
+def _load_migration():
+    spec = importlib.util.spec_from_file_location(
+        "migration_070_under_test", BACKEND_ROOT / "alembic" / "versions" / f"{REVISION}.py",
+    )
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+async def _migrate(db, step) -> None:
+    def run(sync_conn):
+        with Operations.context(MigrationContext.configure(sync_conn)):
+            step()
+
+    await (await db.connection()).run_sync(run)
+    await db.commit()
+
+
+async def _watch(db, start: datetime, first: int, last: int, *titles: tuple[str, str, int]) -> None:
+    """Polls ``first`` to ``last``, 5 s apart; each ``(item, session, last poll)`` plays 5 s a poll."""
+    at = start
+    for i in range(first, last + 1):
+        at = start + STEP * i
+        await poll(db, at, *[
+            emby_session(at=at, position_s=5 * i, item=item, session=session, runtime_s=RUNTIME)
+            for item, session, until in titles if i <= until
+        ])
+    await poll(db, at + STEP)  # every player gone: the rows close
+
+
+async def _live_values(db) -> dict[int, int]:
+    found = await db.execute(select(PlaybackCompletion.id, PlaybackCompletion.exclusive_seconds))
+    return dict(found.all())
+
+
+async def test_the_backfill_finds_the_values_the_collector_fixed(db_session):
+    db, end = db_session, RUNTIME // 5
+    await _watch(db, T0, 1, end, ("MOVIE-1", "S-1", end))  # alone, then its end credits
+    await _watch(db, T0 + timedelta(days=1), 1, end // 2, ("MOVIE-2", "S-2a", end // 2))
+    await _watch(db, T0 + timedelta(days=2), end // 2, end, ("MOVIE-2", "S-2b", end))
+    await _watch(db, T0 + timedelta(days=3), 1, end, ("MOVIE-1", "S-1b", end))  # watched again
+    # Next to another title for 2 minutes (that one gets the time), then alone to the end.
+    await _watch(db, T0 + timedelta(days=5), 1, end, ("MOVIE-D", "S-D", 24), ("MOVIE-C", "S-C", end))
+    live = await _live_values(db)
+    titles = dict((await db.execute(select(PlaybackCompletion.id, PlaybackCompletion.item_id))).all())
+    assert sorted(titles.values()) == ["MOVIE-1", "MOVIE-1", "MOVIE-2", "MOVIE-C"]
+    # Refused live by the 75 % rule; its end credits watched alone must not make it pass.
+    assert next(v for i, v in live.items() if titles[i] == "MOVIE-C") < RUNTIME * 0.75
+
+    migration = _load_migration()
+    await db.execute(sa.update(PlaybackCompletion).values(exclusive_seconds=0))  # as before 070
+    await _migrate(db, migration.upgrade)
+    assert await _live_values(db) == live
+
+    await _migrate(db, migration.downgrade)
+    await _migrate(db, migration.upgrade)
+    assert await _live_values(db) == live
