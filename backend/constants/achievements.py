@@ -16,4 +16,4 @@ TROPHY_STATUS_UNLOCKED: Final[str] = "unlocked"
 TROPHY_STATUS_PROGRESS: Final[str] = "progress"
 TROPHY_STATUS_LOCKED: Final[str] = "locked"
 #: An unearned secret, whatever its progress: shown by name and icon only.
-TROPHY_STATUS_SECRET: Final[str] = "secret"
+TROPHY_STATUS_SECRET: Final[str] = "secret"  # noqa: S105 -- trophy status, not a credential value
