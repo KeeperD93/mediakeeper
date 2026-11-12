@@ -5,6 +5,7 @@
 <script setup>
 import { ref, watch, onMounted, onBeforeUnmount } from 'vue'
 import { localizedNumber } from '@/utils/localizedNumber'
+import { usePrefersReducedMotion } from '@/composables/usePrefersReducedMotion'
 
 const props = defineProps({
   value: { type: Number, default: 0 },
@@ -18,23 +19,16 @@ const props = defineProps({
 
 const display = ref('')
 const el = ref(null)
+const reducedMotion = usePrefersReducedMotion()
 let rafId = null
 let timeoutId = null
 let observer = null
-
-function prefersReduced() {
-  return (
-    typeof window !== 'undefined' &&
-    window.matchMedia &&
-    window.matchMedia('(prefers-reduced-motion: reduce)').matches
-  )
-}
 
 function animate(target) {
   if (rafId) cancelAnimationFrame(rafId)
   const start = 0
   const end = Number(target) || 0
-  if (prefersReduced() || !props.duration || end === start) {
+  if (reducedMotion.value || !props.duration || end === start) {
     display.value = props.formatter(end)
     return
   }
@@ -67,6 +61,14 @@ watch(
   () => props.value,
   val => scheduleAnimate(val),
 )
+
+// A count under way ends at once on its figure when reduced motion is turned on.
+watch(reducedMotion, reduced => {
+  if (!reduced || !rafId) return
+  cancelAnimationFrame(rafId)
+  rafId = null
+  display.value = props.formatter(Number(props.value) || 0)
+})
 
 onMounted(() => {
   display.value = props.formatter(0)

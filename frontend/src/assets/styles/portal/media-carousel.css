@@ -84,6 +84,12 @@
 .pt-carousel-track::-webkit-scrollbar {
   display: none;
 }
+/* Reduced motion: the arrows jump instead of sliding. */
+@media (prefers-reduced-motion: reduce) {
+  .pt-carousel-track {
+    scroll-behavior: auto;
+  }
+}
 .pt-carousel-track > .mk-mediacard,
 .pt-carousel-track > .pt-card {
   scroll-snap-align: start;

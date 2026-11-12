@@ -46,7 +46,7 @@ async def get_exclusions(db: AsyncSession) -> list:
 
 
 async def add_exclusion(db: AsyncSession, mode: str, value: str) -> list:
-    """Ajoute une exclusion (mode: 'exact' ou 'contains')."""
+    """Add an exclusion (mode: 'exact' or 'contains')."""
     exclusions = await get_exclusions(db)
     for exc in exclusions:
         if exc.get("mode") == mode and exc.get("value") == value:
@@ -56,10 +56,18 @@ async def add_exclusion(db: AsyncSession, mode: str, value: str) -> list:
     return exclusions
 
 
-async def remove_exclusion(db: AsyncSession, index: int) -> list:
-    """Supprime une exclusion par index."""
+async def remove_exclusion(db: AsyncSession, mode: str, value: str) -> list:
+    """Remove the exclusion with this mode and value, wherever it now sits.
+
+    A list shown elsewhere may be out of date, so a position could name another
+    entry. An entry already gone leaves the list unchanged.
+    """
     exclusions = await get_exclusions(db)
-    if 0 <= index < len(exclusions):
-        exclusions.pop(index)
-        await set_setting(db, "stats.exclusions", _json.dumps(exclusions))
-    return exclusions
+    # Entries saved before values were trimmed may still carry spaces.
+    kept = [
+        exc for exc in exclusions
+        if not (exc.get("mode") == mode and str(exc.get("value", "")).strip() == value)
+    ]
+    if len(kept) != len(exclusions):
+        await set_setting(db, "stats.exclusions", _json.dumps(kept))
+    return kept

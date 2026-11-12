@@ -72,14 +72,16 @@ class Scheduler:
             async with AsyncSession(self._engine, expire_on_commit=False) as db:
                 await defn["handler"](db)
         except Exception as e:
-            error = str(e)
+            # The admin screen and the alert name the exception class only; its
+            # message (a path, a query) stays in the log.
+            error = type(e).__name__
             logger.exception("[scheduler] Task error %s: %s", key, e)
             try:
                 from services.monitoring import AlertType, send_alert
 
                 await send_alert(
                     AlertType.SCHEDULER_TASK_CRASHED,
-                    {"task": key, "error": error[:200]},
+                    {"task": key, "error": error},
                 )
             except Exception:
                 logger.exception("[scheduler] Failed to push monitoring alert")

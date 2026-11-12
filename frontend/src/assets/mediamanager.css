@@ -278,6 +278,12 @@
 .mm-tabs::-webkit-scrollbar {
   display: none;
 }
+/* Reduced motion: the arrows jump instead of sliding. */
+@media (prefers-reduced-motion: reduce) {
+  .mm-tabs {
+    scroll-behavior: auto;
+  }
+}
 .mm-tab {
   flex: 1;
   display: flex;

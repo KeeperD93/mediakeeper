@@ -17,6 +17,10 @@ utilisateurs.
 ## [Unreleased]
 
 ### Fixed
+- Notifications — barre à la bonne durée, message entier sur petits téléphones.
+- Problèmes — dates du ticket : deux-points à la bonne place en français et en anglais.
+- Quoi de neuf aujourd'hui — Top 3 du mois aligné sur le classement (étiquette « VOUS »).
+- Carrousels, défilements et compteurs — instantanés avec « Réduire les animations ».
 - Badges épinglés — deux épinglages rapprochés ne s'écrasent plus.
 - Mon profil — jours de la semaine et durées dans la langue de l'application.
 - Mon profil — « Jour favori » : toujours 7 barres après un changement de langue.

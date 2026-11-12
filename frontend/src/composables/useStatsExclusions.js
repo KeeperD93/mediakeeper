@@ -10,7 +10,7 @@ import { TOAST_TYPE } from '@/constants/toast'
  * answer with the whole list, so no second fetch; a failure is named.
  */
 export function useStatsExclusions() {
-  const { apiGet, apiPost, apiDelete } = useApi()
+  const { apiFetch, apiGet, apiPost } = useApi()
   const { showToast } = useToast()
   const { loadTotals } = useStats()
 
@@ -55,9 +55,15 @@ export function useStatsExclusions() {
     }
   }
 
-  async function removeExclusion(index) {
+  // Named by mode and title, not by position: the list on screen may be out of
+  // date, and the answer brings the current one back.
+  async function removeExclusion({ mode, value }) {
     try {
-      if (setExclusions(await apiDelete(`/api/stats/exclusions/${index}`))) loadTotals()
+      const res = await apiFetch('/api/stats/exclusions', {
+        method: 'DELETE',
+        body: JSON.stringify({ mode, value }),
+      })
+      if (res && setExclusions(await res.json())) loadTotals()
     } catch (e) {
       fail('removeExclusion', e, 'common.apiError.deleteFailed')
     }

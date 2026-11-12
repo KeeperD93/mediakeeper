@@ -1,6 +1,7 @@
 import { ref, reactive } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useApi } from './useApi'
+import { useStatsLoadRunner } from './useStatsLoadRunner'
 import {
   ticksToTime,
   ticksToHours,
@@ -45,6 +46,7 @@ const loadingUsers = ref(false)
 const loadingActivity = ref(false)
 const loadingChart = ref(false)
 const loadingHeatmap = ref(false)
+const playbackFailed = ref(false)
 
 const sessionPositions = reactive({})
 let tickTimer = null
@@ -68,6 +70,7 @@ function getSessionProgress(session) {
 
 export function useStats() {
   const { apiGet } = useApi()
+  const run = useStatsLoadRunner()
   const { t } = useI18n()
 
   function timeAgo(iso) {
@@ -99,109 +102,98 @@ export function useStats() {
     return t('common.duration.moD', { mo, d: d % 30 })
   }
 
-  async function loadTotals() {
-    loadingTotals.value = true
-    try {
+  function loadTotals() {
+    return run('loadTotals', { loading: loadingTotals }, async latest => {
       const d = await apiGet('/api/stats/totals')
-      if (d) {
-        totals.plays = d.total_plays || 0
-        totals.duration = d.total_duration_ticks || 0
-        totals.users24h = d.active_users_24h || 0
-        totals.transcodePct = d.transcode_pct || 0
-        totals.storageBytes = d.total_storage_bytes || 0
-        totals.totalUsers = d.total_users || 0
-        totals.disabledUsers = d.disabled_users || 0
-      }
-    } catch {
-      /* silent: stats totals fetch */
-    }
-    loadingTotals.value = false
+      if (!d || !latest()) return
+      totals.plays = d.total_plays || 0
+      totals.duration = d.total_duration_ticks || 0
+      totals.users24h = d.active_users_24h || 0
+      totals.transcodePct = d.transcode_pct || 0
+      totals.storageBytes = d.total_storage_bytes || 0
+      totals.totalUsers = d.total_users || 0
+      totals.disabledUsers = d.disabled_users || 0
+    })
   }
 
-  async function loadSparklines() {
-    try {
+  function loadSparklines() {
+    return run('loadSparklines', {}, async latest => {
       const d = await apiGet('/api/stats/chart/daily?days=14&group_by=library')
-      if (d && d.days) {
-        sparklinePlays.value = d.days.map(day => {
-          const g = d.data[day] || {}
-          return Object.values(g).reduce((s, v) => s + (v.count || 0), 0)
-        })
-        sparklineDuration.value = d.days.map(day => {
-          const g = d.data[day] || {}
-          return Object.values(g).reduce((s, v) => s + (v.duration || 0), 0)
-        })
-      }
-    } catch {
-      /* silent: sparklines fetch */
-    }
+      if (!d?.days || !latest()) return
+      sparklinePlays.value = d.days.map(day => {
+        const g = d.data[day] || {}
+        return Object.values(g).reduce((s, v) => s + (v.count || 0), 0)
+      })
+      sparklineDuration.value = d.days.map(day => {
+        const g = d.data[day] || {}
+        return Object.values(g).reduce((s, v) => s + (v.duration || 0), 0)
+      })
+    })
   }
 
-  async function loadRecords() {
-    try {
-      records.value = await apiGet('/api/stats/records')
-    } catch {
-      /* silent: records fetch */
-    }
+  function loadRecords() {
+    return run('loadRecords', {}, async latest => {
+      const d = await apiGet('/api/stats/records')
+      if (latest()) records.value = d
+    })
   }
 
-  async function loadUserProfile(userId) {
+  function loadUserProfile(userId) {
     userProfile.value = null
-    try {
-      const d = await apiGet(`/api/stats/users/${encodeURIComponent(userId)}/profile`)
-      userProfile.value = d || { _error: true }
-    } catch {
+    const failed = () => {
       userProfile.value = { _error: true }
     }
+    return run('loadUserProfile', { notify: false, onFail: failed }, async latest => {
+      const d = await apiGet(`/api/stats/users/${encodeURIComponent(userId)}/profile`)
+      if (latest()) userProfile.value = d || { _error: true }
+    })
   }
 
   async function fetchSessions() {
     if (sessionInitialLoad) loadingSessions.value = true
-    try {
+    // A poll tries again five seconds later: its failure is logged, not toasted.
+    await run('fetchSessions', { notify: false }, async latest => {
       const d = await apiGet('/api/stats/sessions/detailed')
-      if (d) {
-        sessions.value = d
-        const now = Date.now()
-        for (const s of d) {
-          const k = s.user_id + '_' + s.media
-          sessionPositions[k] = {
-            pt: parseTicks(s.position),
-            dt: parseTicks(s.duration),
-            ts: now,
-            playing: s.is_playing,
-          }
+      if (!d || !latest()) return
+      sessions.value = d
+      const now = Date.now()
+      for (const s of d) {
+        const k = s.user_id + '_' + s.media
+        sessionPositions[k] = {
+          pt: parseTicks(s.position),
+          dt: parseTicks(s.duration),
+          ts: now,
+          playing: s.is_playing,
         }
       }
-    } catch {
-      /* silent: sessions poll, retries on next tick */
-    }
+    })
     if (sessionInitialLoad) {
       loadingSessions.value = false
       sessionInitialLoad = false
     }
   }
 
-  async function loadPlayback(days = 365) {
-    loadingPlayback.value = true
-    try {
-      playback.value = await apiGet(`/api/stats/playback?days=${days}`)
-    } catch {
-      /* silent: playback fetch */
+  function loadPlayback(days = 365) {
+    playbackFailed.value = false
+    // No cards of another period beside the error: the cards offer a retry instead.
+    const failed = () => {
+      playback.value = null
+      playbackFailed.value = true
     }
-    loadingPlayback.value = false
+    return run('loadPlayback', { loading: loadingPlayback, onFail: failed }, async latest => {
+      const d = await apiGet(`/api/stats/playback?days=${days}`)
+      if (latest()) playback.value = d
+    })
   }
 
-  async function loadLibraries() {
-    loadingLibraries.value = true
-    try {
+  function loadLibraries() {
+    return run('loadLibraries', { loading: loadingLibraries }, async latest => {
       const d = await apiGet('/api/stats/libraries')
-      if (d) libraries.value = d
-    } catch {
-      /* silent: libraries fetch */
-    }
-    loadingLibraries.value = false
+      if (d && latest()) libraries.value = d
+    })
   }
 
-  async function loadUsers({
+  function loadUsers({
     page = 1,
     per_page = 30,
     sort_by = 'last_seen',
@@ -210,19 +202,15 @@ export function useStats() {
     show_hidden = false,
     historical_only = false,
   } = {}) {
-    loadingUsers.value = true
-    try {
+    return run('loadUsers', { loading: loadingUsers }, async latest => {
       const d = await apiGet(
         `/api/stats/users?page=${page}&per_page=${per_page}&sort_by=${sort_by}&sort_order=${sort_order}&search=${encodeURIComponent(search)}&show_hidden=${show_hidden}&historical_only=${historical_only}`,
       )
-      if (d) users.value = d
-    } catch {
-      /* silent: users fetch */
-    }
-    loadingUsers.value = false
+      if (d && latest()) users.value = d
+    })
   }
 
-  async function loadActivity({
+  function loadActivity({
     cursor = '',
     limit = 25,
     page = 0,
@@ -232,8 +220,7 @@ export function useStats() {
     sortBy = '',
     sortOrder = '',
   } = {}) {
-    loadingActivity.value = true
-    try {
+    return run('loadActivity', { loading: loadingActivity }, async latest => {
       const params = new URLSearchParams()
       // page > 0 = flat sorted view (offset paging); otherwise grouped (cursor).
       if (page > 0) {
@@ -248,49 +235,36 @@ export function useStats() {
       if (sortBy) params.set('sort_by', sortBy)
       if (sortOrder) params.set('sort_order', sortOrder)
       const d = await apiGet(`/api/stats/activity?${params}`)
-      if (d) activity.value = d
-    } catch {
-      /* silent: activity fetch */
-    }
-    loadingActivity.value = false
+      if (d && latest()) activity.value = d
+    })
   }
 
-  async function loadActivityUsers() {
-    try {
+  function loadActivityUsers() {
+    return run('loadActivityUsers', {}, async latest => {
       const d = await apiGet('/api/stats/activity/users')
-      if (Array.isArray(d)) activityUsers.value = d
-    } catch {
-      /* silent: activity users fetch */
-    }
+      if (Array.isArray(d) && latest()) activityUsers.value = d
+    })
   }
 
-  async function loadMinimap24h() {
-    try {
+  function loadMinimap24h() {
+    return run('loadMinimap24h', {}, async latest => {
       const d = await apiGet('/api/stats/activity/minimap')
-      if (Array.isArray(d)) minimap24h.value = d
-    } catch {
-      /* silent: minimap fetch */
-    }
+      if (Array.isArray(d) && latest()) minimap24h.value = d
+    })
   }
 
-  async function loadDailyChart(days = 30, groupBy = 'library') {
-    loadingChart.value = true
-    try {
-      dailyChart.value = await apiGet(`/api/stats/chart/daily?days=${days}&group_by=${groupBy}`)
-    } catch {
-      /* silent: daily chart fetch */
-    }
-    loadingChart.value = false
+  function loadDailyChart(days = 30, groupBy = 'library') {
+    return run('loadDailyChart', { loading: loadingChart }, async latest => {
+      const d = await apiGet(`/api/stats/chart/daily?days=${days}&group_by=${groupBy}`)
+      if (latest()) dailyChart.value = d
+    })
   }
 
-  async function loadHeatmap(days = 90) {
-    loadingHeatmap.value = true
-    try {
-      heatmap.value = await apiGet(`/api/stats/heatmap?days=${Math.min(days, 365)}`)
-    } catch {
-      /* silent: heatmap fetch */
-    }
-    loadingHeatmap.value = false
+  function loadHeatmap(days = 90) {
+    return run('loadHeatmap', { loading: loadingHeatmap }, async latest => {
+      const d = await apiGet(`/api/stats/heatmap?days=${Math.min(days, 365)}`)
+      if (latest()) heatmap.value = d
+    })
   }
 
   async function resolveSeriesImageId(seriesName) {
@@ -299,7 +273,9 @@ export function useStats() {
     try {
       const d = await apiGet(`/api/stats/series/image/${encodeURIComponent(seriesName)}`)
       seriesImageCache[seriesName] = d?.series_id || ''
-    } catch {
+    } catch (e) {
+      // A missing poster is cosmetic: logged, no toast.
+      console.error('[useStats.resolveSeriesImageId]', e)
       seriesImageCache[seriesName] = ''
     }
     return seriesImageCache[seriesName]
@@ -347,6 +323,7 @@ export function useStats() {
     loadingActivity,
     loadingChart,
     loadingHeatmap,
+    playbackFailed,
     loadTotals,
     fetchSessions,
     loadPlayback,
