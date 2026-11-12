@@ -73,9 +73,8 @@ async def test_the_collector_catches_up_at_start_then_every_ten_minutes():
             patch("services.background_tasks.AsyncSession", new=_session), \
             patch("services.background_tasks.time", new=SimpleNamespace(monotonic=lambda: next(clock))), \
             patch("services.background_tasks.collect_active_sessions", new=collect), \
-            patch("services.background_tasks.catch_up_watch_xp", new=catch_up):
-        with pytest.raises(asyncio.CancelledError):
-            await BackgroundTaskManager(engine=AsyncMock())._periodic_stats_collection()
+            patch("services.background_tasks.catch_up_watch_xp", new=catch_up),             pytest.raises(asyncio.CancelledError):
+        await BackgroundTaskManager(engine=AsyncMock())._periodic_stats_collection()
 
     assert collect.await_count == 3
     assert catch_up.await_count == 2  # at the first poll, then once ten minutes have passed

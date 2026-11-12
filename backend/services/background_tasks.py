@@ -93,8 +93,8 @@ class BackgroundTaskManager:
                 try:
                     async with AsyncSession(self._engine, expire_on_commit=False) as session:
                         await catch_up_watch_xp(session)
-                except Exception as e:
-                    logger.error("Error catching up watch XP: %s", e)
+                except Exception:
+                    logger.exception("Error catching up watch XP")
             await asyncio.sleep(POLL_INTERVAL_SECONDS)
 
     async def _periodic_library_cache(self):
