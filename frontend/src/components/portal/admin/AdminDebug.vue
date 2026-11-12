@@ -60,8 +60,8 @@
           v-model.number="levelTarget"
           type="number"
           class="pt-debug-input"
-          min="0"
-          max="50"
+          :min="MIN_LEVEL"
+          :max="MAX_LEVEL"
           :placeholder="$t('portal.admin.debug.levelTarget')"
           :disabled="!selectedUserId"
         />
@@ -138,6 +138,7 @@ import AdminDebugZoneCorrection from '@/components/portal/admin/AdminDebugZoneCo
 import { useToast } from '@/composables/useToast'
 import { usePortalAdminDebug } from '@/composables/portal/usePortalAdminDebug'
 import { USER_ROLE } from '@/constants/auth'
+import { MAX_LEVEL, MIN_LEVEL } from '@/constants/portal'
 import { TOAST_TYPE } from '@/constants/toast'
 import { getLocale } from '@/i18n'
 

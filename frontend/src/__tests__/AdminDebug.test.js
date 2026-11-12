@@ -1,6 +1,6 @@
 /**
  * Portal admin → debug tools: the player picker reads its labels from the translations,
- * and a list that fails to load says so.
+ * a list that fails to load says so, and the level field keeps the server's bounds.
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
@@ -22,7 +22,7 @@ import { TOAST_TYPE } from '@/constants/toast'
 
 const USERS = [
   { user_id: 1, display_name: 'Alice', role: 'admin', level: 2, xp: 1300 },
-  { user_id: 2, display_name: 'Bob', role: 'viewer', level: 0, xp: 0 },
+  { user_id: 2, display_name: 'Bob', role: 'viewer', level: 1, xp: 0 },
 ]
 
 async function mountPage() {
@@ -45,7 +45,14 @@ describe('AdminDebug', () => {
     expect(options).toContain(
       'Alice · common.administrator · portal.admin.debug.level=2 · portal.admin.debug.xp=1,300',
     )
-    expect(options).toContain('Bob · portal.admin.debug.level=0 · portal.admin.debug.xp=0')
+    expect(options).toContain('Bob · portal.admin.debug.level=1 · portal.admin.debug.xp=0')
+  })
+
+  it('accepts only levels 1 to 50 in the level field, like the server', async () => {
+    listUsers.mockResolvedValue(USERS)
+    const input = (await mountPage()).find('input[placeholder="portal.admin.debug.levelTarget"]')
+    expect(input.attributes('min')).toBe('1')
+    expect(input.attributes('max')).toBe('50')
   })
 
   it('says so when the player list fails to load', async () => {

@@ -27,7 +27,7 @@ from services.portal.admin_users_constants import (
     ACTION_DEBUG_ACHIEVEMENT_RECHECK_ALL,
     ROLE_VIEWER,
 )
-from services.portal.xp import EARNING_ACCOUNT
+from services.portal.xp import EARNING_ACCOUNT, MAX_LEVEL, MIN_LEVEL
 
 router = APIRouter(prefix="/admin/debug", tags=["portal-admin-debug"])
 
@@ -42,7 +42,7 @@ class GrantXpRequest(BaseModel):
 class SetLevelRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
     user_id: int
-    level: int = Field(..., ge=0, le=50)
+    level: int = Field(..., ge=MIN_LEVEL, le=MAX_LEVEL)
 
 
 class AchievementToggleRequest(BaseModel):
@@ -79,7 +79,7 @@ async def debug_list_users(
                 "user_id": r[0],
                 "username": r[1],
                 "display_name": r[2] or r[1],
-                "level": r[3] or 0,
+                "level": r[3] or MIN_LEVEL,
                 "xp": r[4] or 0,
                 "role": r[5] or ROLE_VIEWER,
                 "account_active": bool(r[6]),
