@@ -194,6 +194,30 @@ describe('LoginView — leaving the page after a sign-in', () => {
     expect(router.currentRoute.value.name).toBe('home')
   })
 
+  it('frees the button when a newer navigation takes over and throws', async () => {
+    const letPortalThrough = holdRoute('portal')
+    loginMock.mockResolvedValue(MEMBER)
+    await signInPage()
+    await submit()
+    const location = stubLocation()
+
+    let breakHome
+    gates.home = () =>
+      new Promise((_, reject) => {
+        breakHome = () => reject(new Error('unexpected'))
+      })
+    router.replace('/').catch(() => {})
+    letPortalThrough()
+    await flushPromises()
+    expect(button().attributes('disabled')).toBeDefined()
+
+    breakHome()
+    await flushPromises()
+    expect(router.currentRoute.value.name).toBe('login')
+    expect(button().attributes('disabled')).toBeUndefined()
+    expect(location.assign).not.toHaveBeenCalled()
+  })
+
   it('frees the button when a newer navigation lands back here before the cancellation shows', async () => {
     const letPortalThrough = holdRoute('portal')
     loginMock.mockResolvedValue(MEMBER)

@@ -59,22 +59,32 @@ export function useLoginRedirect({ username, remember, errorMsg, loggedOutMsg, s
   /**
    * Leaves for where a sign-in leads. `submitting` stays true while the page is
    * left: a press during that navigation would sign in a second time. Only a
-   * navigation that ends back here frees it.
+   * navigation that ends back here, or throws, frees it.
    */
   async function leaveAfterSignIn(data) {
     const target = targetAfterSignIn(data)
-    const stopWatching = router.afterEach((to, from, failure) => {
+    const stopWatching = () => {
+      stopOnEnd()
+      stopOnError()
+    }
+    const stopOnEnd = router.afterEach((to, from, failure) => {
       // Cancelled: a newer navigation took over, and its own end decides.
       if (isNavigationFailure(failure, NavigationFailureType.cancelled)) return
       stopWatching()
       if (router.currentRoute.value.name === 'login') submitting.value = false
     })
+    // A navigation that throws never reaches the hook above, and the page stays.
+    const stopOnError = router.onError(() => {
+      stopWatching()
+      submitting.value = false
+    })
     try {
       await router.push(target)
     } catch (err) {
-      // Signed in, but the next page could not load here (its files replaced by an
-      // update): load it from the server, the session is open.
+      // Signed in, but the next page could not load here (files replaced by an update):
+      // load it from the server, busy again until then (the error hook freed it).
       console.error('[useLoginRedirect.leaveAfterSignIn]', err)
+      submitting.value = true
       loadInFull(target)
     }
   }
