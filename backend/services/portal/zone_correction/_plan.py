@@ -23,6 +23,7 @@ from services.portal.playback_algorithms import session_spans
 from services.portal.profile_decorations import stale_decoration_updates
 from services.portal.xp import (
     ACHIEVEMENT_XP_ACTION,
+    MIN_LEVEL,
     achievement_xp_reference,
     level_from_xp,
 )
@@ -99,7 +100,7 @@ async def _judge_hour_trophies(
 
 async def plan_player(db: AsyncSession, ctx: Context, profile: UserProfile) -> PlayerPlan:
     user_id = profile.user_id
-    plan = PlayerPlan(user_id=user_id, xp=profile.xp or 0, level=profile.level or 0)
+    plan = PlayerPlan(user_id=user_id, xp=profile.xp or 0, level=profile.level or MIN_LEVEL)
     rows = (await db.execute(
         select(UserAchievement.achievement_id, UserAchievement.unlocked_at)
         .where(UserAchievement.user_id == user_id, UserAchievement.unlocked.is_(True))

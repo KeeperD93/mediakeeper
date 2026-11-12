@@ -23,6 +23,7 @@ This section intentionally has no date so it is not shown to users.
 - My profile — weekdays and durations in the app's language.
 - My profile — "Favorite day": always 7 bars after a language change.
 - Numbers — written in the app's language, no longer the browser's.
+- Levels — level 1 everywhere from 0 XP, the bar moves right away.
 
 ## [1.0.0-rc.10] - 2026-11-11
 

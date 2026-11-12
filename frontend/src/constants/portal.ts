@@ -18,6 +18,10 @@ export const PORTAL_TAB = Object.freeze({
 
 export type PortalTab = (typeof PORTAL_TAB)[keyof typeof PORTAL_TAB]
 
+/** Player level bounds, same as the server: every player starts at the first level. */
+export const MIN_LEVEL = 1
+export const MAX_LEVEL = 50
+
 /**
  * Person filmography role filter — also the `role` query param used when
  * deep-linking into the person page from detail carousels / cast lists.

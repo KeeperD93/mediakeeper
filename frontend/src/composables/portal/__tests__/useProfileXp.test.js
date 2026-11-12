@@ -7,7 +7,7 @@ vi.mock('vue-i18n', async importOriginal => ({
 }))
 
 import { applyLocaleEphemeral, getLocale } from '@/i18n'
-import { useProfileXp, xpForLevel } from '@/composables/portal/useProfileXp'
+import { levelFloorXp, useProfileXp, xpForLevel } from '@/composables/portal/useProfileXp'
 
 // Monday → Sunday, as the server sends them; Sunday is the busiest day.
 const busySunday = () => ref({ day_stats: [1, 0, 0, 0, 0, 0, 5].map(count => ({ count })) })
@@ -66,5 +66,23 @@ describe('xpForLevel', () => {
     [50, 127_500],
   ])('level %i takes %i XP, as on the server', (level, xp) => {
     expect(xpForLevel(level)).toBe(xp)
+  })
+})
+
+describe('useProfileXp — level bar', () => {
+  it('starts the first level at 0 XP, like the server', () => {
+    expect(levelFloorXp(1)).toBe(0)
+    expect(levelFloorXp(2)).toBe(300)
+  })
+
+  it('moves the bar from the first XP at level 1', () => {
+    const { xpPercent, nextLevelXp } = useProfileXp(ref({ level: 1, xp: 50 }), ref(null))
+    expect(nextLevelXp.value).toBe(300)
+    expect(xpPercent.value).toBe(17)
+  })
+
+  it('measures a higher level from its own floor', () => {
+    const { xpPercent } = useProfileXp(ref({ level: 2, xp: 450 }), ref(null))
+    expect(xpPercent.value).toBe(50)
   })
 })

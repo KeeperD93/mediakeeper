@@ -26,7 +26,7 @@ from services.portal.admin_users_constants import (
     ACTION_DEBUG_LEVEL_SET,
     ACTION_DEBUG_XP_GRANTED,
 )
-from services.portal.xp import MAX_LEVEL, level_from_xp, xp_for_level
+from services.portal.xp import MAX_LEVEL, MIN_LEVEL, level_floor_xp, level_from_xp
 
 
 logger = logging.getLogger("mediakeeper.portal.admin_debug")
@@ -58,7 +58,7 @@ async def admin_grant_xp(
 
     delta = int(amount)
     if delta == 0:
-        return {"xp": profile.xp or 0, "level": profile.level or 0, "leveled_up": False}
+        return {"xp": profile.xp or 0, "level": profile.level or MIN_LEVEL, "leveled_up": False}
 
     ref_suffix = (note or uuid.uuid4().hex)[:48]
     entry = XpLedger(
@@ -69,7 +69,7 @@ async def admin_grant_xp(
     )
     db.add(entry)
 
-    previous_level = profile.level or 0
+    previous_level = profile.level or MIN_LEVEL
     profile.xp = max(0, (profile.xp or 0) + delta)
     profile.level = level_from_xp(profile.xp)
     db.add(profile)
@@ -98,16 +98,15 @@ async def admin_set_level(
     *, admin_user_id: int | None = None,
     ip: str | None = None, user_agent: str | None = None,
 ) -> dict | None:
-    """Force the user to a specific level. ``profile.xp`` is bumped
-    up to (and never above) the cumulative XP required for that
-    level, so the level bar reads cleanly. To go down a level we
-    also lower the XP to the floor of the target level."""
+    """Force the user to a specific level. ``profile.xp`` is set to the
+    XP at which that level starts (``level_floor_xp``, 0 for level 1),
+    up or down, so the level bar starts empty (full at ``MAX_LEVEL``)."""
     profile = await _get_profile(db, user_id)
     if not profile:
         return None
 
-    target = max(0, min(MAX_LEVEL, int(level)))
-    target_xp_floor = xp_for_level(target)
+    target = max(MIN_LEVEL, min(MAX_LEVEL, int(level)))
+    target_xp_floor = level_floor_xp(target)
     delta = target_xp_floor - (profile.xp or 0)
 
     entry = XpLedger(

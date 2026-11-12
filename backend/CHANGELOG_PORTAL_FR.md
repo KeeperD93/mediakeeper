@@ -25,6 +25,7 @@ utilisateurs.
 - Mon profil — jours de la semaine et durées dans la langue de l'application.
 - Mon profil — « Jour favori » : toujours 7 barres après un changement de langue.
 - Nombres — écrits dans la langue de l'application, plus dans celle du navigateur.
+- Niveaux — niveau 1 partout dès 0 XP, barre qui avance aussitôt.
 
 ## [1.0.0-rc.10] - 2026-11-11
 
