@@ -12,6 +12,13 @@ from models.portal.xp_boost import XpBoostEvent
 logger = logging.getLogger("mediakeeper.portal.xp_boost")
 
 
+def event_applies(ev: XpBoostEvent, action: str, at: datetime) -> bool:
+    """Whether ``ev`` covers ``at`` (aware) for ``action``, enabled or not."""
+    if not _parse_dt(ev.starts_at) <= at <= _parse_dt(ev.ends_at):
+        return False
+    return not ev.action_filter or action in {a.strip() for a in ev.action_filter.split(",") if a.strip()}
+
+
 def multiplier_at(events: Iterable[XpBoostEvent], action: str, at: datetime) -> float:
     """Combined multiplier of the enabled ``events`` covering ``at`` (aware) for ``action``.
 
@@ -20,13 +27,8 @@ def multiplier_at(events: Iterable[XpBoostEvent], action: str, at: datetime) -> 
     # Decimal: in floats, 1.15 × 1.5 falls just under 1.725 and a half would round down.
     multiplier = Decimal(1)
     for ev in events:
-        if not ev.enabled or not _parse_dt(ev.starts_at) <= at <= _parse_dt(ev.ends_at):
-            continue
-        if ev.action_filter:
-            allowed = {a.strip() for a in ev.action_filter.split(",") if a.strip()}
-            if action not in allowed:
-                continue
-        multiplier *= Decimal(str(ev.multiplier or 1.0))
+        if ev.enabled and event_applies(ev, action, at):
+            multiplier *= Decimal(str(ev.multiplier or 1.0))
     return float(multiplier)
 
 

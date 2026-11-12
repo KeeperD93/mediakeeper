@@ -46,6 +46,7 @@ class Target:
     title_id: int
     action: str
     reference: str
+    runtime: int
     base: int
     xp: int
     at: datetime
@@ -77,7 +78,7 @@ def _target(ctx: Context, user_id: int, watched: WatchedTitle) -> Target:
     action = watch_action(watched.item_type)
     multiplier = multiplier_at(ctx.events, action, watched.completed_at)
     return Target(
-        user_id, watched.id, action, completion_reference(watched.item_id, watched.id),
+        user_id, watched.id, action, completion_reference(watched.item_id, watched.id), watched.runtime_seconds,
         watch_xp_amount(watched.runtime_seconds), boosted_watch_xp(watched.runtime_seconds, multiplier),
         watched.completed_at,
     )

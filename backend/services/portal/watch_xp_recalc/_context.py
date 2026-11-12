@@ -74,7 +74,10 @@ async def build_context(db: AsyncSession, as_of: datetime | None = None) -> Cont
         ledger_start=await _ledger_start(db),
         exclusions=tuple(await load_exclusion_entries(db)),
         events=tuple(
-            BonusEvent(ev.id, ev.name, ev.multiplier, ev.starts_at, ev.ends_at, ev.action_filter, ev.enabled)
+            BonusEvent(
+                ev.id, ev.name, ev.multiplier, _coerce_utc(ev.starts_at), _coerce_utc(ev.ends_at),
+                ev.action_filter, ev.enabled,
+            )
             for ev in events
         ),
         erased=await load_erased_identities(db),
