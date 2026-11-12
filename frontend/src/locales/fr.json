@@ -747,6 +747,7 @@
     "exclusionModeLabel": "Type de correspondance",
     "exclusionTitleLabel": "Titre à exclure",
     "exclusionsLoadError": "Impossible de charger les exclusions.",
+    "playbackLoadError": "Impossible de charger les statistiques de lecture.",
     "retry": "Réessayer",
     "importing": "Import en cours…",
     "playsImported": "{n} lecture importée | {n} lectures importées",

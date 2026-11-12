@@ -12,6 +12,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 
 ### Fixed
 - Statistiques — Outils : supprimer une exclusion retire bien celle affichée.
+- Statistiques — un chargement raté est signalé, les cartes de lecture proposent de réessayer.
 
 ## [1.0.0-rc.10] - 2026-11-11
 

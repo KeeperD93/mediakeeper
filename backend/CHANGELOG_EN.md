@@ -12,6 +12,7 @@ This section intentionally has no date so it is not shown to users.
 
 ### Fixed
 - Statistics — Tools: removing an exclusion removes the one shown.
+- Statistics — a failed load is reported, the playback cards offer to try again.
 
 ## [1.0.0-rc.10] - 2026-11-11
 
