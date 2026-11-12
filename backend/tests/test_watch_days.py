@@ -80,6 +80,18 @@ def test_the_hours_are_dated_on_the_clock_of_the_instance(zone, day):
     assert watch_days([_play(utc(2026, 10, 14, 22), 10 * 60)], ZoneInfo(zone)) == {date(2026, 10, day)}
 
 
+@pytest.mark.parametrize(("zone", "generous", "days"), [
+    ("Asia/Kolkata", False, {10}),
+    ("Asia/Kolkata", True, {10, 11}),
+    ("Europe/Paris", True, {10}),
+])
+def test_a_generous_count_gives_an_hour_across_midnight_to_both_days(zone, generous, days):
+    """18:20 to 18:55 UTC: 23:50 to 00:25 in Kolkata (UTC+5:30), 19:20 to 19:55 in Paris."""
+    film = _play(utc(2026, 1, 10, 18, 20), 35 * 60)
+
+    assert watch_days([film], ZoneInfo(zone), generous=generous) == {date(2026, 1, day) for day in days}
+
+
 def test_a_pause_counts_for_nothing():
     """Three hours on screen, two minutes played: only the measured time counts."""
     paused = PlaybackSession(

@@ -44,7 +44,7 @@ async def test_the_old_rule_gives_the_same_outcome_for_a_launch_alone(db_session
     await _a_launch_alone_on_the_11th_in_paris(db_session, "regular_1")
     summary = await simulate_zone_correction(db_session)
     monkeypatch.setattr(
-        _judge, "watch_days", lambda rows, zone: {play.at.date() for play in local_plays(rows, zone)},
+        _judge, "watch_days", lambda rows, zone, **_: {play.at.date() for play in local_plays(rows, zone)},
     )
     assert await simulate_zone_correction(db_session) == summary
 
@@ -88,6 +88,22 @@ async def test_a_day_streak_counts_the_watched_hours_on_both_clocks(db_session):
 
 
 @pytest.mark.asyncio
+async def test_a_half_hour_zone_keeps_a_day_watched_across_its_midnight(db_session):
+    # Kolkata is UTC+5:30: 23:50 to 00:25 there puts 25 minutes on the 11th, inside the
+    # 18:00 UTC hour that starts on the 10th. Hour by hour alone, the 11th would be lost.
+    await seed_achievements(db_session)
+    await save_zone(db_session, "Asia/Kolkata")
+    alice = await player(db_session, "alice")
+    play(db_session, "alice", at(2026, 1, 10, 6, 30), seconds=600)
+    play(db_session, "alice", at(2026, 1, 10, 18, 20), seconds=35 * 60)
+    play(db_session, "alice", at(2026, 1, 11, 20), seconds=600)
+    play(db_session, "alice", at(2026, 1, 12, 6, 30), seconds=600)
+    await hold(db_session, alice, "regular_1")
+    summary = await simulate_zone_correction(db_session)
+    assert summary["removals"] == []
+
+
+@pytest.mark.asyncio
 async def test_faithful_is_judged_on_the_days_a_play_started_on(db_session):
     # A minute at noon every day of 2025: a run on both clocks, though never five minutes a day.
     alice = await _alice(db_session)
@@ -105,6 +121,8 @@ async def test_the_days_watched_are_built_once_per_clock(db_session, monkeypatch
     )
     zones = []
     build = _judge.watch_days
-    monkeypatch.setattr(_judge, "watch_days", lambda rows, zone: zones.append(zone) or build(rows, zone))
+    monkeypatch.setattr(
+        _judge, "watch_days", lambda rows, zone, **kw: zones.append(zone) or build(rows, zone, **kw),
+    )
     await simulate_zone_correction(db_session)
     assert len(zones) == 2

@@ -7,7 +7,7 @@ start. Pauses and a title stopped at once fill nothing; music and audiobooks nev
 """
 from collections import Counter
 from collections.abc import Iterable
-from datetime import date, tzinfo
+from datetime import date, timedelta, tzinfo
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -18,6 +18,7 @@ from services.instance_time import to_local
 from services.watch_hours import hour_start, spread_over_hours
 
 MIN_WATCHED_SECONDS_PER_DAY = 5 * 60
+_LAST_INSTANT_OF_AN_HOUR = timedelta(hours=1, microseconds=-1)
 
 # What ``watch_days`` reads of each play.
 WATCH_DAY_COLUMNS = (
@@ -39,18 +40,25 @@ def _watched_by_hour(play) -> dict[str, int] | None:
     return spread_over_hours(play.started_at, play.watched_seconds)
 
 
-def watch_days(plays: Iterable, zone: tzinfo) -> set[date]:
+def watch_days(plays: Iterable, zone: tzinfo, *, generous: bool = False) -> set[date]:
     """The days of ``zone`` holding enough watching, summed over ``plays`` (``WATCH_DAY_COLUMNS``).
 
     An hour goes to the day it starts in: in a zone off by half an hour, the half
-    past midnight stays with the day before.
+    past midnight stays with the day before. ``generous`` gives such an hour to both
+    days, for a judge that must never take a day away.
     """
     per_hour: Counter[str] = Counter()
     for play in plays:
         per_hour.update(_watched_by_hour(play) or {})
     per_day: Counter[date] = Counter()
     for hour, seconds in per_hour.items():
-        per_day[to_local(hour_start(hour), zone).date()] += seconds
+        start = hour_start(hour)
+        first = to_local(start, zone).date()
+        per_day[first] += seconds
+        if generous:
+            last = to_local(start + _LAST_INSTANT_OF_AN_HOUR, zone).date()
+            if last != first:
+                per_day[last] += seconds
     return {day for day, seconds in per_day.items() if seconds >= MIN_WATCHED_SECONDS_PER_DAY}
 
 

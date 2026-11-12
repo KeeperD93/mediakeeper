@@ -73,7 +73,8 @@ class Judge:
         if key not in self._days:
             self._days[key] = (
                 {play.at.date() for play in self._local_plays(side, native)} if started
-                else watch_days(self._rows(native), side.zone)
+                # Generous: in a zone off by half an hour, an hour across midnight never costs a day.
+                else watch_days(self._rows(native), side.zone, generous=True)
             )
         days = self._days[key]
         today = to_local(datetime.now(UTC), side.zone).date()
