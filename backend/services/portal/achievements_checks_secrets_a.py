@@ -21,12 +21,12 @@ async def check_secrets_a(
     user_filter,
     excl_filters: list,
     playback_rows: list | None,
-) -> list[dict]:
-    """Run first half of secret checks (first_play..4k). Returns newly unlocked list.
+    unlocks: list[dict],
+) -> None:
+    """Run first half of secret checks (first_play..4k). Appends each new unlock to ``unlocks``.
 
     ``playback_rows`` goes unused here: it comes with the arguments the passes share.
     """
-    unlocks: list[dict] = []
 
     async def _apply(cond_type: str, value: int):
         if cond_type not in by_type:
@@ -119,5 +119,3 @@ async def check_secrets_a(
             )
         )).scalar() or 0
         await _apply("secret_4k", val)
-
-    return unlocks

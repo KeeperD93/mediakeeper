@@ -497,7 +497,7 @@ async def test_get_contributors_includes_active(db_session):
 @pytest.mark.asyncio
 async def test_get_public_lists_batches_count_and_posters(db_session):
     """The batched feed serialization returns the same item_count and top-4
-    preview posters (added_at desc) as the per-list path (#369)."""
+    preview posters (added_at desc) as the per-list path."""
     from datetime import timedelta
 
     from models.portal.social import UserListItem

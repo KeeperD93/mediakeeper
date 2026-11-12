@@ -115,6 +115,34 @@ test.describe('Portal authenticated — targeted a11y baseline', () => {
   })
 })
 
+// The floating "+" button is teleported outside main#main-content, so the
+// targeted pass above never sees it.
+test.describe('Portal authenticated — floating quick-actions button', () => {
+  test('has an accessible name and exposes its open state', async ({ page }) => {
+    await forceEnglishLocale(page)
+    const tracker = await mockAuthenticatedPortal(page, {
+      pageHandlers: portalListsHandlers(),
+    })
+
+    await page.goto('/portal/lists')
+    await expect(page.getByRole('heading', { level: 1, name: 'My lists' })).toBeVisible()
+
+    const fab = page.getByRole('button', { name: 'Quick actions' })
+    await expect(fab).toHaveAttribute('aria-expanded', 'false')
+
+    const results = await new AxeBuilder({ page })
+      .include('.pt-fab-main')
+      .withRules(['button-name', 'aria-allowed-attr', 'aria-valid-attr-value'])
+      .analyze()
+    expect(results.violations, JSON.stringify(results.violations, null, 2)).toEqual([])
+
+    await fab.click()
+    await expect(fab).toHaveAttribute('aria-expanded', 'true')
+
+    expect(tracker.unexpected).toEqual([])
+  })
+})
+
 test.describe('Portal authenticated — keyboard skip-link', () => {
   test('Tab focuses the skip-link, Enter jumps focus into #main-content', async ({ page }) => {
     await forceEnglishLocale(page)

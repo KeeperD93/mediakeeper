@@ -15,6 +15,18 @@ This section intentionally has no date so it is not shown to users.
 ## [Unreleased]
 
 ### Fixed
+- Notifications — bar lasts as long as the message, full message on small phones.
+- Issues — ticket dates: colons placed right in English and French.
+- Today's digest — Top 3 of the month matches the leaderboard ("YOU" label).
+- Carousels, scrolling and counters — instant with "Reduce motion".
+- Pinned badges — two pins in quick succession no longer overwrite each other.
+- My profile — weekdays and durations in the app's language.
+- My profile — "Favorite day": always 7 bars after a language change.
+- Numbers — written in the app's language, no longer the browser's.
+- Levels — level 1 everywhere from 0 XP, the bar moves right away.
+- "+" button — announced by screen readers (unread messages), menu reachable by keyboard.
+- Phone tab bar — full labels on small screens.
+- "+" button and its chat — now stay below open windows.
 - Sign-in — the browser fills in the saved username and password.
 - Sign-in — animations stop with "Reduce motion".
 - Sign-in — a double press no longer opens two sessions, Enter retries after a refusal.

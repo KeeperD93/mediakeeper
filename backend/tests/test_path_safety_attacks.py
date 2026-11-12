@@ -1,8 +1,8 @@
 """Path-traversal attack coverage for every central path validator.
 
 CodeQL flags 70 ``py/path-injection`` sinks across the backend because
-it cannot trace validation through helper functions. The audit
-(2026-05-22) confirmed each one is in fact gated by one of:
+it cannot trace validation through helper functions. Each one is in
+fact gated by one of:
 
 * :func:`services.path_config.validate_path_in_roots`
 * :func:`services.media_manager._paths._validate_path`
@@ -123,7 +123,7 @@ def test_validate_rejects_double_dot_inside_resolved_path(monkeypatch):
 
 def test_browse_surface_excludes_backup_zone(monkeypatch):
     """The folder browser never exposes the backup zone, even when it lives
-    inside a media root (#399)."""
+    inside a media root."""
     workspace = _make_workspace_tmp("_attack_browse")
     try:
         media_root = workspace / "media"

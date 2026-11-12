@@ -103,7 +103,7 @@ function scroll(dir) {
 
   const visible = Math.max(1, Math.floor(trackRect.width / step))
   const amount = visible * step
-  el.scrollBy({ left: dir * amount, behavior: 'smooth' })
+  el.scrollBy({ left: dir * amount })
 }
 
 // Recompute scroll state when the track resizes (window resize, hero

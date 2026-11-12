@@ -10,6 +10,7 @@ from sqlalchemy import select
 
 from models.portal.achievement import UserAchievement
 from models.portal.xp_ledger import XpLedger
+from models.user import User
 from services.portal.achievements import seed_achievements
 from services.portal.xp import xp_for_level
 from tests._portal_profile_helpers import (
@@ -59,20 +60,17 @@ async def test_debug_achievements_reports_computed_meta_threshold(client, db_ses
 async def test_grant_xp_positive_levels_up(client, db_session):
     await _admin_client(client, db_session)
     target, tp = await make_portal_user(db_session, username="alice")
-    tp.xp = 0
-    tp.level = 0
-    db_session.add(tp)
-    await db_session.commit()
+    assert (tp.level, tp.xp) == (1, 0)  # a new profile, as the server creates it
 
     resp = await client.post(
         "/api/portal/admin/debug/grant-xp",
-        json={"user_id": target.id, "amount": 250, "note": "boost"},
+        json={"user_id": target.id, "amount": 350, "note": "boost"},
     )
     assert resp.status_code == 200, resp.text
     body = resp.json()
-    assert body["xp"] == 250
-    # xp_for_level(1)=100, xp_for_level(2)=300 → 250 XP lands at level 1.
-    assert body["level"] == 1
+    assert body["xp"] == 350
+    # Level 2 starts at xp_for_level(2) = 300.
+    assert body["level"] == 2
     assert body["leveled_up"] is True
 
     ledger = (await db_session.execute(
@@ -95,6 +93,7 @@ async def test_grant_xp_negative_clamps_to_zero(client, db_session):
     )
     assert resp.status_code == 200
     assert resp.json()["xp"] == 0
+    assert resp.json()["level"] == 1  # back to the start, never below it
 
 
 @pytest.mark.asyncio
@@ -155,6 +154,34 @@ async def test_set_level_can_demote(client, db_session):
     body = resp.json()
     assert body["level"] == 5
     assert body["xp"] == xp_for_level(5)
+
+
+@pytest.mark.asyncio
+async def test_set_level_refuses_level_0(client, db_session):
+    await _admin_client(client, db_session)
+    target, _ = await make_portal_user(db_session, username="alice")
+
+    resp = await client.post(
+        "/api/portal/admin/debug/set-level",
+        json={"user_id": target.id, "level": 0},
+    )
+    assert resp.status_code == 422
+
+
+@pytest.mark.asyncio
+async def test_set_level_1_brings_xp_back_to_0(client, db_session):
+    await _admin_client(client, db_session)
+    target, tp = await make_portal_user(db_session, username="alice")
+    tp.xp = 20
+    db_session.add(tp)
+    await db_session.commit()
+
+    resp = await client.post(
+        "/api/portal/admin/debug/set-level",
+        json={"user_id": target.id, "level": 1},
+    )
+    assert resp.status_code == 200, resp.text
+    assert resp.json() == {"xp": 0, "level": 1, "delta": -20}
 
 
 # ─── achievements ──────────────────────────────────────────────────────
@@ -232,6 +259,20 @@ async def test_debug_users_picker_includes_admin(client, db_session):
 
 
 @pytest.mark.asyncio
+async def test_debug_users_picker_shows_level_1_without_profile(client, db_session):
+    await _admin_client(client, db_session)
+    db_session.add(User(
+        username="bob", hashed_password="x", is_active=True, must_change_password=False,
+    ))
+    await db_session.commit()
+
+    resp = await client.get("/api/portal/admin/debug/users")
+    assert resp.status_code == 200
+    bob = next(it for it in resp.json()["items"] if it["username"] == "bob")
+    assert bob["level"] == 1
+
+
+@pytest.mark.asyncio
 async def test_debug_achievements_catalogue(client, db_session):
     await _admin_client(client, db_session)
     resp = await client.get("/api/portal/admin/debug/achievements")
@@ -244,7 +285,7 @@ async def test_debug_achievements_catalogue(client, db_session):
         assert key in sample
 
 
-# ─── audit trail (#418) ────────────────────────────────────────────────
+# ─── audit trail ───────────────────────────────────────────────────────
 
 
 @pytest.mark.asyncio

@@ -68,7 +68,7 @@
                           {{ $t('requestsAdmin.users.drawerEmby.disabledBadge') }}
                         </RuUserBadge>
                         <span v-if="u.last_login_date">
-                          {{ $t('requestsAdmin.users.labels.lastLogin') }}:
+                          {{ $t('requestsAdmin.users.labels.lastLogin') }}
                           {{ fmt(u.last_login_date) }}
                         </span>
                       </span>

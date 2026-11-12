@@ -24,10 +24,13 @@ async def pin_badge(db: AsyncSession, user_id: int, achievement_id: str) -> bool
     if not ua or not ua.unlocked:
         return False
 
+    # populate_existing: the route already holds this profile, and the lock
+    # alone would leave its older badge list in place to be overwritten.
     profile = (await db.execute(
         select(UserProfile)
         .where(UserProfile.user_id == user_id)
         .with_for_update()
+        .execution_options(populate_existing=True)
     )).scalar_one_or_none()
     if not profile:
         return False
@@ -49,10 +52,12 @@ async def pin_badge(db: AsyncSession, user_id: int, achievement_id: str) -> bool
 
 async def unpin_badge(db: AsyncSession, user_id: int, achievement_id: str) -> bool:
     """Unpin a badge from profile. Idempotent under concurrent edits."""
+    # Same reload as in pin_badge.
     profile = (await db.execute(
         select(UserProfile)
         .where(UserProfile.user_id == user_id)
         .with_for_update()
+        .execution_options(populate_existing=True)
     )).scalar_one_or_none()
     if not profile:
         return False

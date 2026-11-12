@@ -96,7 +96,7 @@ async def test_subtitle_search_rejects_file_path_outside_roots_before_hash(
 @pytest.mark.asyncio
 async def test_download_subtitle_aborts_when_body_exceeds_cap(monkeypatch):
     """A subtitle body larger than MAX_SUBTITLE_BYTES is refused mid-stream
-    and never written to disk (#402)."""
+    and never written to disk."""
     from types import SimpleNamespace
 
     root = _make_workspace_tmp()
@@ -143,7 +143,7 @@ async def test_download_subtitle_aborts_when_body_exceeds_cap(monkeypatch):
 @pytest.mark.asyncio
 async def test_download_subtitle_writes_file_and_reports_size(monkeypatch):
     """A sub-cap download writes the file and returns success with the right
-    size — guards the streamed-read size accounting (#402): the size must come
+    size — guards the streamed-read size accounting: the size must come
     from the accumulated buffer, not the closed streaming response."""
     from types import SimpleNamespace
 

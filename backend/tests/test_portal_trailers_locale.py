@@ -1,6 +1,6 @@
 """Trailer endpoints follow the viewer's active locale (X-MK-Locale), not the
 stored profile language: the random carousel localizes its item titles and
-both endpoints query the trailer cascade in the viewer's language (#288)."""
+both endpoints query the trailer cascade in the viewer's language."""
 from __future__ import annotations
 
 import pytest
@@ -26,7 +26,7 @@ async def test_resolve_uses_request_locale(client, db_session, monkeypatch):
 
     monkeypatch.setattr("api.portal.trailers.resolve_trailers", _fake)
     r = await client.get(
-        "/api/portal/trailers/resolve?media_type=movie&tmdb_id=603",
+        "/api/portal/trailers/resolve?media_type=movie&tmdb_id=900001",
         headers={"X-MK-Locale": "en"},
     )
     assert r.status_code == 200, r.text
@@ -43,7 +43,7 @@ async def test_resolve_defaults_without_header(client, db_session, monkeypatch):
         return []
 
     monkeypatch.setattr("api.portal.trailers.resolve_trailers", _fake)
-    r = await client.get("/api/portal/trailers/resolve?media_type=movie&tmdb_id=603")
+    r = await client.get("/api/portal/trailers/resolve?media_type=movie&tmdb_id=900001")
     assert r.status_code == 200, r.text
     assert captured["lang"] == "fr"  # no header -> instance default locale
 

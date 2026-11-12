@@ -74,7 +74,7 @@ async def _make_user(db, username: str, *, role: str = "viewer") -> User:
 
 @pytest.mark.parametrize("value", [
     "Mon top 100",
-    "Studio Ghibli",
+    "Sample Studio",
     "1999",
     "",
     None,

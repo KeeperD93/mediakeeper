@@ -1,6 +1,6 @@
 """The Top 20 of the month is a single shared (global) ranking, but its item
 titles are re-resolved to each viewer's locale at read time — the cached base
-payload never leaks one viewer's language to another (#288)."""
+payload never leaks one viewer's language to another."""
 from __future__ import annotations
 
 import pytest

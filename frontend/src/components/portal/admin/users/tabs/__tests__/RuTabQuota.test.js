@@ -1,5 +1,5 @@
 /**
- * Covers the #447 guard: a blank required numeric field must disable Save (no
+ * Covers the Save guard: a blank required numeric field must disable Save (no
  * silent backend rejection), in both manual (max_allowed) and auto (auto_min/
  * auto_max) modes, while a valid form still saves the expected payload.
  */
@@ -42,7 +42,7 @@ beforeEach(() => {
   showToast.mockReset()
 })
 
-describe('RuTabQuota — blank-field save guard (#447)', () => {
+describe('RuTabQuota — blank-field save guard', () => {
   it('disables Save when the manual cap is cleared', async () => {
     const w = mountTab({ ...BASE, mode: QUOTA_MODE.MANUAL })
     await flushPromises()

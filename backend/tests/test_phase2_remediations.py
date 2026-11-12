@@ -133,7 +133,7 @@ async def test_onboarding_folders_are_optional_and_status_reflects_db(client, ad
 @pytest.mark.asyncio
 async def test_onboarding_status_rejects_deactivated_admin(client, admin_user, db_session):
     """A deactivated admin's still-valid JWT can no longer read setup state —
-    /status mirrors get_current_user's live checks (#393)."""
+    /status mirrors get_current_user's live checks."""
     client.cookies.set("mk_token", create_access_token({"sub": admin_user.username, "scope": "admin"}))
 
     active = await client.get("/api/onboarding/status")
@@ -181,7 +181,7 @@ async def test_settings_tools_mask_secrets_and_preserve_partial_updates(client, 
 @pytest.mark.asyncio
 async def test_save_tool_rejects_unsafe_public_url(client, admin_user):
     """A javascript: public_url is rejected at the write edge — it would
-    otherwise be re-served verbatim into "Watch on Emby" deep-links (#380)."""
+    otherwise be re-served verbatim into "Watch on Emby" deep-links."""
     client.cookies.set("mk_token", create_access_token({"sub": admin_user.username, "scope": "admin"}))
 
     resp = await client.post("/api/settings/tools/emby", json={
@@ -195,7 +195,7 @@ async def test_save_tool_rejects_unsafe_public_url(client, admin_user):
 
 @pytest.mark.asyncio
 async def test_save_tool_accepts_valid_public_url(client, admin_user, db_session):
-    """A valid https public_url is stored intact (#380)."""
+    """A valid https public_url is stored intact."""
     client.cookies.set("mk_token", create_access_token({"sub": admin_user.username, "scope": "admin"}))
 
     resp = await client.post("/api/settings/tools/emby", json={

@@ -1,4 +1,4 @@
-"""Hot-path admin/stats logs record ids, never the username (PII) (#381)."""
+"""Hot-path admin/stats logs record ids, never the username (PII)."""
 import logging
 
 import pytest
@@ -9,7 +9,7 @@ from core.security import create_access_token
 @pytest.mark.asyncio
 async def test_stats_user_hide_log_omits_username(client, admin_user, caplog):
     """The stats admin-action log records the admin's id, never the username
-    (Emby login = PII) on these endpoints (#381)."""
+    (Emby login = PII) on these endpoints."""
     client.cookies.set(
         "mk_token", create_access_token({"sub": admin_user.username, "scope": "admin"}),
     )

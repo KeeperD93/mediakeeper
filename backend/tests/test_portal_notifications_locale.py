@@ -1,5 +1,5 @@
 """Bell notifications re-resolve media titles (request_*/ticket_*) to the
-reader's locale at read time; non-media notifs (events) are left untouched (#288)."""
+reader's locale at read time; non-media notifs (events) are left untouched."""
 from __future__ import annotations
 
 import pytest
@@ -27,24 +27,24 @@ def _patch_localize(monkeypatch):
 async def test_request_notification_title_localized_on_read(db_session, monkeypatch):
     user, _ = await make_portal_user(db_session, username="notif-a", display_name="V", role="viewer")
     await notif_svc.create(db_session, user.id, "request_approved", {
-        "tmdb_id": 603, "media_type": "movie", "title": "Matrice", "request_id": 1,
+        "tmdb_id": 900001, "media_type": "movie", "title": "Film Exemple", "request_id": 1,
     })
     _patch_localize(monkeypatch)
 
     result = await notif_svc.list_for_user(db_session, user.id, locale="en")
-    assert result["items"][0]["payload"]["title"] == "T603 [en]"
+    assert result["items"][0]["payload"]["title"] == "T900001 [en]"
 
 
 @pytest.mark.asyncio
 async def test_ticket_notification_title_localized_on_read(db_session, monkeypatch):
     user, _ = await make_portal_user(db_session, username="notif-b", display_name="V", role="viewer")
     await notif_svc.create(db_session, user.id, "ticket_replied", {
-        "ticket_id": 7, "title": "Trône", "tmdb_id": 1399, "media_type": "series",
+        "ticket_id": 7, "title": "Série Exemple", "tmdb_id": 900002, "media_type": "series",
     })
     _patch_localize(monkeypatch)
 
     result = await notif_svc.list_for_user(db_session, user.id, locale="en")
-    assert result["items"][0]["payload"]["title"] == "T1399 [en]"
+    assert result["items"][0]["payload"]["title"] == "T900002 [en]"
 
 
 @pytest.mark.asyncio
@@ -64,12 +64,12 @@ async def test_non_media_notification_untouched(db_session, monkeypatch):
 async def test_default_locale_is_noop(db_session, monkeypatch):
     user, _ = await make_portal_user(db_session, username="notif-d", display_name="V", role="viewer")
     await notif_svc.create(db_session, user.id, "request_approved", {
-        "tmdb_id": 603, "media_type": "movie", "title": "Matrice", "request_id": 1,
+        "tmdb_id": 900001, "media_type": "movie", "title": "Film Exemple", "request_id": 1,
     })
     _patch_localize(monkeypatch)
 
     result = await notif_svc.list_for_user(db_session, user.id, locale="fr")
-    assert result["items"][0]["payload"]["title"] == "Matrice"
+    assert result["items"][0]["payload"]["title"] == "Film Exemple"
 
 
 @pytest.mark.asyncio

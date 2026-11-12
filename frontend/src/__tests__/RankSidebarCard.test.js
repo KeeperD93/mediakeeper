@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { mount } from '@vue/test-utils'
 import RankSidebarCard from '@/components/portal/profile/RankSidebarCard.vue'
+import SettingsHero from '@/components/portal/settings/SettingsHero.vue'
 
 const baseProps = {
   rankTier: 'bronze',
@@ -76,5 +77,22 @@ describe('RankSidebarCard ranking block', () => {
     expect(w.find('.gc-ranking-move').exists()).toBe(false)
     expect(w.find('.gc-ranking-pct-bar').exists()).toBe(false)
     expect(w.find('.gc-ranking-pct-text').exists()).toBe(false)
+  })
+})
+
+describe('RankSidebarCard level bar without a threshold', () => {
+  const newcomer = { display_name: 'Alice', avatar_url: null, xp: 50, level: 1 }
+
+  it('reads up to the level 2 threshold of a player starting at 0 XP', () => {
+    const w = makeWrapper(newcomer, { nextLevelXp: undefined })
+    expect(w.find('.gc-xp-text').text()).toBe('50 / 300 XP')
+  })
+
+  it('keeps that threshold inside the settings hero', () => {
+    const w = mount(SettingsHero, {
+      props: { profileData: newcomer },
+      global: { stubs: { MkAvatar: true } },
+    })
+    expect(w.find('.gc-xp-text').text()).toBe('50 / 300 XP')
   })
 })

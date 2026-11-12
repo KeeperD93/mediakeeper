@@ -1,4 +1,5 @@
-"""A trophy row another check committed meanwhile is taken over, not inserted twice."""
+"""A trophy row another check committed meanwhile is taken over, not inserted twice,
+and an unlock is saved even when its XP was granted before."""
 import pytest
 from sqlalchemy import func, insert, select
 from sqlalchemy.exc import IntegrityError
@@ -9,6 +10,7 @@ from services.portal.achievements_utils import (
     _load_user_achievement_map,
     update_progress,
 )
+from services.portal.admin_debug import admin_lock_achievement
 from tests._portal_profile_helpers import make_portal_user
 
 TROPHY = "test_trophy"
@@ -77,3 +79,21 @@ async def test_an_insert_that_is_no_duplicate_still_fails_and_leaves_the_session
 
     assert ua_map == {}
     assert await _rows(db_session, user_id) == 0
+
+
+@pytest.mark.asyncio
+async def test_a_trophy_earned_again_after_a_reset_is_saved_without_a_new_grant(db_session):
+    user_id, ua_map = await _player_with_stale_map(db_session, committed_meanwhile=None)
+    await update_progress(db_session, user_id, TROPHY, new_value=1, ua_map=ua_map)
+    # The debug tools' reset drops the row but keeps the trophy's XP in the ledger.
+    await admin_lock_achievement(db_session, user_id, TROPHY)
+
+    ua_map = await _load_user_achievement_map(db_session, user_id)
+    again = await update_progress(db_session, user_id, TROPHY, new_value=1, ua_map=ua_map)
+    await db_session.rollback()  # what a check that fails afterwards does
+
+    assert again["achievement_id"] == TROPHY
+    assert await db_session.scalar(select(UserAchievement.unlocked).where(
+        UserAchievement.user_id == user_id, UserAchievement.achievement_id == TROPHY,
+    )) is True
+    assert await _xp_grants(db_session, user_id) == 1

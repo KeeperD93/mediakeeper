@@ -1,5 +1,5 @@
 """Localized TMDB season/episode detail helpers: region-expand the locale and
-cascade to English on a blank overview (#288 Discord notifications)."""
+cascade to English on a blank overview (used by Discord notifications)."""
 from __future__ import annotations
 
 import pytest
@@ -42,10 +42,10 @@ def _wire(monkeypatch, payloads):
 
 @pytest.mark.asyncio
 async def test_episode_detail_expands_region(monkeypatch, db_session):
-    client = _wire(monkeypatch, [{"name": "Ozymandias", "overview": "Synopsis"}])
-    out = await tmdb_episode.get_episode_detail(1396, 5, 14, db_session, locale="en")
+    client = _wire(monkeypatch, [{"name": "Sample Episode", "overview": "Synopsis"}])
+    out = await tmdb_episode.get_episode_detail(900002, 5, 14, db_session, locale="en")
     assert client.langs == ["en-US"]
-    assert out == {"name": "Ozymandias", "overview": "Synopsis"}
+    assert out == {"name": "Sample Episode", "overview": "Synopsis"}
 
 
 @pytest.mark.asyncio
@@ -54,7 +54,7 @@ async def test_episode_detail_cascades_en_on_blank_overview(monkeypatch, db_sess
         {"name": "Titre", "overview": ""},
         {"name": "Title", "overview": "EN synopsis"},
     ])
-    out = await tmdb_episode.get_episode_detail(1396, 5, 14, db_session, locale="de")
+    out = await tmdb_episode.get_episode_detail(900002, 5, 14, db_session, locale="de")
     assert client.langs == ["de-DE", "en-US"]  # region-expanded, then EN cascade
     assert out["overview"] == "EN synopsis"
     assert out["name"] == "Titre"  # name stays from the requested locale call
@@ -63,7 +63,7 @@ async def test_episode_detail_cascades_en_on_blank_overview(monkeypatch, db_sess
 @pytest.mark.asyncio
 async def test_season_detail_expands_region(monkeypatch, db_session):
     client = _wire(monkeypatch, [{"name": "Saison 1", "overview": "o"}])
-    out = await tmdb_episode.get_season_detail(1396, 1, db_session, locale="en")
+    out = await tmdb_episode.get_season_detail(900002, 1, db_session, locale="en")
     assert client.langs == ["en-US"]
     assert out["name"] == "Saison 1"
 
@@ -74,5 +74,5 @@ async def test_detail_empty_without_key(monkeypatch, db_session):
         return ""
 
     monkeypatch.setattr(tmdb_episode, "_get_tmdb_key", _no_key)
-    out = await tmdb_episode.get_season_detail(1396, 1, db_session, locale="en")
+    out = await tmdb_episode.get_season_detail(900002, 1, db_session, locale="en")
     assert out == {}

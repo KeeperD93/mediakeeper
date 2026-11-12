@@ -22,9 +22,9 @@ async def check_standard(
     user_filter,
     excl_filters: list,
     playback_rows: list | None,
-) -> list[dict]:
-    """Run all tiered checks. Returns list of newly unlocked achievement dicts."""
-    unlocks: list[dict] = []
+    unlocks: list[dict],
+) -> None:
+    """Run all tiered checks. Appends each newly unlocked achievement dict to ``unlocks``."""
 
     async def _apply(cond_type: str, value: int):
         if cond_type not in by_type:
@@ -136,5 +136,3 @@ async def check_standard(
             known_libraries = watched_libraries
         val = 1 if known_libraries and known_libraries.issubset(watched_libraries) else 0
         await _apply("library_explorer", val)
-
-    return unlocks

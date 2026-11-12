@@ -5,7 +5,10 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
 import { defineComponent, h } from 'vue'
 import { mount } from '@vue/test-utils'
-import { usePrefersReducedMotion } from '@/composables/usePrefersReducedMotion'
+import {
+  prefersReducedMotion,
+  usePrefersReducedMotion,
+} from '@/composables/usePrefersReducedMotion'
 
 function mountWith() {
   let reduced
@@ -50,5 +53,28 @@ describe('usePrefersReducedMotion', () => {
 
     expect(reduced.value).toBe(false)
     w.unmount()
+  })
+})
+
+describe('prefersReducedMotion', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals()
+  })
+
+  it('reads the setting at the moment it is asked', () => {
+    const mql = { matches: true }
+    vi.stubGlobal(
+      'matchMedia',
+      vi.fn(() => mql),
+    )
+
+    expect(prefersReducedMotion()).toBe(true)
+    mql.matches = false
+    expect(prefersReducedMotion()).toBe(false)
+    expect(window.matchMedia).toHaveBeenCalledWith('(prefers-reduced-motion: reduce)')
+  })
+
+  it('is false where matchMedia does not exist', () => {
+    expect(prefersReducedMotion()).toBe(false)
   })
 })

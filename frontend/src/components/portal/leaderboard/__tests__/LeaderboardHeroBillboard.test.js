@@ -10,7 +10,8 @@ import { mount } from '@vue/test-utils'
 
 import LeaderboardHeroBillboard from '@/components/portal/leaderboard/LeaderboardHeroBillboard.vue'
 
-vi.mock('vue-i18n', () => ({
+vi.mock('vue-i18n', async importOriginal => ({
+  ...(await importOriginal()),
   useI18n: () => ({ t: key => key }),
 }))
 

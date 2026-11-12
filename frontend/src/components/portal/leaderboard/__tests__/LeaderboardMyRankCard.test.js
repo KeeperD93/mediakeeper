@@ -7,7 +7,8 @@ import { mount } from '@vue/test-utils'
 
 import LeaderboardMyRankCard from '@/components/portal/leaderboard/LeaderboardMyRankCard.vue'
 
-vi.mock('vue-i18n', () => ({
+vi.mock('vue-i18n', async importOriginal => ({
+  ...(await importOriginal()),
   useI18n: () => ({ t: key => key }),
 }))
 

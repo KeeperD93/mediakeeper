@@ -1,5 +1,5 @@
 """Discord webhook test previews use the sample set matching the webhook
-language, with parity between the FR and EN sample dicts (#288)."""
+language, with parity between the FR and EN sample dicts."""
 from services.discord._samples import (
     SAMPLE_DATA,
     SAMPLE_DATA_EN,

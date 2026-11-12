@@ -49,7 +49,7 @@ def _value(tier: AchievementInfo, owned: set[str], holdings: Holdings) -> int:
         return len(others)
     if tier.condition_type == _VETERAN:
         lost = sum(holdings.ledger.get(a, 0) for a in holdings.held - others)
-        return level_from_xp(max(0, holdings.xp - lost)) or 1
+        return level_from_xp(max(0, holdings.xp - lost))
     if tier.condition_type == _META:
         target = META_TARGET_CATEGORY.get(tier.id)
         return sum(a in others for a in achievements_for_category(target)) if target else 0

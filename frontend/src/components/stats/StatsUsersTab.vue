@@ -168,7 +168,7 @@
                 }}
               </td>
               <td class="dt-sec">{{ u.last_device || '—' }}</td>
-              <td class="dt-r dt-bold">{{ (u.play_count || 0).toLocaleString() }}</td>
+              <td class="dt-r dt-bold">{{ localizedNumber(u.play_count || 0) }}</td>
               <td class="dt-r dt-sec">{{ ticksToDuration(u.total_ticks) }}</td>
               <td class="dt-r dt-accent">{{ u.last_seen ? timeAgo(u.last_seen) : '—' }}</td>
             </tr>
@@ -254,6 +254,7 @@ import { useStatsUsers } from '@/composables/useStatsUsers'
 import MkAvatar from '@/components/common/MkAvatar.vue'
 import MkButton from '@/components/common/MkButton.vue'
 import { sortArrow, sortArrowClass } from '@/components/stats/statsTableUtils'
+import { localizedNumber } from '@/utils/localizedNumber'
 import { ChevronLeft, ChevronRight, ChevronsLeft, Clock, EyeOff } from 'lucide-vue-next'
 import '@/assets/styles/stats-tables.css'
 

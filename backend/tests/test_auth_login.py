@@ -341,7 +341,7 @@ async def test_portal_login_emby_user_survives_xp_rollback(client, db_session):
 @pytest.mark.asyncio
 async def test_login_unknown_user_still_runs_bcrypt(client):
     """An unknown username must still trigger a bcrypt verify so the response
-    time can't reveal whether the account exists (timing oracle, #386)."""
+    time can't reveal whether the account exists (timing oracle)."""
     from unittest.mock import MagicMock
 
     spy = MagicMock(return_value=False)

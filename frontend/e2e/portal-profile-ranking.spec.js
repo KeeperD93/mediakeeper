@@ -8,6 +8,7 @@ import {
   mockAuthenticatedPortal,
   portalSettingsHandlers,
 } from './_fixtures/portal-auth-mocks.js'
+import { fontsLoaded } from './_fixtures/portal-profile-ranking.js'
 
 const MIN_NAME_WIDTH = 100
 
@@ -63,6 +64,7 @@ async function expectRowsReadable(page, width) {
   await page.goto('/portal/me')
   await expect(page.locator('.gc-lb-box .gc-lb-row')).toHaveCount(LEADERBOARD.length)
   await expect(page.locator('.gc-lb-box .gc-lb-tier').first()).toContainText('Niveau 50')
+  await fontsLoaded(page)
 
   const rows = await page.locator('.gc-lb-box .gc-lb-row').evaluateAll(elements =>
     elements.map(row => {

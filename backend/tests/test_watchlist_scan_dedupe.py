@@ -21,8 +21,8 @@ def _entry(tmdb_id: int, missing: int, name: str = "Series", series_id: str = "i
 
 def test_dedupe_collapses_duplicate_tmdb_ids():
     series = [
-        _entry(42, missing=5, name="Hell's Paradise", series_id="emby-A"),
-        _entry(42, missing=5, name="Hell's Paradise", series_id="emby-B"),
+        _entry(42, missing=5, name="Sample Show", series_id="emby-A"),
+        _entry(42, missing=5, name="Sample Show", series_id="emby-B"),
         _entry(99, missing=2, name="Other"),
     ]
 

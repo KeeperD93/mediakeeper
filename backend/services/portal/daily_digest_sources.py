@@ -30,7 +30,7 @@ from services.portal.exclusions import get_exclusion_filters
 from services.portal.personal_utils import _playback_user_filter
 from services.portal.profile_stats_playback import compute_streak
 from services.portal.achievements_profile import get_achievements_for_profile
-from services.portal.xp import MAX_LEVEL, xp_for_level
+from services.portal.xp import MAX_LEVEL, MIN_LEVEL, level_floor_xp, xp_for_level
 
 logger = logging.getLogger("mediakeeper.portal.daily_digest")
 
@@ -183,15 +183,14 @@ async def current_streak(db: AsyncSession, user: User, profile: UserProfile) -> 
 async def ranking_snapshot(
     db: AsyncSession, user: User, *, lang: str = "fr"
 ) -> dict:
-    """Rank + slimmed top-3 slice for the digest's mini-leaderboard widget."""
+    """Rank + slimmed top-3 slice for the digest's monthly ranking card."""
     try:
         r = await compute_ranking(db, user, zone=await get_instance_zone(db), lang=lang)
     except Exception as e:  # noqa: BLE001
         logger.debug("[DIGEST] ranking failed: %s", e)
         return {"position": 0, "total": 0, "movement": 0, "top3": []}
-    # Same shape as the dashboard ``LeaderboardCard`` widget so the
-    # daily-digest top 3 can render through the exact same component
-    # (visual parity with the "Classement de ce mois" widget).
+    # Same row shape as the leaderboard entries, so the digest's top 3 renders
+    # through ``LeaderboardCard`` with the rows of "My profile".
     def _project(entry: dict) -> dict:
         return {
             "rank": entry.get("rank"),
@@ -212,9 +211,8 @@ async def ranking_snapshot(
     full_board = r.get("leaderboard") or []
     top3 = [_project(e) for e in full_board[:3]]
 
-    # Append the current user as a 4th row when they're outside the
-    # podium so the digest mirrors the leaderboard widget's "you sit
-    # here" affordance rather than hiding their position entirely.
+    # Append the current user as a 4th row when they're outside the podium,
+    # as on the leaderboard page, rather than hiding their position entirely.
     if not any(row["is_current_user"] for row in top3):
         me = next((e for e in full_board if e.get("is_current_user")), None)
         if me:
@@ -229,10 +227,10 @@ async def ranking_snapshot(
 
 def level_info(profile: UserProfile) -> dict:
     """Current-level XP progress so the frontend can draw a progress bar."""
-    level = int(getattr(profile, "level", 1) or 1)
+    level = int(getattr(profile, "level", MIN_LEVEL) or MIN_LEVEL)
     xp = int(getattr(profile, "xp", 0) or 0)
     maxed = level >= MAX_LEVEL
-    xp_curr = xp_for_level(level)
+    xp_curr = level_floor_xp(level)
     # At the cap there is no next level: the bar reads full and the next
     # threshold collapses onto the current one (mirrors useProfileXp).
     xp_next = xp_curr if maxed else xp_for_level(level + 1)

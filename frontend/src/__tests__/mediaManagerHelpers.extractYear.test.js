@@ -3,11 +3,11 @@ import { extractYear } from '@/composables/mediaManagerHelpers'
 
 describe('extractYear', () => {
   it('extracts year from "Title (YYYY)" pattern', () => {
-    expect(extractYear('Dune (2023).mkv')).toBe('2023')
+    expect(extractYear('Sample Movie (2023).mkv')).toBe('2023')
   })
 
   it('extracts year from dotted releases', () => {
-    expect(extractYear('Dune.2023.1080p.WEB.mkv')).toBe('2023')
+    expect(extractYear('Sample.Movie.2023.1080p.WEB.mkv')).toBe('2023')
   })
 
   it('extracts year next to bracketed quality tags', () => {

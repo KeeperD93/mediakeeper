@@ -46,9 +46,12 @@ async def check_progression(
     user_filter,
     excl_filters: list,
     playback_rows: list | None,
-) -> list[dict]:
-    """Run leaderboard/level/tickets/watch-hours/events checks. Returns newly unlocked list."""
-    unlocks: list[dict] = []
+    unlocks: list[dict],
+) -> None:
+    """Run leaderboard/level/tickets/watch-hours/events checks.
+
+    Appends each new unlock to ``unlocks``.
+    """
 
     async def _apply(cond_type: str, value: int):
         if cond_type not in by_type:
@@ -244,5 +247,3 @@ async def check_progression(
             select(func.coalesce(func.max(per_list_count.c.cnt), 0))
         )).scalar() or 0
         await _apply("lists_max_items", val)
-
-    return unlocks

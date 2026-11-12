@@ -6,6 +6,7 @@ from pathlib import Path
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from constants.background_jobs import AUDIT_FAILED
 from core.http_client import get_internal_client
 from services.opensubtitles import _normalize_lang
 from services.path_config import get_existing_media_path_roots, validate_path_in_roots
@@ -52,7 +53,7 @@ async def run_audit(
 
     # External subtitle paths come straight from the (trusted-but-fallible)
     # media server. Validate them against the media roots before reading so a
-    # compromised server can't make us read arbitrary files (#401).
+    # compromised server can't make us read arbitrary files.
     media_roots = get_existing_media_path_roots()
 
     cfg = await _get_emby_config(db)
@@ -215,10 +216,10 @@ async def run_audit(
                         "issues": issues,
                     })
 
-    except Exception as e:
-        logger.error("[audit] Error: %s", e)
+    except Exception:
+        logger.exception("[audit] Error")
         _audit_state["running"] = False
-        return {"error": str(e)[:200]}
+        return {"error": AUDIT_FAILED}
 
     _audit_state["running"] = False
     _audit_state["label"] = ""

@@ -22,24 +22,24 @@ describe('groupIgnoredDuplicates', () => {
   })
 
   it('keeps movies as standalone rows', () => {
-    const out = groupIgnoredDuplicates([ep('200_3', 'Inception'), ep('201_2', 'The Matrix')])
+    const out = groupIgnoredDuplicates([ep('200_3', 'Sample Movie'), ep('201_2', 'Test Movie')])
     expect(out).toHaveLength(2)
     expect(out.every(g => g.type === 'movie')).toBe(true)
-    expect(out.map(g => g.name)).toEqual(['Inception', 'The Matrix'])
+    expect(out.map(g => g.name)).toEqual(['Sample Movie', 'Test Movie'])
   })
 
   it('mixes series and movies in input order', () => {
     const out = groupIgnoredDuplicates([
-      ep('1_2', 'Inception'),
+      ep('1_2', 'Sample Movie'),
       ep('2_2', 'My Show - S01E01 - A'),
-      ep('3_2', 'The Matrix'),
+      ep('3_2', 'Test Movie'),
       ep('4_2', 'My Show - S01E02 - B'),
     ])
     expect(out).toHaveLength(3)
-    expect(out[0]).toMatchObject({ type: 'movie', name: 'Inception' })
+    expect(out[0]).toMatchObject({ type: 'movie', name: 'Sample Movie' })
     expect(out[1]).toMatchObject({ type: 'series', name: 'My Show' })
     expect(out[1].eps).toHaveLength(2)
-    expect(out[2]).toMatchObject({ type: 'movie', name: 'The Matrix' })
+    expect(out[2]).toMatchObject({ type: 'movie', name: 'Test Movie' })
   })
 
   it('sorts episodes by season then episode', () => {

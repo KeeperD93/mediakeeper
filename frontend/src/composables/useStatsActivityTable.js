@@ -9,7 +9,7 @@ import { useStatsUI } from '@/composables/useStatsUI'
 //  - GROUPED (sort = date desc, the default): consecutive same-(user, item)
 //    sessions merge into expandable parent rows; cursor paging.
 //  - FLAT (any other sort): individual rows sorted server-side across all
-//    pages (#327); offset paging.
+//    pages; offset paging.
 // Selection works on real session ids, so a grouped parent selects/deletes all
 // of its children at once.
 export function useStatsActivityTable() {

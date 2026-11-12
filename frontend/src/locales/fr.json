@@ -278,8 +278,8 @@
       "title": "À propos",
       "subtitle": "Stack technique et licences open-source.",
       "stackTitle": "Stack technique",
-      "backendLabel": "Backend",
-      "frontendLabel": "Frontend",
+      "backendLabel": "Backend :",
+      "frontendLabel": "Frontend :",
       "licensesTitle": "Licences open-source",
       "ffmpegText": "MediaKeeper utilise des outils du projet FFmpeg sous licence LGPLv2.1+. Voir",
       "dependenciesText": "Voir requirements.txt et package.json pour l'arborescence complète des dépendances open-source sur",
@@ -323,17 +323,6 @@
     "updateAvailableTitle": "Nouvelle version v{version} disponible — voir les notes de version sur GitHub"
   },
   "toastModule": {
-    "dashboard": "Tableau de bord",
-    "statistics": "Statistiques",
-    "manager": "Gestionnaire",
-    "notifications": "Notifications",
-    "logs": "Journaux",
-    "health": "Santé",
-    "tracking": "Suivi",
-    "duplicates": "Doublons",
-    "subtitles": "Sous-titres",
-    "settings": "Paramètres",
-    "changelog": "Journal des modifications",
     "app": "MediaKeeper"
   },
   "topbar": {
@@ -736,7 +725,7 @@
     "migration": "Réparation médiathèques",
     "migrationDesc": "Corrige les lectures affichant un sous-dossier au lieu de la médiathèque (ou sans médiathèque). Appliqué automatiquement au rafraîchissement ; ce bouton force une réparation immédiate.",
     "importBackupDesc": "Importer un backup JSON.",
-    "disabled": "Désactivés",
+    "disabled": "Désactivés :",
     "launch": "Lancer",
     "exclusions": "Exclusions",
     "exclusionsDesc": "Contenus masqués des statistiques.",
@@ -747,6 +736,7 @@
     "exclusionModeLabel": "Type de correspondance",
     "exclusionTitleLabel": "Titre à exclure",
     "exclusionsLoadError": "Impossible de charger les exclusions.",
+    "playbackLoadError": "Impossible de charger les statistiques de lecture.",
     "retry": "Réessayer",
     "importing": "Import en cours…",
     "playsImported": "{n} lecture importée | {n} lectures importées",
@@ -787,6 +777,7 @@
     "seriesLabel": "Séries",
     "episodesLabel": "Épisodes",
     "directPlay": "Direct",
+    "directPlayPct": "Direct : {pct}%",
     "transcodeLabel": "Transcode",
     "otherStream": "Autre",
     "minimapHourTooltip": "{hour}h : {count} lecture | {hour}h : {count} lectures",
@@ -1725,6 +1716,7 @@
     "neverRun": "Jamais exécutée",
     "runCount": "{n} exécution(s)",
     "lastError": "Dernière erreur",
+    "lastErrorDetail": "La dernière exécution a échoué ({type}). Le détail est dans les journaux du serveur.",
     "moreActions": "Autres actions",
     "description": "Description",
     "intervalAmountAria": "Valeur de l'intervalle",
@@ -2105,7 +2097,7 @@
     "preferTrusted": "Préférer les uploaders de confiance",
     "preferHash": "Préférer la correspondance par hash",
     "autoDownload": "Téléchargement automatique",
-    "minScore": "Score minimum",
+    "minScore": "Score minimum :",
     "date": "Date",
     "source": "Source",
     "fileSize": "Taille",
@@ -2127,8 +2119,9 @@
     "lineCount": "Lignes de dialogue",
     "durationCoverage": "Couverture temporelle",
     "encoding": "Encodage",
-    "encodingFixed": "Encodage converti",
+    "encodingFixed": "Encodage converti :",
     "desyncWarning": "Sous-titre potentiellement désynchronisé",
+    "desyncDurations": "(SRT : {srt} / Source : {source})",
     "desyncDelta": "Écart",
     "noDesync": "Synchronisation OK",
     "fixEncoding": "Corriger l'encodage",
@@ -2271,7 +2264,7 @@
         "neverActivated": "Jamais activé",
         "deactivated": "Désactivé",
         "level": "Niveau",
-        "lastLogin": "Dernière connexion",
+        "lastLogin": "Dernière connexion :",
         "expiresOn": "Expire le {at}",
         "expiresInDays": "Expire dans {days} j",
         "expiresInHoursMinutes": "Expire dans {hours} h {minutes} min",
@@ -2748,6 +2741,7 @@
       "wrapped": "Wrapped"
     },
     "chat": "Chat",
+    "chatUnread": "Chat, 1 message non lu | Chat, {n} messages non lus",
     "chatEmpty": "Aucun message",
     "chatPlaceholder": "Écrire un message...",
     "chatReport": "Signaler ce message",
@@ -2994,7 +2988,9 @@
     },
     "nav": {
       "brand": "MediaKeeper",
-      "bottomNav": "Navigation principale"
+      "bottomNav": "Navigation principale",
+      "quickActions": "Actions rapides",
+      "quickActionsUnread": "Actions rapides, 1 message non lu | Actions rapides, {n} messages non lus"
     },
     "avatar": {
       "menu": "Menu du compte",
@@ -3367,8 +3363,8 @@
         "showEpisodes": "Afficher les épisodes de {season}"
       },
       "detail": {
-        "openedAt": "Ouvert le",
-        "updatedAt": "Mise à jour",
+        "openedAt": "Ouvert le :",
+        "updatedAt": "Mise à jour :",
         "changeStatus": "Changer le statut",
         "kind": {
           "movie": "Film",
@@ -4047,7 +4043,7 @@
       "blacklist": {
         "empty": "Aucun média bloqué",
         "rejections": "refus",
-        "requesters": "Demandé par",
+        "requesters": "Demandé par :",
         "unblock": "Débloquer",
         "unblocked": "Média débloqué"
       },

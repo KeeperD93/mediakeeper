@@ -1,4 +1,4 @@
-"""Bounds on collection inputs (#384): oversized lists are rejected at
+"""Bounds on collection inputs: oversized lists are rejected at
 validation time instead of being processed unbounded, and the availability
 fan-out is capped so a large batch can't saturate Emby + TMDB.
 """

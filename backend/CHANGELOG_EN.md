@@ -10,7 +10,19 @@ This section intentionally has no date so it is not shown to users.
 
 ## [Unreleased]
 
+### Changed
+- Dashboard — leaderboard widget matches the Leaderboard page.
+
 ### Fixed
+- Notifications — header names the page, bar lasts as long as the message, full message on small phones.
+- Labels — colons placed right in English and French.
+- Carousels, scrolling and counters — instant with "Reduce motion".
+- Scheduler and alerts — errors summed up by their type, details stay in the logs.
+- Statistics — Tools: removing an exclusion removes the one shown.
+- Statistics — a failed load is reported, the playback cards offer to try again.
+- Debug tools — "Run recheck" also counts trophies granted before an error.
+- Numbers — written in the app's language, no longer the browser's.
+- Levels — level 1 everywhere from 0 XP, the bar moves right away.
 - Sign-in — the browser fills in the saved username and password.
 - Sign-in — animations stop with "Reduce motion".
 - Sign-in — a double press no longer opens two sessions, Enter retries after a refusal.

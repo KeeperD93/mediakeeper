@@ -17,13 +17,13 @@
         <span class="lb-my-rank-stat-label">
           {{ $t(`portal.leaderboard.myRank.xp.${period}`) }}
         </span>
-        <span class="lb-my-rank-stat-value">{{ (stats?.my_xp || 0).toLocaleString() }}</span>
+        <span class="lb-my-rank-stat-value">{{ localizedNumber(stats?.my_xp || 0) }}</span>
       </div>
       <div v-if="stats?.my_delta_week !== null" class="lb-my-rank-stat">
         <span class="lb-my-rank-stat-label">
           {{
             $t('portal.leaderboard.myRank.deltaWeek', {
-              n: (stats?.my_delta_week || 0).toLocaleString(),
+              n: localizedNumber(stats?.my_delta_week || 0),
             })
           }}
         </span>
@@ -42,6 +42,7 @@
 import MkAvatar from '@/components/common/MkAvatar.vue'
 import LeaderboardTrophies from '@/components/portal/leaderboard/LeaderboardTrophies.vue'
 import { LEADERBOARD_PERIOD } from '@/constants/leaderboard'
+import { localizedNumber } from '@/utils/localizedNumber'
 
 defineProps({
   viewerRank: { type: Number, default: null },

@@ -23,6 +23,7 @@ Anti-abuse:
 
 Level curve (quadratic):
   XP_for_level(n) = 50 * n * (n + 1)
+  Level 1   =         0 XP  (the start, see level_floor_xp)
   Level 5   =     1,500 XP  (~2 weeks)
   Level 10  =     5,500 XP  (~2 months)
   Level 20  =    21,000 XP  (~6 months)
@@ -45,6 +46,7 @@ from services.portal.admin_users_constants import SOURCE_EMBY
 
 logger = logging.getLogger("mediakeeper.portal.xp")
 
+MIN_LEVEL = 1
 MAX_LEVEL = 50
 DAILY_REQUEST_XP_CAP = 25
 MIN_WATCH_PERCENT = WATCHED_THRESHOLD
@@ -75,13 +77,18 @@ def achievement_xp_reference(achievement_id: str) -> str:
 
 
 def xp_for_level(level: int) -> int:
-    """Total cumulative XP needed to reach a given level."""
+    """Total cumulative XP needed to reach ``level`` above the first (see ``level_floor_xp``)."""
     return 50 * level * (level + 1)
 
 
+def level_floor_xp(level: int) -> int:
+    """Total XP at which ``level`` starts: 0 for the first level, ``xp_for_level`` above it."""
+    return 0 if level <= MIN_LEVEL else xp_for_level(level)
+
+
 def level_from_xp(total_xp: int) -> int:
-    """Compute level from total cumulative XP."""
-    level = 0
+    """Compute level from total cumulative XP; every player starts at ``MIN_LEVEL``."""
+    level = MIN_LEVEL
     while level < MAX_LEVEL and xp_for_level(level + 1) <= total_xp:
         level += 1
     return level
@@ -180,7 +187,7 @@ async def grant_xp(
     if profile:
         profile.xp = (profile.xp or 0) + xp_amount
         new_level = level_from_xp(profile.xp)
-        leveled_up = new_level > (profile.level or 0)
+        leveled_up = new_level > (profile.level or MIN_LEVEL)
         profile.level = new_level
         db.add(profile)
 
@@ -190,7 +197,7 @@ async def grant_xp(
         "action": action,
         "xp": xp_amount,
         "total_xp": profile.xp if profile else xp_amount,
-        "level": profile.level if profile else 1,
+        "level": profile.level if profile else MIN_LEVEL,
         "leveled_up": leveled_up,
     }
     logger.info("[XP] granted %s XP to user=%s for %s ref=%s", xp_amount, user_id, action, reference)

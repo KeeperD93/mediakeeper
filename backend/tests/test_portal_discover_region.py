@@ -4,7 +4,7 @@
 
 Companion to ``test_portal_discover_locale`` (which checks the right locale
 reaches the service) — these go one layer deeper and assert the exact
-``language`` value sent to TMDB (#288).
+``language`` value sent to TMDB.
 """
 from __future__ import annotations
 
@@ -64,7 +64,7 @@ async def test_collection_expands_region(monkeypatch, db_session):
 @pytest.mark.asyncio
 async def test_media_videos_expands_region(monkeypatch, db_session):
     client = _wire(monkeypatch, discover_lists, {"results": []})
-    await discover_lists.get_media_videos(db_session, "movie", 603, language="en")
+    await discover_lists.get_media_videos(db_session, "movie", 900001, language="en")
     assert client.langs == ["en-US"]
 
 
@@ -100,14 +100,14 @@ async def test_region_expansion_maps_pt_to_br(monkeypatch, db_session):
 @pytest.mark.asyncio
 async def test_search_movie_expands_region(monkeypatch, db_session):
     client = _wire(monkeypatch, tmdb, {"results": []})
-    await tmdb.search_movie("matrix", db_session, language="en")
+    await tmdb.search_movie("sample", db_session, language="en")
     assert client.langs == ["en-US"]
 
 
 @pytest.mark.asyncio
 async def test_search_tv_expands_region(monkeypatch, db_session):
     client = _wire(monkeypatch, tmdb, {"results": []})
-    await tmdb.search_tv("dexter", db_session, language="en")
+    await tmdb.search_tv("test show", db_session, language="en")
     assert client.langs == ["en-US"]
 
 

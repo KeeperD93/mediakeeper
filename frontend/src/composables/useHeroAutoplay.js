@@ -1,13 +1,12 @@
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
-
-const REDUCED_MOTION_QUERY = '(prefers-reduced-motion: reduce)'
+import { usePrefersReducedMotion } from '@/composables/usePrefersReducedMotion'
 
 export function useHeroAutoplay(sessionsRef, intervalMs = 10000) {
+  // Read on mount before the autoplay starts below: its hook runs first.
+  const reduceMotion = usePrefersReducedMotion()
   const idx = ref(0)
   const current = computed(() => sessionsRef.value[idx.value] || {})
   let timer = null
-  let mediaQuery = null
-  const reduceMotion = ref(false)
 
   function clearTimer() {
     if (timer) {
@@ -31,11 +30,6 @@ export function useHeroAutoplay(sessionsRef, intervalMs = 10000) {
     restart()
   }
 
-  function onMotionChange(event) {
-    reduceMotion.value = event.matches
-    restart()
-  }
-
   watch(
     () => sessionsRef.value.length,
     () => {
@@ -43,31 +37,11 @@ export function useHeroAutoplay(sessionsRef, intervalMs = 10000) {
       restart()
     },
   )
+  // Sync: the timer follows each change at once, even one made before a pending flush.
+  watch(reduceMotion, restart, { flush: 'sync' })
 
-  onMounted(() => {
-    if (typeof window !== 'undefined' && typeof window.matchMedia === 'function') {
-      mediaQuery = window.matchMedia(REDUCED_MOTION_QUERY)
-      reduceMotion.value = mediaQuery.matches
-      if (typeof mediaQuery.addEventListener === 'function') {
-        mediaQuery.addEventListener('change', onMotionChange)
-      } else if (typeof mediaQuery.addListener === 'function') {
-        mediaQuery.addListener(onMotionChange)
-      }
-    }
-    restart()
-  })
-
-  onUnmounted(() => {
-    clearTimer()
-    if (mediaQuery) {
-      if (typeof mediaQuery.removeEventListener === 'function') {
-        mediaQuery.removeEventListener('change', onMotionChange)
-      } else if (typeof mediaQuery.removeListener === 'function') {
-        mediaQuery.removeListener(onMotionChange)
-      }
-      mediaQuery = null
-    }
-  })
+  onMounted(restart)
+  onUnmounted(clearTimer)
 
   return { idx, current, goTo, restart }
 }

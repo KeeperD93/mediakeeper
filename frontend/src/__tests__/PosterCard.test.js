@@ -29,7 +29,7 @@ const stubs = {
 
 function mountCard(props = {}) {
   return mount(PosterCard, {
-    props: { title: 'Inception', ...props },
+    props: { title: 'Sample Movie', ...props },
     global: { stubs },
   })
 }
@@ -206,23 +206,23 @@ describe('PosterCard — TMDB rating', () => {
 
 describe('PosterCard — mobile caption', () => {
   it('renders the title and year under the poster', () => {
-    const w = mountCard({ title: 'Dune', year: '2021' })
+    const w = mountCard({ title: 'Test Movie', year: '2022' })
     const info = w.find('.mk-poster__info')
     expect(info.exists()).toBe(true)
-    expect(info.find('.mk-poster__info-title').text()).toBe('Dune')
-    expect(info.find('.mk-poster__info-year').text()).toBe('2021')
+    expect(info.find('.mk-poster__info-title').text()).toBe('Test Movie')
+    expect(info.find('.mk-poster__info-year').text()).toBe('2022')
   })
 
   it('omits the year line when year is absent', () => {
-    const w = mountCard({ title: 'Dune' })
-    expect(w.find('.mk-poster__info-title').text()).toBe('Dune')
+    const w = mountCard({ title: 'Test Movie' })
+    expect(w.find('.mk-poster__info-title').text()).toBe('Test Movie')
     expect(w.find('.mk-poster__info-year').exists()).toBe(false)
   })
 
   it('shows the rating next to the date in the caption', () => {
-    const w = mountCard({ title: 'Dune', year: '2021', rating: 8.4 })
+    const w = mountCard({ title: 'Test Movie', year: '2022', rating: 8.4 })
     const meta = w.find('.mk-poster__info-meta')
-    expect(meta.find('.mk-poster__info-year').text()).toBe('2021')
+    expect(meta.find('.mk-poster__info-year').text()).toBe('2022')
     const r = meta.find('.mk-poster__info-rating')
     expect(r.exists()).toBe(true)
     expect(r.text()).toContain('84%')

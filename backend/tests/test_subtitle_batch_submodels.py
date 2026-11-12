@@ -1,4 +1,4 @@
-"""Typed sub-models for the subtitle batch payloads (#137).
+"""Typed sub-models for the subtitle batch payloads.
 
 ``operations`` / ``items`` were ``list[dict]`` (free-form, no inner
 validation). They are now ``list[<typed sub-model>]`` so a malformed inner
