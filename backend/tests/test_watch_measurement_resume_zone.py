@@ -186,7 +186,7 @@ async def test_a_closed_row_without_its_last_second_proves_nothing():
     reports._last_stored["k"] = reports._LastStored(0, T0)
     closed = SimpleNamespace(library_name="Films", last_seen_at=None, position_ticks=60 * TICK)
     session = emby_session(at=T0 + MIN, position_s=900, runtime_s=1440)
-    assert reports.player_is_lost(session, "k", None, closed, StoredPosition(0, False), T0 + MIN) is False
+    assert reports.judge_player(session, "k", None, closed, StoredPosition(0, False), T0 + MIN).lost is False
 
 
 async def test_library_settings_are_read_when_a_saved_position_was(db_session):

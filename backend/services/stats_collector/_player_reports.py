@@ -11,6 +11,7 @@ import logging
 from collections import Counter, defaultdict
 from dataclasses import dataclass
 from datetime import datetime, timedelta
+from enum import Enum
 
 import httpx
 
@@ -60,6 +61,21 @@ _saving_devices: set[str] = set()
 class StoredPosition:
     ticks: int
     played: bool
+
+
+class Proof(Enum):
+    """What the saved position read now tells of the player, until it proves it plays."""
+
+    SAVED = "saved"  # saved next to the session: the player itself reports
+    AT_ZERO = "at_zero"  # still 0 where the rule of a save left at 0 may yet judge the player lost
+    NONE = "none"  # read, but neither
+
+
+@dataclass(frozen=True)
+class Verdict:
+    lost: bool
+    # None when nothing was read or judged (paused, not a video, failed read).
+    proof: Proof | None = None
 
 
 def title_key(session: dict) -> tuple[str, str]:
@@ -156,6 +172,14 @@ def _left_unsaved(position: int, confirmed: int | None, runtime_ticks: int, libr
     return crossed or deep_in_long_title
 
 
+def _may_be_left_unsaved(runtime_ticks: int, library: str | None) -> bool:
+    """Whether ``_left_unsaved`` can judge this title: Emby saves a resume position, or it is long."""
+    zone = resume_zone(library)
+    if zone is None:
+        return runtime_ticks >= _ZERO_MIN_RUNTIME_TICKS
+    return zone.start_ticks(runtime_ticks) is not None
+
+
 def _moves_like_the_clock(last: _LastStored, ticks: int, now: datetime) -> bool:
     moved = (ticks - last.ticks) / TICKS_PER_SECOND
     return moved > 0 and abs(moved - (now - last.changed_at).total_seconds()) <= _MAX_CLOCK_GAP_SECONDS
@@ -185,24 +209,25 @@ def _learn(
         logger.info("Playback reports confirmed: client %s saves its position in library %s", client, library)
 
 
-def player_is_lost(
+def judge_player(
     session: dict,
     key: str,
     row: PlaybackSession | None,
     previous_row: PlaybackSession | None,
     stored: StoredPosition | None,
     now: datetime,
-) -> bool:
-    """True when this session's position moves without its player.
+) -> Verdict:
+    """Whether this session's position moves without its player, and what proves it plays.
 
     ``row`` is the session's open row, ``previous_row`` its last closed one.
-    Only for an application seen saving its position.
+    Only for an application seen saving its position. Judged before ``_learn``
+    adds to what is known, so both answers read the same state.
     """
     item = session["NowPlayingItem"]
     play_state = session.get("PlayState", {})
     if play_state.get("IsPaused", False) or item.get("Type") not in WATCH_ITEM_TYPES:
         _last_stored.pop(key, None)  # what a pause saves says nothing of the playback
-        return False
+        return Verdict(False)
     reference = row or previous_row
     library = reference.library_name if reference else None
     client = session.get("Client", "")
@@ -213,16 +238,21 @@ def player_is_lost(
         # Nothing read this time proves nothing: a row on hold stays on hold,
         # and a leftover does not open one thanks to a failed read.
         if row is not None:
-            return known and _on_hold(row, now)
+            return Verdict(known and _on_hold(row, now))
         last = _last_stored.get(key)
-        return known and last is not None and _far(position, last.ticks)
+        return Verdict(known and last is not None and _far(position, last.ticks))
     if stored.ticks > 0:
         lost = known and _runs_from_save(position, stored.ticks, row)
+        proof = Proof.NONE if _far(position, stored.ticks) else Proof.SAVED
     else:
-        confirmed = _last_confirmed(row, previous_row, key) if device in _saving_devices else None
-        lost = known and not stored.played and _left_unsaved(position, confirmed, item.get("RunTimeTicks") or 0, library)
+        runtime = item.get("RunTimeTicks") or 0
+        saving = device in _saving_devices
+        confirmed = _last_confirmed(row, previous_row, key) if saving else None
+        judged = known and not stored.played
+        lost = judged and _left_unsaved(position, confirmed, runtime, library)
+        proof = Proof.AT_ZERO if judged and saving and _may_be_left_unsaved(runtime, library) else Proof.NONE
     _learn(key, client, device, library, position, stored, now)
-    return lost
+    return Verdict(lost, proof)
 
 
 def forget_other_sessions(keys: set[str]) -> None:

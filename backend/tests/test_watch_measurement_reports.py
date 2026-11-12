@@ -6,7 +6,7 @@ import pytest
 
 from services.stats_collector import _player_reports as reports
 from services.stats_collector._measure import as_utc
-from services.stats_collector._player_reports import StoredPosition, player_is_lost
+from services.stats_collector._player_reports import StoredPosition, judge_player
 from tests._watch_measurement_helpers import (
     STEP,
     T0,
@@ -103,7 +103,7 @@ async def test_a_saved_position_moving_far_away_proves_nothing_about_the_applica
 async def test_only_a_playing_video_can_be_lost(kw):
     reports._writers.add(("Web", "Films"))
     row = SimpleNamespace(library_name="Films", last_tick_at=T0 - timedelta(minutes=5))
-    assert player_is_lost(emby_session(at=T0, position_s=60, **kw), "k", row, None, None, T0) is False
+    assert judge_player(emby_session(at=T0, position_s=60, **kw), "k", row, None, None, T0).lost is False
 
 
 async def test_a_failed_read_does_not_release_a_held_row(db_session):
@@ -237,7 +237,7 @@ async def test_a_failed_read_does_not_block_a_new_row_without_proof(known, remem
     if remembered is not None:
         reports._last_stored["k"] = reports._LastStored(remembered * TICK, T0)
     closed = SimpleNamespace(library_name="Films")
-    assert player_is_lost(emby_session(at=T0, position_s=5000), "k", None, closed, None, T0) is False
+    assert judge_player(emby_session(at=T0, position_s=5000), "k", None, closed, None, T0).lost is False
 
 
 async def test_an_application_is_only_trusted_in_the_library_where_it_was_seen():
@@ -245,15 +245,15 @@ async def test_an_application_is_only_trusted_in_the_library_where_it_was_seen()
     far_session = emby_session(at=T0, position_s=2100)
     def row(library):
         return SimpleNamespace(library_name=library, watched_seconds=120, position_ticks=2000 * TICK, last_tick_at=T0)
-    assert player_is_lost(far_session, "k", row("Films"), None, StoredPosition(2000 * TICK, False), T0) is True
-    assert player_is_lost(far_session, "k", row("Series"), None, StoredPosition(2000 * TICK, False), T0) is False
+    assert judge_player(far_session, "k", row("Films"), None, StoredPosition(2000 * TICK, False), T0).lost is True
+    assert judge_player(far_session, "k", row("Series"), None, StoredPosition(2000 * TICK, False), T0).lost is False
 
 
 async def test_an_application_is_learned_only_once_its_library_is_known():
     row = SimpleNamespace(library_name=None)
     def report(step):
         at, save = T0 + STEP * 2 * step, 2000 + 10 * step
-        player_is_lost(emby_session(at=at, position_s=save + 1), "k", row, None, StoredPosition(save * TICK, False), at)
+        judge_player(emby_session(at=at, position_s=save + 1), "k", row, None, StoredPosition(save * TICK, False), at)
     for step in range(3):
         report(step)
     assert not reports._writers
