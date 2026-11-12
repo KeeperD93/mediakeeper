@@ -1,18 +1,12 @@
 /**
- * Leaving the page after a sign-in: the button stays busy while the page is left,
- * and is freed when the navigation does not leave it.
+ * Leaving the page after a sign-in, under the real router: the button stays busy
+ * while the page is left, and is freed when the navigation does not leave it.
  */
 import { describe, it, expect, vi, afterEach, beforeEach } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
+import { createRouter, createMemoryHistory, RouterView } from 'vue-router'
 
 vi.mock('vue-i18n', () => ({ useI18n: () => ({ t: key => key }) }))
-
-const pushMock = vi.fn()
-const currentRoute = { value: { name: 'login' } }
-vi.mock('vue-router', () => ({
-  useRoute: () => ({ query: {} }),
-  useRouter: () => ({ push: pushMock, replace: vi.fn(), currentRoute }),
-}))
 
 const loginMock = vi.fn()
 vi.mock('@/composables/useAuth', () => ({
@@ -60,68 +54,115 @@ vi.mock('@/assets/styles/login-view.css', () => ({}))
 import LoginView from '@/views/LoginView.vue'
 
 const PAUSE_OVER = 1000
+const ADMIN = { scope: 'admin', must_change_password: false }
+const PENDING_ADMIN = { scope: 'admin', must_change_password: true }
+const MEMBER = { scope: 'portal' }
 
-async function filledForm() {
-  const w = mount(LoginView)
+// A test can hold a route behind a gate: its guard answers what the gate returns.
+const gates = {}
+const landing = name => ({
+  path: name === 'home' ? '/' : `/${name}`,
+  name,
+  component: { template: `<p>${name}</p>` },
+  beforeEnter: () => gates[name]?.() ?? true,
+})
+
+let router
+let w
+
+async function signInPage() {
+  router = createRouter({
+    history: createMemoryHistory(),
+    routes: [
+      { path: '/login', name: 'login', component: LoginView },
+      landing('home'),
+      landing('portal'),
+    ],
+  })
+  router.push('/login')
+  await router.isReady()
+  w = mount(RouterView, { global: { plugins: [router] } })
   for (let i = 0; i < 10; i++) await flushPromises()
-  await w.find('input[autocomplete="username"]').setValue('someone')
+  await w.find('input[autocomplete="username"]').setValue('Alice')
   await w.find('input[autocomplete="current-password"]').setValue('not-a-real-password')
-  return w
 }
 
-const submit = w => w.find('form').trigger('submit')
+async function submit() {
+  await w.find('form').trigger('submit')
+  await flushPromises()
+}
 
-let consoleError
+const button = () => w.find('button.login-submit')
+
+// A navigation still running until the test lets it through.
+function holdRoute(name) {
+  let open
+  const held = new Promise(resolve => {
+    open = resolve
+  })
+  gates[name] = () => held
+  return () => open(true)
+}
 
 beforeEach(() => {
   vi.useFakeTimers({ toFake: ['Date'] })
   loginMock.mockReset()
-  currentRoute.value = { name: 'login' }
-  // A navigation leaves the page unless a test says otherwise.
-  pushMock.mockReset().mockImplementation(async () => {
-    currentRoute.value = { name: 'portal-home' }
-  })
-  consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
+  for (const name of Object.keys(gates)) delete gates[name]
+  vi.spyOn(console, 'error').mockImplementation(() => {})
+  vi.spyOn(console, 'warn').mockImplementation(() => {})
 })
 
 afterEach(() => {
-  consoleError.mockRestore()
+  w.unmount()
   vi.useRealTimers()
+  vi.restoreAllMocks()
 })
 
 describe('LoginView — leaving the page after a sign-in', () => {
-  it('sends nothing more once a sign-in succeeds, while the page is being left', async () => {
-    loginMock.mockResolvedValue({ scope: 'portal' })
-    const w = await filledForm()
+  it.each([
+    ['an admin', ADMIN, 'home'],
+    ['an admin with a temporary password', PENDING_ADMIN, 'home'],
+    ['a member', MEMBER, 'portal'],
+  ])('keeps the button busy while %s leaves the page', async (_, signedIn, destination) => {
+    const letThrough = holdRoute(destination)
+    loginMock.mockResolvedValue(signedIn)
+    await signInPage()
 
-    await submit(w)
-    await flushPromises()
+    await submit()
+    expect(button().attributes('disabled')).toBeDefined()
     vi.setSystemTime(Date.now() + PAUSE_OVER)
-    await submit(w)
-    await flushPromises()
-
+    await submit()
     expect(loginMock).toHaveBeenCalledTimes(1)
-    expect(pushMock).toHaveBeenCalledExactlyOnceWith('/portal')
-    expect(w.find('button.login-submit').attributes('disabled')).toBeDefined()
+
+    letThrough()
+    await flushPromises()
+    expect(router.currentRoute.value.name).toBe(destination)
   })
 
   it.each([
-    ['fails', () => Promise.resolve(Object.assign(new Error('aborted'), { type: 4 })), false],
-    ['comes back to this page', () => Promise.resolve(), false],
-    ['throws', () => Promise.reject(new Error('unexpected')), true],
-  ])('frees the button when the navigation after a sign-in %s', async (_, navigate, told) => {
-    loginMock.mockResolvedValue({ scope: 'portal' })
-    pushMock.mockImplementationOnce(navigate)
-    const w = await filledForm()
+    ['is stopped by a guard', () => false, false],
+    ['is sent back to this page', () => ({ name: 'login', query: { redirect: '/portal' } }), false],
+    [
+      'throws',
+      () => {
+        throw new Error('unexpected')
+      },
+      true,
+    ],
+  ])('frees the button when the navigation after a sign-in %s', async (_, guard, told) => {
+    gates.portal = guard
+    loginMock.mockResolvedValue(MEMBER)
+    await signInPage()
 
-    await submit(w)
-    await flushPromises()
-    expect(w.find('button.login-submit').attributes('disabled')).toBeUndefined()
+    await submit()
+    expect(router.currentRoute.value.name).toBe('login')
+    expect(button().attributes('disabled')).toBeUndefined()
     expect(w.find('.login-error').exists()).toBe(told)
 
+    delete gates.portal
     vi.setSystemTime(Date.now() + PAUSE_OVER)
-    await submit(w)
-    await flushPromises()
+    await submit()
     expect(loginMock).toHaveBeenCalledTimes(2)
+    expect(router.currentRoute.value.name).toBe('portal')
   })
 })
