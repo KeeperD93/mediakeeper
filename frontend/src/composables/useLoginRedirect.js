@@ -30,8 +30,7 @@ export function useLoginRedirect({ username, remember, errorMsg, loggedOutMsg, s
 
   // Where a signed-in visitor goes: a member to the portal, an admin back where the
   // sign-in was asked for.
-  function destination(isMember) {
-    const redirect = getRedirectTarget()
+  function destination(isMember, redirect = getRedirectTarget()) {
     if (isMember) return redirect.startsWith('/portal') ? redirect : '/portal'
     return redirect || '/'
   }
@@ -135,6 +134,7 @@ export function useLoginRedirect({ username, remember, errorMsg, loggedOutMsg, s
     const justLoggedOut =
       route.query.logged_out === '1' || sessionStorage.getItem(STORAGE_KEYS.JUST_LOGGED_OUT) === '1'
     const sessionExpired = sessionStorage.getItem(STORAGE_KEYS.SESSION_EXPIRED) === '1'
+    // Read once: a sign-in can move the page on while the checks below wait.
     const redirect = getRedirectTarget()
     const isPortalRedirect = redirect.startsWith('/portal')
     const isPortalAdminRedirect = redirect.startsWith('/admin/portal') || isPortalRedirect
@@ -186,7 +186,7 @@ export function useLoginRedirect({ username, remember, errorMsg, loggedOutMsg, s
           /* best-effort — page-level guard will still surface a fresh 401 */
         }
       }
-      router.replace(destination(false))
+      router.replace(destination(false, redirect))
       return
     }
 
@@ -194,7 +194,7 @@ export function useLoginRedirect({ username, remember, errorMsg, loggedOutMsg, s
       const { usePortalAuth } = await import('@/composables/portal/usePortalAuth')
       const ok = await usePortalAuth().checkPortalAuth()
       if (ok) {
-        router.replace(destination(true))
+        router.replace(destination(true, redirect))
         return
       }
     } catch {
