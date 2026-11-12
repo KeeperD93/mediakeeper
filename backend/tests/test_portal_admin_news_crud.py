@@ -172,3 +172,31 @@ async def test_rejection_keeps_the_service_error_as_cause(db_session, route):
 
     assert caught.value.status_code == 400
     assert isinstance(caught.value.__cause__, news_svc.NewsInputError)
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("start_at, end_at, status", [
+    ("2030-01-02T00:00:00", "2030-01-01T00:00:00Z", 400),
+    ("2030-01-01T00:00:00", "2030-01-02T00:00:00Z", 200),
+])
+async def test_a_window_mixing_times_with_and_without_a_zone_is_checked(
+    client, db_session, start_at, end_at, status,
+):
+    """A time without a zone is read as UTC instead of failing the comparison."""
+    _auth(client, await _seed_admin(db_session))
+    r = await client.post("/api/portal/news", json={
+        "title": "Test", "content": "Body", "start_at": start_at, "end_at": end_at,
+    })
+    assert r.status_code == status, r.text
+
+
+@pytest.mark.asyncio
+async def test_one_bound_is_checked_against_the_stored_one_whatever_its_zone(client, db_session):
+    _auth(client, await _seed_admin(db_session))
+    news_id = (await client.post("/api/portal/news", json={
+        "title": "Test", "content": "Body", "start_at": "2030-01-02T00:00:00",
+    })).json()["id"]
+
+    r = await client.put(f"/api/portal/news/{news_id}", json={"end_at": "2030-01-01T00:00:00Z"})
+    assert r.status_code == 400
+    assert r.json() == {"detail": "start_at_must_precede_end_at"}

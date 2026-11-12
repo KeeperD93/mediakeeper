@@ -17,8 +17,13 @@ class NewsInputError(CodedError, ValueError):
     """A rejected admin input; ``code`` is safe to send to the client."""
 
 
+def _as_utc(value: datetime) -> datetime:
+    """A time without a zone is read as UTC, so it compares with one that has a zone."""
+    return value if value.tzinfo else value.replace(tzinfo=timezone.utc)
+
+
 def _validate_window(start_at, end_at) -> None:
-    if start_at is not None and end_at is not None and start_at >= end_at:
+    if start_at is not None and end_at is not None and _as_utc(start_at) >= _as_utc(end_at):
         raise NewsInputError(START_AT_MUST_PRECEDE_END_AT)
 
 
