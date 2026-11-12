@@ -12,7 +12,10 @@ from models.portal.achievement import Achievement, UserAchievement
 from models.portal.profile import UserProfile
 from models.user import User
 from services.portal.achievement_defs import (
-    META_TARGET_CATEGORY, SECONDARY_CATEGORIES, SECRET_THEMES, TIER_NAMES,
+    META_TARGET_CATEGORY,
+    SECONDARY_CATEGORIES,
+    SECRET_THEMES,
+    TIER_NAMES,
     TITLE_REWARDS,
 )
 from services.portal.achievement_defs_constants import PLACEHOLDER_IDS
