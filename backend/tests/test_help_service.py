@@ -215,11 +215,26 @@ async def test_admin_route_never_sends_an_unexpected_error_text(
 
 
 @pytest.mark.asyncio
-async def test_admin_route_rejection_keeps_the_service_error_as_cause(db_session):
-    payload = help_routes.ArticleCreatePayload(category="bogus", title="Test")
+@pytest.mark.parametrize("route", ["create", "metadata update", "translation save"])
+async def test_admin_route_rejection_keeps_the_service_error_as_cause(db_session, route):
+    article = await help_service.create_article(
+        db_session, category="general", title="Test Article", body_html="",
+    )
+    await db_session.commit()
+    calls = {
+        "create": lambda: help_routes.create_article(
+            help_routes.ArticleCreatePayload(category="bogus", title="Test"), db=db_session,
+        ),
+        "metadata update": lambda: help_routes.patch_article(
+            article.id, help_routes.ArticlePatchPayload(category="bogus"), db=db_session,
+        ),
+        "translation save": lambda: help_routes.put_translation(
+            article.id, "xx", help_routes.TranslationPayload(title="Test"), db=db_session,
+        ),
+    }
 
     with pytest.raises(HTTPException) as caught:
-        await help_routes.create_article(payload, db=db_session)
+        await calls[route]()
 
     assert caught.value.status_code == 400
     assert isinstance(caught.value.__cause__, help_service.HelpInputError)

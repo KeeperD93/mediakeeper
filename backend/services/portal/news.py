@@ -6,18 +6,15 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from constants.portal_content import START_AT_MUST_PRECEDE_END_AT
 from models.portal.news import News, NewsRead
+from core.errors import CodedError
 from core.pagination import decode_cursor, build_cursor_response
 from services.portal import strip_tags_and_trim
 
 logger = logging.getLogger("mediakeeper.portal.news")
 
 
-class NewsInputError(ValueError):
+class NewsInputError(CodedError, ValueError):
     """A rejected admin input; ``code`` is safe to send to the client."""
-
-    def __init__(self, code: str) -> None:
-        super().__init__(code)
-        self.code = code
 
 
 def _validate_window(start_at, end_at) -> None:

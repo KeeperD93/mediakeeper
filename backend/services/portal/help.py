@@ -16,6 +16,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from constants.portal_content import INVALID_CATEGORY, INVALID_LANG
+from core.errors import CodedError
 from models.portal.help import HelpArticle, HelpArticleTranslation
 from services.portal.help_content import HELP_SEED
 from services.portal.help_sanitize import resolve_unique_slug, sanitize_html
@@ -31,12 +32,8 @@ DEFAULT_LANG = "fr"
 PURGE_AFTER_DAYS = 30
 
 
-class HelpInputError(ValueError):
+class HelpInputError(CodedError, ValueError):
     """A rejected admin input; ``code`` is safe to send to the client."""
-
-    def __init__(self, code: str) -> None:
-        super().__init__(code)
-        self.code = code
 
 
 # Read paths

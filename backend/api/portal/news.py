@@ -118,7 +118,7 @@ async def create_news(
     try:
         return await news_svc.create_news(db, user.id, data.model_dump())
     except news_svc.NewsInputError as exc:
-        logger.warning("[news] create rejected: %s", exc)
+        logger.warning("[NEWS] create rejected: %s", exc)
         raise HTTPException(status_code=400, detail=exc.code) from exc
 
 
@@ -132,7 +132,7 @@ async def update_news(
     try:
         result = await news_svc.update_news(db, news_id, data.model_dump(exclude_unset=True))
     except news_svc.NewsInputError as exc:
-        logger.warning("[news] update of #%s rejected: %s", news_id, exc)
+        logger.warning("[NEWS] update of #%s rejected: %s", news_id, exc)
         raise HTTPException(status_code=400, detail=exc.code) from exc
     if "error" in result:
         raise HTTPException(status_code=404, detail=result["error"])

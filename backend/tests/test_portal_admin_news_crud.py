@@ -150,12 +150,25 @@ async def test_an_unexpected_error_text_never_reaches_the_client(
 
 
 @pytest.mark.asyncio
-async def test_rejection_keeps_the_service_error_as_cause(db_session):
+@pytest.mark.parametrize("route", ["create", "update"])
+async def test_rejection_keeps_the_service_error_as_cause(db_session, route):
     user, profile = await make_portal_user(db_session, username="news-admin", role="admin")
-    payload = news_routes.CreateNews(title="Test", content="Body", **INVERTED_WINDOW)
+    admin = (user, profile)
+    if route == "create":
+        call = news_routes.create_news(
+            news_routes.CreateNews(title="Test", content="Body", **INVERTED_WINDOW),
+            admin=admin, db=db_session,
+        )
+    else:
+        created = await news_svc.create_news(
+            db_session, user.id, news_routes.CreateNews(title="Test", content="Body").model_dump(),
+        )
+        call = news_routes.update_news(
+            created["id"], news_routes.UpdateNews(**INVERTED_WINDOW), admin=admin, db=db_session,
+        )
 
     with pytest.raises(HTTPException) as caught:
-        await news_routes.create_news(payload, admin=(user, profile), db=db_session)
+        await call
 
     assert caught.value.status_code == 400
     assert isinstance(caught.value.__cause__, news_svc.NewsInputError)
