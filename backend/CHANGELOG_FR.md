@@ -14,6 +14,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Tableau de bord — widget du classement aligné sur la page Classement.
 
 ### Fixed
+- Barre d'XP — même pourcentage dans le résumé du jour et le profil.
 - Notifications — en-tête au nom de la page, barre à la bonne durée, message entier sur petits téléphones.
 - Textes — deux-points à la bonne place en français et en anglais.
 - Carrousels, défilements et compteurs — instantanés avec « Réduire les animations ».
@@ -26,6 +27,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Connexion — le navigateur remplit le nom et le mot de passe enregistrés.
 - Connexion — animations coupées avec « Réduire les animations ».
 - Connexion — un double appui n'ouvre plus deux sessions, Entrée relance après un refus.
+- Statistiques — temps de visionnage : lecture coupée en début de titre plus comptée jusqu'au bout.
 
 ## [1.0.0-rc.10] - 2026-11-11
 
