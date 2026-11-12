@@ -120,10 +120,8 @@ async def test_serialize_falls_back_to_default_lang(db_session):
     assert payload["available_langs"] == ["fr"]
 
 
-# ---------------------------------------------------------------------------
 # Admin payload bounds — body_html is capped to keep a Text column
 # and the response payload from growing without limit.
-# ---------------------------------------------------------------------------
 
 
 def test_article_create_payload_caps_body_html():
