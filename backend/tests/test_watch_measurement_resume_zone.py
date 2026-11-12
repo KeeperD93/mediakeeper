@@ -6,7 +6,17 @@ import pytest
 
 from services.stats_collector import _player_reports as reports
 from services.stats_collector import _resume_zones as zones
-from tests._watch_measurement_helpers import STEP, T0, TICK, completions, emby_session, known_application, poll, rows, saved
+from tests._watch_measurement_helpers import (
+    STEP,
+    T0,
+    TICK,
+    completions,
+    emby_session,
+    known_application,
+    poll,
+    rows,
+    saved,
+)
 
 pytestmark = pytest.mark.asyncio
 MIN = timedelta(minutes=1)
