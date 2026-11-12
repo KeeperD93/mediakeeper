@@ -1,6 +1,6 @@
 """News and announcements system."""
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -19,7 +19,7 @@ class NewsInputError(CodedError, ValueError):
 
 def _as_utc(value: datetime) -> datetime:
     """A time without a zone is read as UTC, so it compares with one that has a zone."""
-    return value if value.tzinfo else value.replace(tzinfo=timezone.utc)
+    return value if value.tzinfo else value.replace(tzinfo=UTC)
 
 
 def _validate_window(start_at, end_at) -> None:
@@ -67,7 +67,7 @@ async def list_news(
     count_q = select(func.count(News.id))
 
     if respect_schedule:
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         active = _active_window_clause(now)
         query = query.where(active)
         count_q = count_q.where(active)
@@ -87,7 +87,7 @@ async def get_unread_news(db: AsyncSession, user_id: int) -> list[dict]:
     Honours the scheduling window so a future-dated or expired post
     never surfaces in the WhatsNew overlay.
     """
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     subq = (
         select(NewsRead.news_id)
         .where(NewsRead.user_id == user_id, NewsRead.dismissed == True)  # noqa: E712
