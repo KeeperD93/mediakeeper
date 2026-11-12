@@ -30,7 +30,9 @@ from services.portal.exclusions import get_exclusion_filters
 from services.portal.personal_utils import _playback_user_filter
 from services.portal.profile_stats_playback import compute_streak
 from services.portal.achievements_profile import get_achievements_for_profile
-from services.portal.xp import MAX_LEVEL, MIN_LEVEL, level_floor_xp, xp_for_level
+from services.portal.xp import (
+    MAX_LEVEL, MIN_LEVEL, level_bar_percent, level_floor_xp, xp_for_level,
+)
 
 logger = logging.getLogger("mediakeeper.portal.daily_digest")
 
@@ -234,7 +236,6 @@ def level_info(profile: UserProfile) -> dict:
     # At the cap there is no next level: the bar reads full and the next
     # threshold collapses onto the current one (mirrors useProfileXp).
     xp_next = xp_curr if maxed else xp_for_level(level + 1)
-    span = max(1, xp_next - xp_curr)
     into = max(0, xp - xp_curr)
     return {
         "level": level,
@@ -242,7 +243,7 @@ def level_info(profile: UserProfile) -> dict:
         "xp_current_level": xp_curr,
         "xp_next_level": xp_next,
         "xp_into_level": into,
-        "percent": 100 if maxed else min(100, round(100 * into / span)),
+        "percent": level_bar_percent(level, xp),
         "maxed": maxed,
         "title_key": title_for_level(level),
         "tier": tier_for_level(level),
