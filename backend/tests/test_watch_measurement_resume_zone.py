@@ -48,6 +48,12 @@ def _saved_by_emby(position_s: float, runtime_s: int) -> dict:
     return saved(reported)
 
 
+def _saved_during_a_rewatch(position_s: float, runtime_s: int) -> dict:
+    """Emby keeps a title played while it is watched again: 0 before 3 %, then where the player reported, 0 past 90 %."""
+    reported = position_s - position_s % 10
+    return saved(reported if runtime_s * 0.03 <= reported <= runtime_s * 0.90 else 0, played=True)
+
+
 async def _movie_rows(db):
     return [r for r in await rows(db) if r.item_id == "MOVIE-1"]
 
@@ -72,6 +78,41 @@ async def test_a_player_lost_before_its_first_save_stops_counting_past_it(db_ses
     # Nothing tells a cut before 3 %: counted up to one report past it, never more.
     assert cut <= row.watched_seconds <= start + 30
     assert not [c for c in await completions(db_session) if c.item_id == "MOVIE-1"]
+
+
+@pytest.mark.parametrize("played", [False, True], ids=["first viewing", "rewatch"])
+async def test_a_player_lost_at_the_start_of_a_rewatch_counts_like_a_first_viewing(db_session, played):
+    await known_application(db_session)
+    _library_saves_from(3)
+    at, position, polls = T0 + timedelta(hours=1), 5, 0
+    while position < 7200 - 60:  # the player dies at 5 s, Emby moves the session alone to the end
+        await poll(db_session, at, emby_session(at=at, position_s=position, runtime_s=7200), stored=saved(0, played=played))
+        polls += 1
+        step = STEP if polls <= 36 else MIN
+        at, position = at + step, position + step.total_seconds()
+    await poll(db_session, at)
+    (row,) = await _movie_rows(db_session)
+    assert row.watched_seconds <= 216 + 30
+    assert row.watched_by_hour == {"2026-03-07T21": 5}
+    assert not [c for c in await completions(db_session) if c.item_id == "MOVIE-1"]
+
+
+@pytest.mark.parametrize("settings_read", [True, False])
+async def test_a_rewatch_watched_to_the_end_counts_every_second(db_session, settings_read):
+    await known_application(db_session)
+    if settings_read:
+        _library_saves_from(3)
+    runtime, at, position = 4000, T0 + timedelta(hours=1), 5
+    while position <= runtime:
+        session = emby_session(at=at, position_s=position, runtime_s=runtime)
+        await poll(db_session, at, session, stored=_saved_during_a_rewatch(position, runtime))
+        if position == 55:  # before the first save, hours wait only where a saved 0 can judge the player
+            (row,) = await _movie_rows(db_session)
+            assert sum(row.watched_by_hour.values()) == (5 if settings_read else 55)
+        at, position = at + STEP, position + 5
+    await poll(db_session, at)
+    (row,) = await _movie_rows(db_session)
+    assert row.watched_seconds == runtime and sum(row.watched_by_hour.values()) == runtime
 
 
 async def test_a_device_never_seen_saving_keeps_the_previous_rule(db_session):

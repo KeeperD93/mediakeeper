@@ -28,7 +28,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Connexion — le navigateur remplit le nom et le mot de passe enregistrés.
 - Connexion — animations coupées avec « Réduire les animations ».
 - Connexion — un double appui n'ouvre plus deux sessions, Entrée relance après un refus.
-- Statistiques — temps de visionnage : lecture coupée en début de titre plus comptée jusqu'au bout.
+- Statistiques — temps de visionnage : lecture coupée en début de titre, même déjà vu, plus comptée jusqu'au bout.
 - Statistiques — série de jours : un lecteur éteint dès le début d'un titre ne remplit plus le jour.
 
 ## [1.0.0-rc.10] - 2026-11-11
