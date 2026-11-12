@@ -98,8 +98,8 @@ class Judge:
         if condition == _STREAK:
             if ach.id in START_DAY_STREAKS:
                 return self._streak(ach, side, native, started=True)
-            # Regular moved from start days to days watched: on each clock a tier either rule
-            # holds is held, so the change of rule alone neither takes one back nor spares one.
+            # Regular moved from start days to days watched: on each clock, a tier either
+            # rule holds counts as held.
             return max(
                 self._streak(ach, side, native, started=False),
                 self._streak(ach, side, native, started=True),
