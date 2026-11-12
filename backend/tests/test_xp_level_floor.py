@@ -5,7 +5,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from models.portal.profile import UserProfile
 from models.user import User
-from services.portal.xp import MAX_LEVEL, MIN_LEVEL, grant_xp, level_floor_xp, level_from_xp
+from services.portal.xp import (
+    MAX_LEVEL,
+    MIN_LEVEL,
+    grant_xp,
+    level_floor_xp,
+    level_from_xp,
+)
 
 
 @pytest.mark.parametrize(("xp", "level"), [(0, 1), (99, 1), (100, 1), (299, 1), (300, 2)])
