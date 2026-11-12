@@ -1,6 +1,6 @@
 /**
  * Ranking card of "My profile": the month is already there, the other periods are asked
- * for. The daily digest draws the same rows; the admin widget keeps its own look.
+ * for. The daily digest and the admin widget draw the same rows, each in its own frame.
  */
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
@@ -87,14 +87,6 @@ describe('ProfileLeaderboardCard.vue', () => {
     await tabNamed(wrapper, 'week').trigger('click')
     expect(names(wrapper)).toEqual(['Carol', 'Dave', 'Erin'])
     expect(wrapper.findAll('.gc-lb-row').at(-1).classes()).toContain('gc-lb-row--me')
-  })
-
-  it('draws the rows of the leaderboard page', () => {
-    expect(mountCard().find('.gc-lb-box').classes()).toEqual([
-      'gc-lb-box',
-      'gc-lb-box--tabs',
-      'gc-lb-box--ranking',
-    ])
   })
 
   it('labels the row of the viewer, and no other', () => {
@@ -195,7 +187,7 @@ describe('ProfileLeaderboardCard.vue', () => {
 describe('LeaderboardCard.vue without a period', () => {
   const widget = (entries = MONTH) => mount(LeaderboardCard, { props: { entries, widget: true } })
 
-  it('keeps the admin widget as it was', () => {
+  it('keeps the frame and the title of the admin widget, without a choice of period', () => {
     const wrapper = widget()
     expect(wrapper.find('select').exists()).toBe(false)
     expect(wrapper.find('[role="tablist"]').exists()).toBe(false)
@@ -207,10 +199,17 @@ describe('LeaderboardCard.vue without a period', () => {
     expect(title.classes()).toContain('gc-lb-widget-title')
   })
 
-  it('does not add the label of the leaderboard page', () => {
-    const wrapper = widget([row(1, 'Alice', { is_current_user: true })])
-    expect(wrapper.find('.gc-lb-row--me').exists()).toBe(true)
+  it('labels a viewer as the leaderboard page does', () => {
+    const wrapper = widget([row(1, 'Alice', { is_current_user: true }), row(2, 'Bob')])
+    const rows = wrapper.findAll('.gc-lb-row')
+    expect(rows.map(item => item.find('.lb-me-pill').exists())).toEqual([true, false])
+    expect(rows[0].classes()).toContain('gc-lb-row--me')
+  })
+
+  it('labels no row of the admin ranking, which knows no viewer', () => {
+    const wrapper = widget()
     expect(wrapper.find('.lb-me-pill').exists()).toBe(false)
+    expect(wrapper.find('.gc-lb-row--me').exists()).toBe(false)
   })
 
   it('reads the arrows against the last month', () => {
@@ -250,8 +249,8 @@ describe('LeaderboardCard.vue in the daily digest', () => {
   const digest = (entries = TOP_AND_VIEWER) =>
     mount(LeaderboardCard, { props: { entries, digest: true } })
 
-  it('draws the rows of My profile, not those of the admin widget', () => {
-    expect(digest().classes()).toEqual(['gc-lb-box', 'gc-lb-box--ranking'])
+  it('is framed by its section, not as the admin widget', () => {
+    expect(digest().classes()).toEqual(['gc-lb-box'])
   })
 
   it('labels the row of the viewer after the top 3, and no other', () => {

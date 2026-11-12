@@ -67,7 +67,7 @@ describe('PortalDailyDigestOverlay.vue, top 3 of the month', () => {
     const card = wrapper.findComponent(LeaderboardCard)
     expect(card.props('digest')).toBe(true)
     expect(card.props('widget')).toBe(false)
-    expect(card.classes()).toContain('gc-lb-box--ranking')
+    expect(card.classes()).not.toContain('gc-lb-box--widget')
     expect(section.find('h3').text()).toBe('portal.dailyDigest.sections.top3')
     expect(section.find('.gc-box-title').exists()).toBe(false)
   })
