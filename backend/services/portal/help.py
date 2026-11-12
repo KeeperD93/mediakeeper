@@ -15,6 +15,7 @@ from typing import Iterable, Optional
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from constants.portal_content import INVALID_CATEGORY, INVALID_LANG
 from models.portal.help import HelpArticle, HelpArticleTranslation
 from services.portal.help_content import HELP_SEED
 from services.portal.help_sanitize import resolve_unique_slug, sanitize_html
@@ -30,7 +31,15 @@ DEFAULT_LANG = "fr"
 PURGE_AFTER_DAYS = 30
 
 
-# ─────────────────────────── Read paths ───────────────────────────
+class HelpInputError(ValueError):
+    """A rejected admin input; ``code`` is safe to send to the client."""
+
+    def __init__(self, code: str) -> None:
+        super().__init__(code)
+        self.code = code
+
+
+# Read paths
 
 
 async def list_published(db: AsyncSession,
@@ -124,7 +133,7 @@ def serialize(article: HelpArticle, *, lang: str = DEFAULT_LANG,
     return payload
 
 
-# ─────────────────────────── Write paths ───────────────────────────
+# Write paths
 
 
 async def create_article(db: AsyncSession, *, category: str,
@@ -133,9 +142,9 @@ async def create_article(db: AsyncSession, *, category: str,
                          sort_order: int = 0,
                          is_draft: bool = True) -> HelpArticle:
     if category not in VALID_CATEGORIES:
-        raise ValueError("invalid_category")
+        raise HelpInputError(INVALID_CATEGORY)
     if lang not in SUPPORTED_LANGS:
-        raise ValueError("invalid_lang")
+        raise HelpInputError(INVALID_LANG)
     article = HelpArticle(
         slug=await resolve_unique_slug(db, title or "article"),
         category=category,
@@ -160,7 +169,7 @@ async def update_metadata(db: AsyncSession, article: HelpArticle, *,
                           is_draft: Optional[bool] = None) -> None:
     if category is not None:
         if category not in VALID_CATEGORIES:
-            raise ValueError("invalid_category")
+            raise HelpInputError(INVALID_CATEGORY)
         article.category = category
     if icon is not None:
         article.icon = icon[:60] or None
@@ -174,7 +183,7 @@ async def update_metadata(db: AsyncSession, article: HelpArticle, *,
 async def upsert_translation(db: AsyncSession, article: HelpArticle, *,
                              lang: str, title: str, body_html: str) -> None:
     if lang not in SUPPORTED_LANGS:
-        raise ValueError("invalid_lang")
+        raise HelpInputError(INVALID_LANG)
     cleaned_title = (title or "").strip()[:300]
     cleaned_body = sanitize_html(body_html)
     existing = next((t for t in article.translations if t.lang == lang), None)
@@ -226,7 +235,7 @@ async def purge_expired(db: AsyncSession,
     return n
 
 
-# ─────────────────────────── Seed (idempotent) ───────────────────────────
+# Seed (idempotent)
 
 
 async def ensure_seed(db: AsyncSession) -> int:

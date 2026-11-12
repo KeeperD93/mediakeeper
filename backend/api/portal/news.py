@@ -1,4 +1,5 @@
 """Portal news endpoints."""
+import logging
 from datetime import datetime
 from urllib.parse import urlsplit
 
@@ -12,6 +13,8 @@ from models.user import User
 from models.portal.profile import UserProfile
 from api.portal.deps import get_current_profile, require_admin
 from services.portal import news as news_svc
+
+logger = logging.getLogger("mediakeeper.portal.news")
 
 router = APIRouter(prefix="/news", tags=["portal-news"])
 
@@ -114,8 +117,9 @@ async def create_news(
     user, _ = admin
     try:
         return await news_svc.create_news(db, user.id, data.model_dump())
-    except ValueError as exc:
-        raise HTTPException(status_code=400, detail=str(exc))
+    except news_svc.NewsInputError as exc:
+        logger.warning("[news] create rejected: %s", exc)
+        raise HTTPException(status_code=400, detail=exc.code) from exc
 
 
 @router.put("/{news_id}")
@@ -127,8 +131,9 @@ async def update_news(
 ):
     try:
         result = await news_svc.update_news(db, news_id, data.model_dump(exclude_unset=True))
-    except ValueError as exc:
-        raise HTTPException(status_code=400, detail=str(exc))
+    except news_svc.NewsInputError as exc:
+        logger.warning("[news] update of #%s rejected: %s", news_id, exc)
+        raise HTTPException(status_code=400, detail=exc.code) from exc
     if "error" in result:
         raise HTTPException(status_code=404, detail=result["error"])
     return result

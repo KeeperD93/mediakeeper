@@ -4,6 +4,7 @@ from datetime import datetime, timezone
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from constants.portal_content import START_AT_MUST_PRECEDE_END_AT
 from models.portal.news import News, NewsRead
 from core.pagination import decode_cursor, build_cursor_response
 from services.portal import strip_tags_and_trim
@@ -11,9 +12,17 @@ from services.portal import strip_tags_and_trim
 logger = logging.getLogger("mediakeeper.portal.news")
 
 
+class NewsInputError(ValueError):
+    """A rejected admin input; ``code`` is safe to send to the client."""
+
+    def __init__(self, code: str) -> None:
+        super().__init__(code)
+        self.code = code
+
+
 def _validate_window(start_at, end_at) -> None:
     if start_at is not None and end_at is not None and start_at >= end_at:
-        raise ValueError("start_at_must_precede_end_at")
+        raise NewsInputError(START_AT_MUST_PRECEDE_END_AT)
 
 
 def _active_window_clause(now):
