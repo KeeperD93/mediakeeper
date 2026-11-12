@@ -15,6 +15,7 @@ This section intentionally has no date so it is not shown to users.
 ## [Unreleased]
 
 ### Fixed
+- XP bar — same percentage in today's digest and the profile.
 - Notifications — bar lasts as long as the message, full message on small phones.
 - Issues — ticket dates: colons placed right in English and French.
 - Today's digest — Top 3 of the month matches the leaderboard ("YOU" label).

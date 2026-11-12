@@ -1,8 +1,9 @@
 #!/usr/bin/env sh
 # MediaKeeper — pre-commit hook (activate after `git init`)
 #
-# Runs lint-staged on the frontend: ESLint + Prettier + stylelint on the
-# files that are actually about to be committed. Fast and scoped.
+# Runs lint-staged on the files that are actually about to be committed:
+# ESLint + Prettier + stylelint for the frontend, the ruff baseline check
+# for the backend. Fast and scoped.
 #
 # To activate once git is initialized at repo root:
 #   cd <repo-root>

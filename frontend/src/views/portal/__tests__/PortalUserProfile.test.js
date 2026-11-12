@@ -65,6 +65,13 @@ describe('PortalUserProfile.vue, level bar', () => {
     expect(card.props('nextLevelXp')).toBe(300)
     expect(card.props('xpPercent')).toBe(17)
   })
+
+  it('rounds a half up, like the own profile and the daily digest', async () => {
+    // 14.5 %: a float ratio reads 14.499… and rounded down to 14.
+    const wrapper = await mountWith({ ...profile, level: 3, xp: 658 })
+
+    expect(wrapper.findComponent(RankSidebarCard).props('xpPercent')).toBe(15)
+  })
 })
 
 describe('PortalUserProfile.vue, private profile', () => {

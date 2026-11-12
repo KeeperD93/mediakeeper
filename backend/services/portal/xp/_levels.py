@@ -25,6 +25,20 @@ def level_floor_xp(level: int) -> int:
     return 0 if level <= MIN_LEVEL else xp_for_level(level)
 
 
+def level_bar_percent(level: int, xp: int) -> int:
+    """Level-bar fill in whole percent, halves rounded up (as the interface does).
+
+    Integer maths on purpose: Python's ``round`` goes half to even and a float
+    ratio can fall just under a ``.5``, either would shift the bar by one point.
+    """
+    if level >= MAX_LEVEL:
+        return 100
+    floor = level_floor_xp(level)
+    span = max(1, xp_for_level(level + 1) - floor)
+    into = max(0, xp - floor)
+    return min(100, (200 * into + span) // (2 * span))
+
+
 def level_from_xp(total_xp: int) -> int:
     """Compute level from total cumulative XP; every player starts at ``MIN_LEVEL``."""
     level = MIN_LEVEL

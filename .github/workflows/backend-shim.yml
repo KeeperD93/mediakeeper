@@ -11,6 +11,8 @@ on:
       - 'backend/**'
       - 'entrypoint.sh'
       - 'pytest.ini'
+      - 'ruff.toml'
+      - 'ruff-baseline.json'
       - '.github/workflows/backend.yml'
 
 permissions:

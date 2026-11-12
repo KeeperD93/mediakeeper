@@ -152,7 +152,16 @@ npm run format            # Prettier
 npm run typecheck         # vue-tsc
 ```
 
-Une fois les hooks Husky actifs (voir _Configuration initiale_), `git commit` déclenche automatiquement `lint-staged` sur les fichiers stagés.
+Pour le backend, depuis la racine du dépôt :
+
+```sh
+pip install -r backend/requirements-dev.txt
+python backend/scripts/ruff_baseline.py   # ruff, comparé aux remarques figées
+```
+
+Les remarques antérieures à ces contrôles sont comptées dans `ruff-baseline.json` et tolérées ; le hook de commit et la CI échouent dès que le compte d'une règle augmente dans un fichier. Après avoir corrigé d'anciennes remarques, ou déplacé ou découpé un fichier, relancez le script avec `--update` et committez la base mise à jour. Pour trier les imports d'un fichier : `python -m ruff check --fix --select I <fichier>`.
+
+Une fois les hooks Husky actifs (voir _Configuration initiale_), `git commit` déclenche automatiquement `lint-staged` sur les fichiers stagés. Committer des fichiers Python demande les dépendances de développement ci-dessus, dans l'environnement vers lequel pointe `python`.
 
 ### 4. Tests
 
@@ -166,6 +175,7 @@ npm run test:coverage           # + rapport de couverture
 # Tests backend
 cd backend
 pytest                          # suite complète
+pytest -n auto                  # suite complète, en parallèle (bien plus rapide)
 pytest --cov                    # + couverture
 pytest tests/test_auth_login.py -v   # fichier spécifique
 ```

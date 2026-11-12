@@ -39,6 +39,25 @@ from models.portal.profile import UserProfile  # noqa: E402
 from models.user import User  # noqa: E402
 
 
+def _without_lone_surrogates(value):
+    if isinstance(value, str):
+        return value.encode("utf-8", "backslashreplace").decode("utf-8")
+    if isinstance(value, dict):
+        return {_without_lone_surrogates(k): _without_lone_surrogates(v) for k, v in value.items()}
+    if isinstance(value, list):
+        return [_without_lone_surrogates(item) for item in value]
+    if isinstance(value, tuple):
+        return tuple(_without_lone_surrogates(item) for item in value)
+    return value
+
+
+@pytest.hookimpl(wrapper=True)
+def pytest_report_to_serializable():
+    """pytest-xdist sends each report as UTF-8: a lone surrogate in the captured
+    logs of one test would otherwise abort the whole parallel run."""
+    return _without_lone_surrogates((yield))
+
+
 # Async in-memory SQLite engine for tests.
 _test_engine = create_async_engine(
     "sqlite+aiosqlite:///:memory:",

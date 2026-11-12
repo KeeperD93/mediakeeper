@@ -14,6 +14,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Tableau de bord — widget du classement aligné sur la page Classement.
 
 ### Fixed
+- Barre d'XP — même pourcentage dans le résumé du jour et le profil.
 - Notifications — en-tête au nom de la page, barre à la bonne durée, message entier sur petits téléphones.
 - Textes — deux-points à la bonne place en français et en anglais.
 - Carrousels, défilements et compteurs — instantanés avec « Réduire les animations ».

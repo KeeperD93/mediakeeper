@@ -7,12 +7,16 @@ on:
       - 'backend/**'
       - 'entrypoint.sh'
       - 'pytest.ini'
+      - 'ruff.toml'
+      - 'ruff-baseline.json'
       - '.github/workflows/backend.yml'
   pull_request:
     paths:
       - 'backend/**'
       - 'entrypoint.sh'
       - 'pytest.ini'
+      - 'ruff.toml'
+      - 'ruff-baseline.json'
       - '.github/workflows/backend.yml'
 
 permissions:
@@ -43,8 +47,11 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r backend/requirements-dev.txt
 
+      - name: Check for new ruff issues
+        run: python backend/scripts/ruff_baseline.py
+
       - name: Run pytest with coverage
-        run: pytest --cov --cov-report=term-missing --cov-report=xml --cov-fail-under=50
+        run: pytest -n auto --cov --cov-report=term-missing --cov-report=xml --cov-fail-under=50
         env:
           PYTHONPATH: ${{ github.workspace }}
 
