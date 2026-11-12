@@ -84,7 +84,7 @@ async def test_watch_history_category_localizes_titles(client, db_session, monke
 
     async def _fake(db, user, profile, page=1, **kw):
         return {
-            "items": [{"tmdb_id": 603, "media_type": "movie", "title": "Matrice"}],
+            "items": [{"tmdb_id": 900001, "media_type": "movie", "title": "Film Exemple"}],
             "page": page, "has_more": False,
         }
 
@@ -95,11 +95,11 @@ async def test_watch_history_category_localizes_titles(client, db_session, monke
         "/api/portal/catalog/category/watch-history", headers={"X-MK-Locale": "en"}
     )
     assert r.status_code == 200, r.text
-    assert r.json()["items"][0]["title"] == "T603 [en]"
+    assert r.json()["items"][0]["title"] == "T900001 [en]"
 
     ml._title_cache.clear()
     r_fr = await client.get("/api/portal/catalog/category/watch-history")  # default -> as-is
-    assert r_fr.json()["items"][0]["title"] == "Matrice"
+    assert r_fr.json()["items"][0]["title"] == "Film Exemple"
 
 
 @pytest.mark.asyncio
@@ -109,7 +109,7 @@ async def test_my_requests_category_localizes_titles(client, db_session, monkeyp
 
     async def _fake(db, user, page=1, **kw):
         return {
-            "items": [{"tmdb_id": 1399, "media_type": "tv", "title": "Trône"}],
+            "items": [{"tmdb_id": 900002, "media_type": "tv", "title": "Série Exemple"}],
             "page": page, "has_more": False,
         }
 
@@ -120,7 +120,7 @@ async def test_my_requests_category_localizes_titles(client, db_session, monkeyp
         "/api/portal/catalog/category/my-requests", headers={"X-MK-Locale": "en"}
     )
     assert r.status_code == 200, r.text
-    assert r.json()["items"][0]["title"] == "T1399 [en]"
+    assert r.json()["items"][0]["title"] == "T900002 [en]"
 
 
 @pytest.mark.asyncio
@@ -178,7 +178,7 @@ async def test_videos_uses_request_locale(client, db_session, monkeypatch):
         return []
 
     monkeypatch.setattr("services.portal.discover.get_media_videos", _fake)
-    r = await client.get("/api/portal/catalog/videos/movie/603", headers={"X-MK-Locale": "en"})
+    r = await client.get("/api/portal/catalog/videos/movie/900001", headers={"X-MK-Locale": "en"})
     assert r.status_code == 200, r.text
     assert captured["language"] == "en"
 
@@ -193,7 +193,7 @@ async def test_media_detail_uses_request_locale(client, db_session, monkeypatch)
         return {"title": "X", "recommendations": []}
 
     monkeypatch.setattr("services.portal.discover.get_full_details", _fake)
-    r = await client.get("/api/portal/catalog/detail/movie/603", headers={"X-MK-Locale": "en"})
+    r = await client.get("/api/portal/catalog/detail/movie/900001", headers={"X-MK-Locale": "en"})
     assert r.status_code == 200, r.text
     assert captured["language"] == "en"
 
@@ -208,7 +208,7 @@ async def test_media_detail_defaults_without_header(client, db_session, monkeypa
         return {"title": "X", "recommendations": []}
 
     monkeypatch.setattr("services.portal.discover.get_full_details", _fake)
-    r = await client.get("/api/portal/catalog/detail/movie/603")  # no header -> default locale
+    r = await client.get("/api/portal/catalog/detail/movie/900001")  # no header -> default locale
     assert r.status_code == 200, r.text
     assert captured["language"] == "fr"
 

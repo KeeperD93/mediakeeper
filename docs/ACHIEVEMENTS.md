@@ -23,7 +23,7 @@ and the frontend.
            ▼                                ▼
 ┌─────────────────────────┐    ┌────────────────────────────┐
 │ achievements_checks_*.py│ ◄─►│ check_all_achievements     │
-│  (conditional logic per │    │ orchestrator, 5 passes,    │
+│  (conditional logic per │    │ orchestrator, 6 passes,    │
 │  condition_type)        │    │ try/except per pass        │
 └─────────────────────────┘    └────────────┬───────────────┘
                                             │
@@ -46,9 +46,14 @@ and the frontend.
 - **Checks** (`achievements_checks_*.py`): the logic that turns raw data
   (Emby sessions, user lists, pending requests, …) into `progress`. One
   check function per major domain.
-- **Orchestrator** (`check_all_achievements`): runs the 5 check passes
-  sequentially. Each pass is isolated with try/except — a regression in one
-  pass does not break the others nor the final commit.
+- **Orchestrator** (`check_all_achievements`): runs the 6 check passes in
+  order (standard, local time, progression, secrets A, secrets B, then meta)
+  and commits once at the end. Each pass is isolated with try/except: a pass
+  that raises is logged and the others still run. Its unlocks are left out
+  of the returned list, but what it already wrote is committed with the
+  rest. A failure that breaks the session (a failed flush, for instance)
+  also makes the final commit raise; the wrapper then rolls back, and
+  nothing from that run is saved.
 - **Wrapper** (`safe_check_all_achievements`): the single entry point for
   every business service. Logs `{user_id, source, duration_ms, unlocks}`
   per call. The variant `safe_check_all_achievements_in_new_session` is for
@@ -244,9 +249,9 @@ Delete the corresponding entry from `*_DEFS`. At the next boot:
 3. Boot-time validation passes (the `id` no longer exists, so no orphan
    reference).
 
-> Before the v1.0 release, the DB is disposable (cf. project policy) — no
-> Alembic migration is needed for a removal. Post-v1.0, removals must go
-> through an explicit migration if history matters.
+> The seed owns the catalogue: adding, changing or removing a trophy needs
+> no Alembic migration. Any change to the database schema (a new table or
+> column for a check) goes through an Alembic migration.
 
 ---
 
@@ -271,7 +276,7 @@ Delete the corresponding entry from `*_DEFS`. At the next boot:
 | `backend/tests/test_achievements_integrity.py`                  | CI / `pytest`         | Fail-loud on drift.     |
 | `_validate_definitions()` in `achievements_seed.py`             | Dev / test boot       | Refuses to seed.        |
 | `_validate_definitions()` in prod (`ENV=production`)            | Prod boot             | Log + continue.         |
-| `_safe_pass` in `check_all_achievements`                        | Runtime               | One failed pass does not break the others. |
+| `_safe_pass` in `check_all_achievements`                        | Runtime               | One failed pass does not stop the others. A pass that breaks the session voids the whole run. |
 | `safe_check_all_achievements` (silent by default)               | Business triggers     | A runner regression does not break the origin endpoint. |
 
 The meta-test covers:
@@ -334,5 +339,4 @@ When a placeholder is implemented for real:
   `condition_type`.
 - **Modifying a seed already applied**: `seed_achievements` is
   re-entrant; you change the definitions, you re-run, that is all. No
-  dedicated Alembic migration as long as the DB is disposable
-  (pre-v1.0).
+  Alembic migration for catalogue data; only a schema change needs one.

@@ -1,4 +1,4 @@
-"""Event-room chat messages are HTML-sanitised at storage (#407)."""
+"""Event-room chat messages are HTML-sanitised at storage."""
 from datetime import datetime, timezone
 
 import pytest

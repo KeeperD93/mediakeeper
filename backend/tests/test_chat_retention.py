@@ -1,4 +1,4 @@
-"""Chat purge honours the admin-configured retention window (#176).
+"""Chat purge honours the admin-configured retention window.
 
 The background loop previously hardcoded a 365-day cutoff; it now reads
 ``chat.retention_days`` (0 = keep forever). These tests pin the extracted

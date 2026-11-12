@@ -4,7 +4,7 @@ A nightly job (see ``services/scheduler``) recomputes the monthly request
 allowance of every user in ``mode='auto'`` from their last-30-day activity.
 The cap rises quickly with activity and decays slowly once a user goes
 inactive, clamped to the per-user ``[auto_min, auto_max]`` band. Manual-mode
-and ``unlimited`` rows are never touched. See #59.
+and ``unlimited`` rows are never touched.
 
 The scoring *shape* (weights / caps) lives here as code constants — those are
 not knobs the operator tunes day-to-day. The operational knobs (window, band

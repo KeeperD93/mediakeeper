@@ -1,4 +1,4 @@
-"""Guard: test-only tooling must not leak into the runtime requirements (#423).
+"""Guard: test-only tooling must not leak into the runtime requirements.
 
 The production image installs ``requirements.txt`` alone, so pytest/aiosqlite
 living there would ship into the public image. This pins the split so a future

@@ -46,16 +46,16 @@ def test_apply_vars_escapes_non_preformatted_user_value():
 def test_apply_vars_keeps_preformatted_tmdb_link():
     """The engine-composed ``[Fiche TMDB](url)`` value MUST stay clickable."""
     tmpl = "Voir <tmdb>"
-    out = _apply_vars(tmpl, {"tmdb": "[Fiche TMDB](https://www.themoviedb.org/movie/27205)"})
-    assert out == "Voir [Fiche TMDB](https://www.themoviedb.org/movie/27205)"
+    out = _apply_vars(tmpl, {"tmdb": "[Fiche TMDB](https://www.themoviedb.org/movie/900001)"})
+    assert out == "Voir [Fiche TMDB](https://www.themoviedb.org/movie/900001)"
 
 
 def test_apply_vars_keeps_template_markdown_intact():
     """The template's own ``**bold**`` markup survives — only the
     substituted *values* are escaped."""
     tmpl = "**<title>** (<year>)"
-    out = _apply_vars(tmpl, {"title": "Inception", "year": "2010"})
-    assert out == "**Inception** (2010)"
+    out = _apply_vars(tmpl, {"title": "Sample Movie", "year": "2020"})
+    assert out == "**Sample Movie** (2020)"
 
 
 def test_apply_vars_handles_empty_value():
@@ -90,20 +90,20 @@ def test_apply_vars_neuters_username_with_ping_markup():
 # ─────────────────────────── Title link rendering (regression coverage) ───────────────────────────
 
 
-def _movie_item(name: str, tmdb_id: str = "27205") -> dict:
+def _movie_item(name: str, tmdb_id: str = "900001") -> dict:
     return {
         "Type": "Movie",
         "Name": name,
-        "ProductionYear": 2010,
+        "ProductionYear": 2020,
         "ProviderIds": {"Tmdb": tmdb_id},
     }
 
 
-def _series_item(name: str, tmdb_id: str = "1396") -> dict:
+def _series_item(name: str, tmdb_id: str = "900002") -> dict:
     return {
         "Type": "Series",
         "Name": name,
-        "ProductionYear": 2008,
+        "ProductionYear": 2018,
         "ChildCount": 5,
         "ProviderIds": {"Tmdb": tmdb_id},
     }
@@ -119,14 +119,14 @@ async def test_movie_title_renders_as_clickable_link():
     with literal brackets (not backslash-escaped) so the rendered
     embed shows a single clickable link."""
     payload = await build_discord_payload(
-        item=_movie_item("Inception"),
+        item=_movie_item("Sample Movie"),
         wh_config={"templates": {}, "settings": {}, "lang": "fr"},
         emby_url="", emby_api_key="",
     )
     desc = _embed_description(payload)
-    assert "[Inception](https://www.themoviedb.org/movie/27205)" in desc
+    assert "[Sample Movie](https://www.themoviedb.org/movie/900001)" in desc
     # The structural brackets must not have been backslash-escaped.
-    assert r"\[Inception\]" not in desc
+    assert r"\[Sample Movie\]" not in desc
 
 
 @pytest.mark.asyncio
@@ -144,7 +144,7 @@ async def test_movie_title_with_injected_markdown_is_defanged():
     # No raw attack link in the output.
     assert "(https://evil)" not in desc
     # The engine wrapper survives intact.
-    assert "](https://www.themoviedb.org/movie/27205)" in desc
+    assert "](https://www.themoviedb.org/movie/900001)" in desc
     # The attacker's brackets and parens are escaped inside the anchor.
     assert r"\[click\]" in desc
     assert r"\(https://evil\)" in desc
@@ -155,13 +155,13 @@ async def test_series_title_renders_as_clickable_link():
     """Series notifications use ``Name`` as the title — same
     contract as Movie: rendered as ``[Name](url)``."""
     payload = await build_discord_payload(
-        item=_series_item("Breaking Bad"),
+        item=_series_item("Sample Show"),
         wh_config={"templates": {}, "settings": {}, "lang": "fr"},
         emby_url="", emby_api_key="",
     )
     desc = _embed_description(payload)
-    assert "[Breaking Bad](https://www.themoviedb.org/tv/1396)" in desc
-    assert r"\[Breaking Bad\]" not in desc
+    assert "[Sample Show](https://www.themoviedb.org/tv/900002)" in desc
+    assert r"\[Sample Show\]" not in desc
 
 
 @pytest.mark.asyncio
@@ -173,6 +173,6 @@ async def test_series_title_with_injected_markdown_is_defanged():
     )
     desc = _embed_description(payload)
     assert "(https://attacker)" not in desc
-    assert "](https://www.themoviedb.org/tv/1396)" in desc
+    assert "](https://www.themoviedb.org/tv/900002)" in desc
     assert r"\[evil\]" in desc
     assert r"\(https://attacker\)" in desc

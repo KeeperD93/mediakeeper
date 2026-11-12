@@ -178,7 +178,7 @@ def test_admin_parser_skips_empty_versions(monkeypatch, tmp_path):
 
 def test_find_changelog_coerces_unknown_lang_to_fr():
     """An unsupported / path-traversal lang must resolve exactly like "fr"
-    so an untrusted query string never lands in the filename (#391)."""
+    so an untrusted query string never lands in the filename."""
     from api.changelog import _find_changelog
 
     assert _find_changelog("../../../../etc/passwd") == _find_changelog("fr")

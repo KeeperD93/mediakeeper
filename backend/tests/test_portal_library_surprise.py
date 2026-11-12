@@ -86,10 +86,10 @@ async def test_surprise_localized_meta_follows_viewer_locale(client, db_session)
 
     with patch("api.portal.library.get_media_detail", side_effect=_fake_detail):
         r = await client.get(
-            "/api/portal/library/localized-meta?tmdb_id=603&media_type=movie",
+            "/api/portal/library/localized-meta?tmdb_id=900001&media_type=movie",
             headers={"X-MK-Locale": "en"},
         )
 
     assert r.status_code == 200, r.text
     assert r.json() == {"title": "Localized Title", "overview": "Localized synopsis."}
-    assert captured["args"] == ("movie", 603, "en")
+    assert captured["args"] == ("movie", 900001, "en")

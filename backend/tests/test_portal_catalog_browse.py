@@ -57,7 +57,7 @@ async def test_watch_providers_allows_admin(client, db_session):
 @pytest.mark.asyncio
 async def test_catalog_videos_rejects_invalid_media_type(client, db_session):
     """media_type is pinned to movie|tv so it can't inject a query string
-    into the upstream TMDB URL (#420)."""
+    into the upstream TMDB URL."""
     viewer, _ = await make_portal_user(db_session, username="viewer_vids", role="viewer")
     client.cookies.set(PORTAL_COOKIE, portal_token(viewer.username))
 

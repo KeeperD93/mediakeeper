@@ -48,7 +48,7 @@ async def test_protected_route_without_auth(client):
 @pytest.mark.asyncio
 async def test_emby_image_proxy_accepts_active_admin_cookie(client, admin_user):
     """The image proxy accepts a valid admin cookie backed by an active,
-    non-revoked account (#389)."""
+    non-revoked account."""
     token = create_access_token({"sub": admin_user.username, "scope": "admin"})
     client.cookies.set("mk_token", token)
 
@@ -101,7 +101,7 @@ async def test_emby_user_image_advertises_short_cache(client, admin_user):
 @pytest.mark.asyncio
 async def test_emby_image_proxy_rejects_deactivated_account(client, admin_user, db_session):
     """A deactivated admin's still-valid JWT stops loading images at once,
-    instead of riding the token to its natural expiry (#389)."""
+    instead of riding the token to its natural expiry."""
     token = create_access_token({"sub": admin_user.username, "scope": "admin"})
     client.cookies.set("mk_token", token)
     admin_user.is_active = False
@@ -114,7 +114,7 @@ async def test_emby_image_proxy_rejects_deactivated_account(client, admin_user, 
 
 @pytest.mark.asyncio
 async def test_emby_image_proxy_accepts_active_portal_user(client, db_session):
-    """A valid portal session loads images through the portal branch (#389)."""
+    """A valid portal session loads images through the portal branch."""
     user, _ = await make_portal_user(db_session, username="poster_viewer", role="viewer")
     client.cookies.set(PORTAL_COOKIE, portal_token(user.username))
 
@@ -125,7 +125,7 @@ async def test_emby_image_proxy_accepts_active_portal_user(client, db_session):
 
 @pytest.mark.asyncio
 async def test_emby_image_proxy_rejects_disabled_portal_profile(client, db_session):
-    """A disabled portal profile can no longer ride the image proxy (#389)."""
+    """A disabled portal profile can no longer ride the image proxy."""
     user, profile = await make_portal_user(db_session, username="poster_disabled", role="viewer")
     client.cookies.set(PORTAL_COOKIE, portal_token(user.username))
     profile.account_active = False
@@ -139,7 +139,7 @@ async def test_emby_image_proxy_rejects_disabled_portal_profile(client, db_sessi
 @pytest.mark.asyncio
 async def test_emby_image_proxy_rejects_pre_pivot_admin_token(client, admin_user, db_session):
     """A JWT issued before the force-logout pivot is rejected on the image
-    proxy — not only the deactivation case (#389 revocation headline)."""
+    proxy — the core revocation case, not only deactivation."""
     from datetime import datetime, timedelta, timezone
 
     token = create_access_token({"sub": admin_user.username, "scope": "admin"})

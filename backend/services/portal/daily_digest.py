@@ -44,7 +44,7 @@ _MAX_LOOKBACK_DAYS = 30
 
 # Cache: (user_id, date_iso, lang) -> (expires_at_epoch, payload). lang is part
 # of the key because the payload re-resolves media titles/synopsis per viewer
-# locale (#288); a lang-agnostic key would serve the first-cached language to all.
+# locale; a lang-agnostic key would serve the first-cached language to all.
 _digest_cache: dict[tuple[int, str, str], tuple[float, dict]] = {}
 
 

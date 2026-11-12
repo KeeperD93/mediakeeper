@@ -17,15 +17,15 @@ import pytest
 
 @pytest.mark.asyncio
 async def test_tmdb_search_movie_route_forwards_query(authed_client, monkeypatch):
-    stub = AsyncMock(return_value={"results": [{"id": 603}]})
+    stub = AsyncMock(return_value={"results": [{"id": 900001}]})
     monkeypatch.setattr("api.media._tmdb.search_movie", stub)
 
-    r = await authed_client.get("/api/media/tmdb/search/movie", params={"q": "matrix", "year": 1999})
+    r = await authed_client.get("/api/media/tmdb/search/movie", params={"q": "sample", "year": 2001})
 
     assert r.status_code == 200
-    assert r.json() == {"results": [{"id": 603}]}
-    assert stub.call_args.args[0] == "matrix"
-    assert stub.call_args.kwargs == {"language": None, "year": 1999}
+    assert r.json() == {"results": [{"id": 900001}]}
+    assert stub.call_args.args[0] == "sample"
+    assert stub.call_args.kwargs == {"language": None, "year": 2001}
 
 
 @pytest.mark.asyncio
@@ -33,10 +33,10 @@ async def test_tmdb_search_tv_route_forwards_query(authed_client, monkeypatch):
     stub = AsyncMock(return_value={"results": []})
     monkeypatch.setattr("api.media._tmdb.search_tv", stub)
 
-    r = await authed_client.get("/api/media/tmdb/search/tv", params={"q": "dexter", "language": "en"})
+    r = await authed_client.get("/api/media/tmdb/search/tv", params={"q": "test show", "language": "en"})
 
     assert r.status_code == 200
-    assert stub.call_args.args[0] == "dexter"
+    assert stub.call_args.args[0] == "test show"
     assert stub.call_args.kwargs == {"language": "en", "year": None}
 
 
@@ -67,17 +67,17 @@ async def test_tmdb_episodes_route_forwards_path(authed_client, monkeypatch):
 
 @pytest.mark.asyncio
 async def test_tmdb_detail_route_threads_viewer_locale(authed_client, monkeypatch):
-    stub = AsyncMock(return_value={"id": 603, "title": "The Matrix"})
+    stub = AsyncMock(return_value={"id": 900001, "title": "Sample Movie"})
     monkeypatch.setattr("api.media._tmdb.get_media_detail", stub)
 
     r = await authed_client.get(
-        "/api/media/tmdb/detail/movie/603",
+        "/api/media/tmdb/detail/movie/900001",
         headers={"X-MK-Locale": "en"},
     )
 
     assert r.status_code == 200
     assert stub.call_args.args[0] == "movie"
-    assert stub.call_args.args[1] == 603
+    assert stub.call_args.args[1] == 900001
     assert stub.call_args.kwargs == {"locale": "en"}
 
 

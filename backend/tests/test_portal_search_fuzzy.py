@@ -53,21 +53,21 @@ class _FakeTmdbClient:
             return _FakeResponse([
                 _tmdb_movie(40, "Criminal Investigation", popularity=6),
             ])
-        if params["query"] == "spiderman":
+        if params["query"] == "ironknight":
             return _FakeResponse([
-                _tmdb_movie(80, "Spiral", popularity=90),
+                _tmdb_movie(80, "Ironworks", popularity=90),
             ])
-        if params["query"] == "spider man":
+        if params["query"] == "iron knight":
             return _FakeResponse([
-                _tmdb_movie(70, "Spider-Man", popularity=15),
+                _tmdb_movie(70, "Iron-Knight", popularity=15),
             ])
-        if params["query"] == "missionimpossible":
+        if params["query"] == "ghostmission":
             return _FakeResponse([
-                _tmdb_movie(81, "Mission Control", popularity=90),
+                _tmdb_movie(81, "Ghost Control", popularity=90),
             ])
-        if params["query"] == "mission impossible":
+        if params["query"] == "ghost mission":
             return _FakeResponse([
-                _tmdb_movie(71, "Mission: Impossible", popularity=15),
+                _tmdb_movie(71, "Ghost: Mission", popularity=15),
             ])
         return _FakeResponse([])
 
@@ -117,22 +117,22 @@ def test_search_query_variants_cover_english_extra_letter():
 
 
 def test_search_query_variants_normalize_symbols_and_punctuation():
-    assert "Spider Man" in discover_details._search_query_variants("Spider-Man")
-    fast_variants = discover_details._search_query_variants("fast & furious")
-    assert "fast and furious" in fast_variants
-    assert "fast furious" in fast_variants
+    assert "Iron Knight" in discover_details._search_query_variants("Iron-Knight")
+    symbol_variants = discover_details._search_query_variants("ghost & dragon")
+    assert "ghost and dragon" in symbol_variants
+    assert "ghost dragon" in symbol_variants
 
 
 def test_search_query_variants_split_missing_separators():
-    assert "spider man" in discover_details._search_query_variants("spiderman")
+    assert "iron knight" in discover_details._search_query_variants("ironknight")
     assert "ant man" in discover_details._search_query_variants("antman")
     assert "x men" in discover_details._search_query_variants("xmen")
-    assert "mission impossible" in discover_details._search_query_variants("missionimpossible")
+    assert "ghost mission" in discover_details._search_query_variants("ghostmission")
     assert "enquetes criminelles" in discover_details._search_query_variants("enquetescriminelles")
-    assert "la casa de papel" in discover_details._search_query_variants("lacasadepapel")
-    assert "the fast and the furious" in discover_details._search_query_variants("thefastandthefurious")
-    assert "la cite de la peur" in discover_details._search_query_variants("lacitedelapeur")
-    assert "le grand bleu" in discover_details._search_query_variants("legrandbleu")
+    assert "la casa de la peur" in discover_details._search_query_variants("lacasadelapeur")
+    assert "the ghost and the dragon" in discover_details._search_query_variants("theghostandthedragon")
+    assert "la cite du dragon" in discover_details._search_query_variants("lacitedudragon")
+    assert "le grand criminel" in discover_details._search_query_variants("legrandcriminel")
 
 
 def test_search_query_variants_keep_accentless_forms():
@@ -146,14 +146,14 @@ def test_search_query_variants_keep_accentless_forms():
 
 def test_search_score_tolerates_german_diacritics():
     exact = discover_details._score_search_result(
-        "Manner in Schwarz",
-        _tmdb_movie(50, "Männer in Schwarz"),
+        "Muller im Wald",
+        _tmdb_movie(50, "Müller im Wald"),
         1,
         0,
     )
     partial = discover_details._score_search_result(
-        "Manner in Schwarz",
-        _tmdb_movie(60, "Der Mann im Mond", popularity=90),
+        "Muller im Wald",
+        _tmdb_movie(60, "Der Wald am See", popularity=90),
         0,
         0,
     )
@@ -163,14 +163,14 @@ def test_search_score_tolerates_german_diacritics():
 
 def test_search_score_matches_compact_titles():
     exact = discover_details._score_search_result(
-        "spiderman",
-        _tmdb_movie(70, "Spider-Man"),
+        "ironknight",
+        _tmdb_movie(70, "Iron-Knight"),
         1,
         0,
     )
     partial = discover_details._score_search_result(
-        "spiderman",
-        _tmdb_movie(80, "Spiral", popularity=90),
+        "ironknight",
+        _tmdb_movie(80, "Ironworks", popularity=90),
         0,
         0,
     )
@@ -180,14 +180,14 @@ def test_search_score_matches_compact_titles():
 
 def test_search_score_uses_year_without_hurting_title_match():
     right_year = discover_details._score_search_result(
-        "matrix 1999",
-        _tmdb_movie(90, "The Matrix", popularity=30, year=1999),
+        "sample 2015",
+        _tmdb_movie(90, "The Sample", popularity=30, year=2015),
         0,
         0,
     )
     wrong_year = discover_details._score_search_result(
-        "matrix 1999",
-        _tmdb_movie(91, "The Matrix Reloaded", popularity=90, year=2003),
+        "sample 2015",
+        _tmdb_movie(91, "The Sample Returns", popularity=90, year=2019),
         0,
         0,
     )
@@ -197,14 +197,14 @@ def test_search_score_uses_year_without_hurting_title_match():
 
 def test_search_score_keeps_numbered_titles_logical():
     numbered_title = discover_details._score_search_result(
-        "2001 space odyssey",
-        _tmdb_movie(92, "2001: A Space Odyssey", popularity=30, year=1968),
+        "2042 space journey",
+        _tmdb_movie(92, "2042: A Space Journey", popularity=30, year=1990),
         0,
         0,
     )
     wrong_title_with_matching_year = discover_details._score_search_result(
-        "2001 space odyssey",
-        _tmdb_movie(93, "Space Cowboys", popularity=90, year=2001),
+        "2042 space journey",
+        _tmdb_movie(93, "Space Drifters", popularity=90, year=2042),
         0,
         0,
     )
@@ -326,9 +326,9 @@ async def test_search_splits_missing_hyphen_before_ranking(monkeypatch, db_sessi
 
     monkeypatch.setattr(discover_details._search, "_get_tmdb_key", fake_tmdb_key)
 
-    items = await discover_details.search_tmdb_multi(db_session, "spiderman")
+    items = await discover_details.search_tmdb_multi(db_session, "ironknight")
 
-    assert "spider man" in client.queries
+    assert "iron knight" in client.queries
     assert [item["tmdb_id"] for item in items] == [70, 80]
 
 
@@ -342,9 +342,9 @@ async def test_search_splits_missing_word_separator_before_ranking(monkeypatch, 
 
     monkeypatch.setattr(discover_details._search, "_get_tmdb_key", fake_tmdb_key)
 
-    items = await discover_details.search_tmdb_multi(db_session, "missionimpossible")
+    items = await discover_details.search_tmdb_multi(db_session, "ghostmission")
 
-    assert "mission impossible" in client.queries
+    assert "ghost mission" in client.queries
     assert [item["tmdb_id"] for item in items] == [71, 81]
 
 

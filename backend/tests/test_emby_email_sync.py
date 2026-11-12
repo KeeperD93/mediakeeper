@@ -1,4 +1,4 @@
-"""Emby Connect email is mirrored onto the MediaKeeper profile (#113).
+"""Emby Connect email is mirrored onto the MediaKeeper profile.
 
 Covers the three capture points: selective import, login backfill, and the
 bulk reconciliation pass. The extractor is unit-tested in isolation because

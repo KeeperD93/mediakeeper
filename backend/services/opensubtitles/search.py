@@ -13,7 +13,7 @@ from .paths import _normalize_path_validation_error
 
 # A legitimate subtitle is a few hundred KB at most; cap the download so a
 # malicious OpenSubtitles response or a redirect MITM cannot OOM the backend
-# or fill the media volume by streaming gigabytes (#402).
+# or fill the media volume by streaming gigabytes.
 MAX_SUBTITLE_BYTES = 16 * 1024 * 1024
 
 

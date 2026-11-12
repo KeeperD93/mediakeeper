@@ -163,7 +163,7 @@ def test_parser_limit_counts_only_non_empty(monkeypatch, tmp_path):
 
 
 def test_find_changelog_coerces_unknown_lang_to_fr():
-    """Portal twin of #391 — unsupported lang falls back to "fr"."""
+    """Portal twin of the admin changelog guard — unsupported lang falls back to "fr"."""
     from api.portal_changelog import _find_changelog
 
     assert _find_changelog("../../etc/passwd") == _find_changelog("fr")

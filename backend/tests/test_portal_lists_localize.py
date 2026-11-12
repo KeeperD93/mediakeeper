@@ -18,8 +18,8 @@ from services.portal import lists_query as svc_query
 
 def _items() -> list[dict]:
     return [
-        {"tmdb_id": 603, "media_type": "movie", "title": "Matrice", "year": 1999},
-        {"tmdb_id": 1399, "media_type": "tv", "title": "Trone", "year": 2011},
+        {"tmdb_id": 900001, "media_type": "movie", "title": "Film Exemple", "year": 2001},
+        {"tmdb_id": 900002, "media_type": "tv", "title": "Serie Exemple", "year": 2012},
         {"tmdb_id": None, "media_type": "movie", "title": "No TMDB"},
     ]
 
@@ -56,10 +56,10 @@ async def test_localizes_title_only(monkeypatch):
 
     _patch(monkeypatch, _detail)
     out = await ll.localize_titles(None, _items(), "en")
-    assert out[0]["title"] == "T603 [en]"
-    assert out[0]["year"] == 1999  # other fields preserved
+    assert out[0]["title"] == "T900001 [en]"
+    assert out[0]["year"] == 2001  # other fields preserved
     assert "overview" not in out[0]  # title-only: no overview leaked in
-    assert out[1]["title"] == "T1399 [en]"
+    assert out[1]["title"] == "T900002 [en]"
     assert out[2]["title"] == "No TMDB"  # no tmdb_id -> untouched
 
 
@@ -71,7 +71,7 @@ async def test_does_not_mutate_input(monkeypatch):
     _patch(monkeypatch, _detail)
     items = _items()
     await ll.localize_titles(None, items, "en")
-    assert items[0]["title"] == "Matrice"
+    assert items[0]["title"] == "Film Exemple"
 
 
 @pytest.mark.asyncio
@@ -81,14 +81,14 @@ async def test_blank_or_error_keeps_stored_title(monkeypatch):
 
     _patch(monkeypatch, _blank)
     out = await ll.localize_titles(None, _items(), "en")
-    assert out[0]["title"] == "Matrice"
+    assert out[0]["title"] == "Film Exemple"
 
     async def _err(mt, tid, db=None, locale=None):
         return {"error": "tmdb_detail_failed"}
 
     _patch(monkeypatch, _err)
     out = await ll.localize_titles(None, _items(), "en")
-    assert out[0]["title"] == "Matrice"
+    assert out[0]["title"] == "Film Exemple"
 
 
 @pytest.mark.asyncio
@@ -122,7 +122,7 @@ async def test_cache_avoids_second_tmdb_call(monkeypatch):
     _patch(monkeypatch, _detail)
     await ll.localize_titles(None, _items(), "en")
     await ll.localize_titles(None, _items(), "en")
-    assert sorted(calls) == [603, 1399]
+    assert sorted(calls) == [900001, 900002]
 
 
 @pytest.mark.asyncio
@@ -141,7 +141,7 @@ async def test_get_list_localizes_item_titles(db_session, monkeypatch):
     await db_session.commit()
     await db_session.refresh(lst)
     db_session.add(UserListItem(
-        list_id=lst.id, tmdb_id=603, media_type="movie", title="Matrice",
+        list_id=lst.id, tmdb_id=900001, media_type="movie", title="Film Exemple",
     ))
     await db_session.commit()
 
@@ -150,11 +150,11 @@ async def test_get_list_localizes_item_titles(db_session, monkeypatch):
 
     _patch(monkeypatch, _detail)
     res = await svc_query.get_list(db_session, lst.id, user.id, locale="en")
-    assert any(it["title"] == "T603 [en]" for it in res["items"])
+    assert any(it["title"] == "T900001 [en]" for it in res["items"])
 
     ll._title_cache.clear()
     res_fr = await svc_query.get_list(db_session, lst.id, user.id, locale="fr")  # default -> as-is
-    assert any(it["title"] == "Matrice" for it in res_fr["items"])
+    assert any(it["title"] == "Film Exemple" for it in res_fr["items"])
 
 
 @pytest.mark.asyncio
@@ -178,7 +178,7 @@ async def test_get_history_localizes_titles(db_session, monkeypatch):
     await db_session.refresh(lst)
     db_session.add(UserListHistory(
         list_id=lst.id, user_id=user.id, action="add",
-        tmdb_id=603, media_type="movie", title="Matrice",
+        tmdb_id=900001, media_type="movie", title="Film Exemple",
     ))
     await db_session.commit()
 
@@ -187,7 +187,7 @@ async def test_get_history_localizes_titles(db_session, monkeypatch):
 
     _patch(monkeypatch, _detail)
     hist = await lists_admin.get_history(db_session, lst.id, user.id, locale="en")
-    assert any(h["title"] == "T603 [en]" for h in hist)
+    assert any(h["title"] == "T900001 [en]" for h in hist)
 
 
 @pytest.mark.asyncio
@@ -209,7 +209,7 @@ async def test_export_csv_localizes_titles(db_session, monkeypatch):
     await db_session.commit()
     await db_session.refresh(lst)
     db_session.add(UserListItem(
-        list_id=lst.id, tmdb_id=603, media_type="movie", title="Matrice", year=1999,
+        list_id=lst.id, tmdb_id=900001, media_type="movie", title="Film Exemple", year=2001,
     ))
     await db_session.commit()
 
@@ -218,4 +218,4 @@ async def test_export_csv_localizes_titles(db_session, monkeypatch):
 
     _patch(monkeypatch, _detail)
     out = await lists_admin.export_list(db_session, lst.id, user.id, fmt="csv", locale="en")
-    assert "T603 [en]" in out["content"]
+    assert "T900001 [en]" in out["content"]
