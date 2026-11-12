@@ -1,8 +1,10 @@
 import { ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { usePrefersReducedMotion } from '@/composables/usePrefersReducedMotion'
 
 export function useTimelineNav(timelineItems) {
   const { locale } = useI18n()
+  const reducedMotion = usePrefersReducedMotion()
   const NOW = new Date().toISOString().slice(0, 10)
   const FROM = (() => {
     const d = new Date()
@@ -85,7 +87,7 @@ export function useTimelineNav(timelineItems) {
     if (t)
       c.scrollTo({
         top: Math.max(0, t.offsetTop - c.clientHeight / 3),
-        behavior: scrolled ? 'smooth' : 'auto',
+        behavior: scrolled && !reducedMotion.value ? 'smooth' : 'auto',
       })
   }
 
@@ -94,7 +96,12 @@ export function useTimelineNav(timelineItems) {
     if (!c) return
     const rows = Array.from(c.querySelectorAll('[data-date]'))
     const t = rows.find(r => r.dataset.date >= d) || rows[rows.length - 1]
-    if (t) c.scrollTo({ top: Math.max(0, t.offsetTop - 70), behavior: 'smooth' })
+    if (t) {
+      c.scrollTo({
+        top: Math.max(0, t.offsetTop - 70),
+        behavior: reducedMotion.value ? 'auto' : 'smooth',
+      })
+    }
   }
 
   function doAutoScroll(rootRef) {

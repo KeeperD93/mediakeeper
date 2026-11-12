@@ -29,7 +29,7 @@
           </div>
           <div v-if="bl.requesters?.length" class="ab-requesters">
             <span class="ab-requesters-label">
-              {{ $t('portal.admin.blacklist.requesters') || 'Requested by' }}:
+              {{ $t('portal.admin.blacklist.requesters') }}
             </span>
             <span v-for="(r, i) in bl.requesters" :key="r.user_id" class="ab-requester">
               {{ r.display_name }}

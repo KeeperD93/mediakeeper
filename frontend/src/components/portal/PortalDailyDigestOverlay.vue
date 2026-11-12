@@ -98,7 +98,7 @@
                 class="ddd-section ddd-section--leaderboard"
               >
                 <h3 class="ddd-section-title">{{ $t('portal.dailyDigest.sections.top3') }}</h3>
-                <LeaderboardCard :entries="digest.ranking.top3" widget />
+                <LeaderboardCard :entries="digest.ranking.top3" digest />
               </section>
 
               <section v-if="digest.next_achievement" class="ddd-ach-hero">
@@ -327,7 +327,7 @@ function scrollPosters(dir) {
   const el = postersRef.value
   if (!el) return
   const step = Math.max(180, el.clientWidth * 0.7)
-  el.scrollBy({ left: dir * step, behavior: 'smooth' })
+  el.scrollBy({ left: dir * step })
 }
 
 watch([digest, visible], async () => {

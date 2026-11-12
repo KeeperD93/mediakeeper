@@ -1,5 +1,5 @@
 import { ref, readonly, type DeepReadonly, type Ref } from 'vue'
-import type { Router } from 'vue-router'
+import type { RouteLocationNormalizedLoaded, Router } from 'vue-router'
 import type { ToastType } from '@/constants/toast'
 
 export interface ToastMeta {
@@ -16,25 +16,21 @@ export interface ToastItem {
   meta: ToastMeta | null
   module: string
   persistent: boolean
+  // Auto-dismiss delay in ms, also the length of the countdown bar.
+  duration: number
 }
 
 const toasts = ref<ToastItem[]>([])
 let toastId = 0
 
-// i18n keys, resolved with t() in the toast renderer — never raw English labels.
-const ROUTE_MODULES: Record<string, string> = {
-  '/': 'toastModule.dashboard',
-  '/dashboard': 'toastModule.dashboard',
-  '/stats': 'toastModule.statistics',
-  '/media-manager': 'toastModule.manager',
-  '/notifications': 'toastModule.notifications',
-  '/logs': 'toastModule.logs',
-  '/healthcheck': 'toastModule.health',
-  '/watchlist': 'toastModule.tracking',
-  '/duplicates': 'toastModule.duplicates',
-  '/subtitles': 'toastModule.subtitles',
-  '/settings': 'toastModule.settings',
-  '/changelog': 'toastModule.changelog',
+// The header is an i18n key, resolved with t() in the toast renderer.
+const GENERIC_MODULE = 'toastModule.app'
+
+// An admin page (child of the '/' shell) heads its toasts with its own title, so a
+// new page needs no extra entry; portal and sign-in pages keep the generic header.
+function moduleKey(route: RouteLocationNormalizedLoaded | undefined): string {
+  const titleKey = route?.meta.titleKey
+  return route?.matched[0]?.path === '/' && typeof titleKey === 'string' ? titleKey : GENERIC_MODULE
 }
 
 let _routerInstance: Router | null = null
@@ -67,9 +63,8 @@ export function useToast(): UseToastApi {
     // Nothing to say: the failure was already reported (a rate limit's own toast).
     if (!message) return
     const id = ++toastId
-    const path = _routerInstance?.currentRoute?.value?.path || '/'
-    const module = ROUTE_MODULES[path] || 'toastModule.app'
-    toasts.value.push({ id, message, type, meta, module, persistent: duration <= 0 })
+    const module = moduleKey(_routerInstance?.currentRoute.value)
+    toasts.value.push({ id, message, type, meta, module, persistent: duration <= 0, duration })
 
     if (duration > 0) {
       setTimeout(() => {

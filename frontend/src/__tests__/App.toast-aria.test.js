@@ -111,3 +111,28 @@ describe('App.vue — toast ARIA live region (WCAG 2.2 SC 4.1.3)', () => {
     wrapper.unmount()
   })
 })
+
+describe('App.vue — toast countdown bar', () => {
+  beforeEach(() => {
+    vi.useFakeTimers()
+    toasts.value = []
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
+  it("runs each bar for its own toast's duration", () => {
+    toasts.value = [
+      baseToast({ id: 40, persistent: false, duration: 5000 }),
+      baseToast({ id: 41, persistent: false, duration: 8000 }),
+    ]
+    const wrapper = mount(App)
+    const durations = wrapper
+      .findAll('.mk-toast-progress')
+      .map(bar => bar.element.style.getPropertyValue('--toast-duration'))
+
+    expect(durations).toEqual(['5000ms', '8000ms'])
+    wrapper.unmount()
+  })
+})

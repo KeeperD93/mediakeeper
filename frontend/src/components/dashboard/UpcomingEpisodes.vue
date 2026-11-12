@@ -61,6 +61,7 @@ import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Layers } from 'lucide-vue-next'
 import { useApi } from '@/composables/useApi'
+import { usePrefersReducedMotion } from '@/composables/usePrefersReducedMotion'
 import { tmdbWebUrl } from '@/utils/tmdb'
 import { localizedDate } from '@/utils/datetime'
 
@@ -107,11 +108,7 @@ const groupedItems = computed(() => {
 // Honour the OS "reduce motion" preference: the auto-scroll marquee is
 // swapped for a manual horizontal scroller (see the reduced-motion CSS), and
 // we render a single set so series are not listed twice when scrolled by hand.
-const prefersReducedMotion = ref(false)
-let _motionQuery = null
-function _syncMotionPref(e) {
-  prefersReducedMotion.value = e.matches
-}
+const prefersReducedMotion = usePrefersReducedMotion()
 
 // Marquee duplicates the set; a thin separator marks the loop seam (last →
 // first). Reduced motion shows one set with a trailing seam marker.
@@ -151,15 +148,6 @@ async function fetchData() {
 }
 
 onMounted(async () => {
-  if (typeof window !== 'undefined' && typeof window.matchMedia === 'function') {
-    _motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)')
-    prefersReducedMotion.value = _motionQuery.matches
-    if (typeof _motionQuery.addEventListener === 'function') {
-      _motionQuery.addEventListener('change', _syncMotionPref)
-    } else if (typeof _motionQuery.addListener === 'function') {
-      _motionQuery.addListener(_syncMotionPref)
-    }
-  }
   const ok = await fetchData()
   if (!ok) {
     let attempts = 0
@@ -175,14 +163,6 @@ onMounted(async () => {
 })
 onUnmounted(() => {
   if (retryTimer) clearInterval(retryTimer)
-  if (_motionQuery) {
-    if (typeof _motionQuery.removeEventListener === 'function') {
-      _motionQuery.removeEventListener('change', _syncMotionPref)
-    } else if (typeof _motionQuery.removeListener === 'function') {
-      _motionQuery.removeListener(_syncMotionPref)
-    }
-    _motionQuery = null
-  }
 })
 
 // Re-fetch when the UI language changes so titles + posters come back

@@ -8,7 +8,7 @@ import { reactive, ref } from 'vue'
 const records = ref(null)
 vi.mock('@/composables/useStats', () => ({
   useStats: () => ({
-    totals: reactive({ plays: 0, transcodePct: 0 }),
+    totals: reactive({ plays: 0, transcodePct: 0, disabledUsers: 3 }),
     sparklinePlays: ref([]),
     sparklineDuration: ref([]),
     records,
@@ -28,5 +28,12 @@ describe('StatsTotalsRow', () => {
   ])('shows a peak hour of %s as %s', (hour, shown) => {
     records.value = { peak_hour: hour, peak_hour_count: 0 }
     expect(mount(StatsTotalsRow).findAll('.rec-value').at(-1).text()).toBe(shown)
+  })
+
+  it('leaves the colons of the disabled-users and direct-play lines to the translation', () => {
+    const w = mount(StatsTotalsRow)
+
+    expect(w.find('.tot-user-breakdown .tot-sub').text()).toBe('stats.disabled 3')
+    expect(w.findAll('.tot-sub').at(-1).text()).toBe('stats.directPlayPct:{"pct":"100.0"}')
   })
 })

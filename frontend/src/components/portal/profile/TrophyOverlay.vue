@@ -236,6 +236,7 @@ import { ref, computed, watch, nextTick } from 'vue'
 import { HelpCircle, Gift, Pin, Crown, Search, Sparkles } from 'lucide-vue-next'
 import { useI18n } from 'vue-i18n'
 import { TROPHY_STATUS, TROPHY_CATEGORY } from '@/constants/achievements'
+import { usePrefersReducedMotion } from '@/composables/usePrefersReducedMotion'
 import { localizedDate } from '@/utils/datetime'
 
 const props = defineProps({
@@ -253,6 +254,7 @@ const props = defineProps({
 
 defineEmits(['update:modelValue', 'update:selectedCategory', 'toggle-pin'])
 
+const reducedMotion = usePrefersReducedMotion()
 const focusedId = ref(null)
 const expandedId = ref(null)
 function toggleExpand(ach) {
@@ -269,7 +271,7 @@ watch(
     await nextTick()
     const el = document.querySelector(`[data-trophy-id="${fid}"]`)
     if (el) {
-      el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      el.scrollIntoView({ behavior: reducedMotion.value ? 'auto' : 'smooth', block: 'center' })
       focusedId.value = fid
       setTimeout(() => {
         if (focusedId.value === fid) focusedId.value = null

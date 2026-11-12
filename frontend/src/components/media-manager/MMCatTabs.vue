@@ -394,7 +394,7 @@ function updateScrollState() {
 function scrollTabs(dir) {
   const el = tabsRef.value
   if (!el) return
-  el.scrollBy({ left: dir === 'left' ? -160 : 160, behavior: 'smooth' })
+  el.scrollBy({ left: dir === 'left' ? -160 : 160 })
 }
 
 function startAutoScroll(dir) {
