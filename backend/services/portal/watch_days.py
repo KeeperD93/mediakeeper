@@ -1,8 +1,9 @@
 """The days something was watched on, on the clock of the instance: what a day streak counts.
 
 A day counts once it holds five minutes of watching, whatever day the titles started on: a
-film finished after midnight fills the new day too. Only measured time counts, so pauses
-and a title stopped at once fill nothing; music and audiobooks never count.
+film finished after midnight fills the new day too. Films and episodes bring their seconds
+per hour (estimated for imported history), other video its time per title laid from its
+start. Pauses and a title stopped at once fill nothing; music and audiobooks never count.
 """
 from collections import Counter
 from collections.abc import Iterable

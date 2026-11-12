@@ -12,7 +12,7 @@ This section intentionally has no date so it is not shown to users.
 
 ### Changed
 - Dashboard — leaderboard widget matches the Leaderboard page.
-- Statistics and Regular trophy — a day counts from 5 min watched, past midnight included; music left out.
+- Statistics — day streak from 5 min watched; music and audiobooks left out.
 
 ### Fixed
 - Notifications — header names the page, bar lasts as long as the message, full message on small phones.

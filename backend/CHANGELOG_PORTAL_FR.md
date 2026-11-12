@@ -17,7 +17,7 @@ utilisateurs.
 ## [Unreleased]
 
 ### Changed
-- Jours d'affilée et trophée Régulier — un jour compte dès 5 min regardées, après minuit compris ; musique exclue.
+- Jours d'affilée et Régulier — dès 5 min regardées ; musique et livres audio exclus.
 
 ### Fixed
 - Notifications — barre à la bonne durée, message entier sur petits téléphones.
