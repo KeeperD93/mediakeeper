@@ -17,6 +17,7 @@ utilisateurs.
 ## [Unreleased]
 
 ### Changed
+- Identité visuelle — nouveau logo et nouvelle bannière, icônes de l'application refaites.
 - Jours d'affilée et Régulier — dès 5 min regardées ; musique et livres audio exclus.
 - Trophées secrets — nom et icône visibles, description et progression cachées jusqu'au déblocage.
 - Quoi de neuf aujourd'hui ? — refondu : actualités en tête, vue compacte, alerte d'expiration, « Pour vous », nouvelle version.

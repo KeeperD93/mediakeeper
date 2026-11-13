@@ -11,6 +11,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 ## [Unreleased]
 
 ### Changed
+- Identité visuelle — nouveau logo et nouvelle bannière, icônes de l'application refaites.
 - Tableau de bord — widget du classement aligné sur la page Classement.
 - Statistiques — série de jours dès 5 min regardées ; musique et livres audio exclus.
 - Portail — trophées secrets : nom et icône visibles, description et progression cachées jusqu'au déblocage.

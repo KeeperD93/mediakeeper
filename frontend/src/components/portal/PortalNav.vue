@@ -3,7 +3,7 @@
     <div class="pt-nav-inner">
       <button class="pt-nav-brand" type="button" @click="navigateTo(PORTAL_TAB.HOME)">
         <img
-          src="/assets/icons/mediakeeper.png"
+          src="/assets/icons/mk-logo-128.png"
           :alt="$t('portal.nav.brand')"
           class="pt-brand-img"
         />

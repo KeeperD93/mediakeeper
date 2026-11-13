@@ -79,7 +79,7 @@ export function buildGenres(t: TranslateFn): PortalGenre[] {
  *
  * All logos live under `/assets/icons/platforms/*.svg` (kebab-case) —
  * a dedicated directory separate from the generic icons (emby.svg,
- * tmdb.svg, mediakeeper.png) to keep platform artwork contained.
+ * tmdb.svg, mk-logo-128.png) to keep platform artwork contained.
  * All logos are monochrome dark-background variants, so no CSS colour
  * hack is needed in CategoryCards.
  */

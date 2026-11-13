@@ -51,7 +51,13 @@
         <div class="login-hero">
           <div class="login-hero-glow" aria-hidden="true" />
           <div class="login-hero-content">
-            <img :src="bannerUrl" alt="MediaKeeper" class="login-hero-banner" />
+            <img
+              :src="bannerUrl"
+              alt="MediaKeeper"
+              width="700"
+              height="110"
+              class="login-hero-banner"
+            />
             <h1 class="sr-only">{{ t(headingKey) }}</h1>
             <p class="login-hero-sub">{{ t(subtitleKey) }}</p>
           </div>
@@ -214,8 +220,8 @@ const { backendReady, appVersion, getRedirectTarget, leaveAfterSignIn, start, di
   useLoginRedirect({ username, remember, errorMsg, loggedOutMsg, submitting })
 
 const repoUrl = 'https://github.com/KeeperD93/mediakeeper'
-const logoUrl = '/assets/icons/mediakeeper.png'
-const bannerUrl = '/assets/icons/mediakeeper_banner.png'
+const logoUrl = '/assets/icons/mk-logo-128.png'
+const bannerUrl = '/assets/icons/mk-banner-700.png'
 
 const isPortalLogin = computed(() => getRedirectTarget().startsWith('/portal'))
 const headingKey = computed(() => (isPortalLogin.value ? 'portalLogin.title' : 'login.title'))

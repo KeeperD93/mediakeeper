@@ -96,7 +96,7 @@ import { Check, CirclePlay, TriangleAlert, X } from 'lucide-vue-next'
 // `?inline` forces Vite to embed the asset as a base64 data URL inside
 // the JS bundle so the overlay keeps rendering even when the backend
 // (which serves /assets/*) is being rebuilt.
-import reconnectLogo from '@/assets/icons/mediakeeper-overlay.png?inline'
+import reconnectLogo from '@/assets/icons/mk-logo-96.png?inline'
 
 import '@/assets/styles/app-shell.css'
 
