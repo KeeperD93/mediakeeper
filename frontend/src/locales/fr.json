@@ -3086,10 +3086,11 @@
         "quotaOf": "sur {total}",
         "tickets": "Tickets ouverts",
         "ticketsCaption": "à suivre",
-        "ticketsCompact": "Ticket ouvert | Tickets ouverts",
+        "ticketsCaptionNone": "aucun à suivre",
+        "ticketsCompact": "Ticket ouvert | Ticket ouvert | Tickets ouverts",
         "streak": "Série",
-        "streakDays": "jour consécutif | jours consécutifs",
-        "streakCompact": "Jour d'affilée | Jours d'affilée"
+        "streakDays": "jour consécutif | jour consécutif | jours consécutifs",
+        "streakCompact": "Jour d'affilée | Jour d'affilée | Jours d'affilée"
       },
       "level": {
         "eyebrow": "Votre niveau",
