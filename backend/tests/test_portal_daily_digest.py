@@ -239,3 +239,33 @@ async def test_dismiss_commits_elapsed_watermark(db_session):
     prefs = await dd_svc._load_prefs(db_session, user.id)
     assert dd_svc._parse_dt(prefs["portal_daily_digest_recent_seen_at"]) == old
     assert dd_svc._parse_dt(prefs["portal_daily_digest_dismissed_at"]) != old
+
+
+def test_clear_cache_drops_every_payload():
+    dd_svc._digest_cache[(1, "2026-11-13", "fr")] = (9e12, {})
+    dd_svc._digest_cache[(2, "2026-11-13", "en")] = (9e12, {})
+    dd_svc.clear_cache()
+    assert dd_svc._digest_cache == {}
+
+
+@pytest.mark.asyncio
+async def test_a_digest_built_across_a_drop_is_not_cached(client, db_session):
+    """A rename saved while a digest is built must not be hidden by that digest."""
+    await _seed_viewer(client, db_session)
+    dd_svc._digest_cache.clear()
+
+    async def renamed_meanwhile(*_args, **_kwargs):
+        dd_svc.clear_cache()  # another request saved a name during this build
+        return []
+
+    stubs = _stub_all_digest_sources()
+    stubs[0] = patch.object(dd_sources, "recent_adds", AsyncMock(side_effect=renamed_meanwhile))
+    for s in stubs:
+        s.start()
+    try:
+        assert (await client.get("/api/portal/daily-digest")).status_code == 200
+    finally:
+        for s in stubs:
+            s.stop()
+
+    assert dd_svc._digest_cache == {}

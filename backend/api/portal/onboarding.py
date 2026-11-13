@@ -42,9 +42,12 @@ async def finish_onboarding(
     db: AsyncSession = Depends(get_db),
 ):
     """Save the wizard's choices and mark it finished (``complete_onboarding``).
-    Every cached digest is rebuilt: the member's greets them by the name they just
-    chose, the others' podiums show that name, or drop a profile turned private."""
-    user, _ = up
+    Finishing it rebuilds every cached digest: the member's greets them by the name
+    they just chose, the others' podiums show that name, or drop a profile turned
+    private. A second submit saves nothing and rebuilds nothing."""
+    user, current = up
+    finishing = current.onboarding_completed_at is None
     profile = await complete_onboarding(db, user.id, choices.model_dump(exclude_unset=True))
-    dd_svc.clear_cache()
+    if finishing:
+        dd_svc.clear_cache()
     return await serialize_profile_with_effective_lang(db, profile, user=user)

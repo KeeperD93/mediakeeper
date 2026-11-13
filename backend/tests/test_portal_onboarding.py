@@ -152,12 +152,17 @@ async def test_finishing_rebuilds_every_digest(client, db_session, monkeypatch):
     await client.post(URL, json=_choices())
     assert calls == {"cleared": [True], "dropped": []}
 
+    await client.post(URL, json=_choices())  # already finished: nothing saved, nothing rebuilt
+    assert calls == {"cleared": [True], "dropped": []}
+
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize(("change", "seen_by_others"), [
     ({"is_public": False}, True),
     ({"display_name": "Alicia"}, True),
     ({"bio": "Hello"}, False),
+    ({"is_public": True}, False),  # unchanged: only the member's own digest goes
+    ({"display_name": "alice"}, False),  # the same name: kept as it is
 ])
 async def test_a_profile_save_rebuilds_the_digests_it_touches(
     client, db_session, monkeypatch, change, seen_by_others,

@@ -32,6 +32,7 @@ from models.portal.achievement import UserAchievement
 from models.portal.profile import UserProfile
 from models.user import User
 from services.instance_time import get_instance_zone
+from services.portal import daily_digest as dd_svc
 from services.portal.achievement_defs import ACHIEVEMENT_DEFS
 from services.portal.achievements import safe_check_all_achievements_in_new_session
 from services.portal.admin_users_constants import ROLE_ADMIN
@@ -138,6 +139,7 @@ async def upload_avatar(
     db.add(profile)
     await db.commit()
     await db.refresh(profile)
+    dd_svc.clear_cache()  # the digest podiums show the avatar
     background_tasks.add_task(
         safe_check_all_achievements_in_new_session,
         user.id,
@@ -161,6 +163,7 @@ async def delete_my_avatar(
     db.add(profile)
     await db.commit()
     await db.refresh(profile)
+    dd_svc.clear_cache()
     return {
         "avatar_custom_path": None,
         "avatar_url": profile.avatar_url,

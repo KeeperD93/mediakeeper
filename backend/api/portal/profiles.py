@@ -144,10 +144,11 @@ async def update_my_profile(
         unlocked_badges = await unlocked_achievement_ids(db, user.id)
         if not set(payload["selected_badges"]).issubset(unlocked_badges):
             raise HTTPException(status_code=403, detail="badge_not_unlocked")
+    before = {field: getattr(profile, field) for field in dd_svc.PODIUM_FIELDS}
     updated = await update_profile(db, profile, payload)
-    # The digest caches the name, visibility and language for an hour: rebuild it,
-    # every reader's when the name or visibility other members see changed.
-    if {"display_name", "is_public"} & payload.keys():
+    # The digest is cached for an hour: every reader's goes when the member changed
+    # what the others see, only theirs otherwise (language, genres…).
+    if any(getattr(updated, field) != value for field, value in before.items()):
         dd_svc.clear_cache()
     else:
         dd_svc.invalidate_cache(user.id)

@@ -22,6 +22,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from models.user import User
 from models.portal.profile import UserProfile
 
+from services.portal import daily_digest as dd_svc
 from services.portal.requests_quota import get_user_quota
 from .admin_users_audit import record_audit
 from .admin_users_constants import (
@@ -281,6 +282,8 @@ async def update_user_identity(
         )
         await db.commit()
         await db.refresh(profile)
+        if "display_name" in changed:
+            dd_svc.clear_cache()  # the digest podiums show the name
     return {
         "ok": True,
         "changed": changed,
