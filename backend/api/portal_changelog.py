@@ -166,7 +166,9 @@ async def mark_portal_changelog_seen(
     user, _ = up
     version = req.version or PORTAL_VERSION
     from services.settings import get_user_preferences, upsert_user_preferences
-    prefs = await get_user_preferences(db, user.id)
+    # Locked like the daily digest writes to the same JSON: closing both overlays
+    # at once must not lose either change.
+    prefs = await get_user_preferences(db, user.id, lock_row=True)
     prefs_data = json.loads(prefs.preferences) if prefs and prefs.preferences else {}
     prefs_data["portal_changelog_seen_version"] = version
     await upsert_user_preferences(db, user.id, preferences=json.dumps(prefs_data))
