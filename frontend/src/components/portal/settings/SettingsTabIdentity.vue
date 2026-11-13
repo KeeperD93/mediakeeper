@@ -134,7 +134,7 @@ import { Trash2, Upload } from 'lucide-vue-next'
 import MkAvatar from '@/components/common/MkAvatar.vue'
 import AvatarFrame from '@/components/portal/common/AvatarFrame.vue'
 import { useToast } from '@/composables/useToast'
-import { DISPLAY_NAME_REASON } from '@/constants/displayName'
+import { DISPLAY_NAME_FLAGS } from '@/constants/displayName'
 import { TOAST_TYPE } from '@/constants/toast'
 
 const props = defineProps({
@@ -182,17 +182,6 @@ const avatarPreviewUrl = computed(() => {
   return lastUploadedUrl.value || props.profileData?.avatar_url || null
 })
 
-// Verdict of the live check → tone of the flag and its text (portal.settings.identity.*).
-const UNAME_FLAGS = {
-  [DISPLAY_NAME_REASON.CURRENT]: ['warn', 'usernameCurrent'],
-  [DISPLAY_NAME_REASON.FREE]: ['ok', 'usernameAvailable'],
-  [DISPLAY_NAME_REASON.TAKEN]: ['err', 'usernameTaken'],
-  [DISPLAY_NAME_REASON.RESERVED]: ['err', 'usernameReserved'],
-  [DISPLAY_NAME_REASON.TOO_SHORT]: ['err', 'usernameTooShort'],
-  [DISPLAY_NAME_REASON.INVALID]: ['err', 'usernameInvalid'],
-  [DISPLAY_NAME_REASON.LOCKED]: ['err', 'usernameLockedShort'],
-}
-
 const unameFlag = computed(() => {
   const c = props.usernameCheck
   if (!c.reason) return { show: false }
@@ -203,14 +192,12 @@ const unameFlag = computed(() => {
       text: t('portal.settings.forceUsername.checking'),
     }
   }
-  const flag = UNAME_FLAGS[c.reason]
+  const flag = DISPLAY_NAME_FLAGS[c.reason]
   if (!flag) return { show: false }
   return {
     show: true,
-    cls: `pt-settings-uname-flag--${flag[0]}`,
-    text: t(`portal.settings.identity.${flag[1]}`, {
-      days: props.usernameState?.lock_days || 180,
-    }),
+    cls: `pt-settings-uname-flag--${flag.tone}`,
+    text: t(flag.key, { days: props.usernameState?.lock_days || 180 }),
   }
 })
 

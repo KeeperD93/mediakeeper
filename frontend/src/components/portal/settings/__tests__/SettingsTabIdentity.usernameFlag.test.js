@@ -35,6 +35,8 @@ describe('SettingsTabIdentity.vue, username flag', () => {
     ['too_short', 'err', 'usernameTooShort'],
     ['invalid', 'err', 'usernameInvalid'],
     ['locked', 'err', 'usernameLockedShort'],
+    ['generated', 'err', 'usernameGenerated'],
+    ['previous', 'err', 'usernamePrevious'],
   ])('says « %s » with its tone', (reason, tone, key) => {
     const flag = flagFor({ reason })
     expect(flag.classes()).toContain(`pt-settings-uname-flag--${tone}`)

@@ -16,10 +16,28 @@ export const DISPLAY_NAME_REASON = Object.freeze({
 
 export type DisplayNameReason = (typeof DISPLAY_NAME_REASON)[keyof typeof DISPLAY_NAME_REASON]
 
-/** i18n key of each refusal the profile save can send back for the name. */
-export const NAME_REFUSAL_KEYS: Readonly<Record<string, string>> = Object.freeze({
-  display_name_taken: 'portal.settings.identity.usernameTaken',
-  display_name_reserved: 'portal.settings.identity.usernameReserved',
-  display_name_too_short: 'portal.settings.identity.usernameTooShort',
-  display_name_invalid: 'portal.settings.identity.usernameInvalid',
+const IDENTITY = 'portal.settings.identity'
+
+/** What a name field shows for each verdict: the flag's tone and its text. */
+export const DISPLAY_NAME_FLAGS: Readonly<
+  Record<DisplayNameReason, { tone: 'ok' | 'warn' | 'err'; key: string }>
+> = Object.freeze({
+  [DISPLAY_NAME_REASON.CURRENT]: { tone: 'warn', key: `${IDENTITY}.usernameCurrent` },
+  [DISPLAY_NAME_REASON.FREE]: { tone: 'ok', key: `${IDENTITY}.usernameAvailable` },
+  [DISPLAY_NAME_REASON.TAKEN]: { tone: 'err', key: `${IDENTITY}.usernameTaken` },
+  [DISPLAY_NAME_REASON.RESERVED]: { tone: 'err', key: `${IDENTITY}.usernameReserved` },
+  [DISPLAY_NAME_REASON.TOO_SHORT]: { tone: 'err', key: `${IDENTITY}.usernameTooShort` },
+  [DISPLAY_NAME_REASON.INVALID]: { tone: 'err', key: `${IDENTITY}.usernameInvalid` },
+  [DISPLAY_NAME_REASON.LOCKED]: { tone: 'err', key: `${IDENTITY}.usernameLockedShort` },
+  [DISPLAY_NAME_REASON.GENERATED]: { tone: 'err', key: `${IDENTITY}.usernameGenerated` },
+  [DISPLAY_NAME_REASON.PREVIOUS]: { tone: 'err', key: `${IDENTITY}.usernamePrevious` },
 })
+
+const REFUSAL_PREFIX = 'display_name_'
+
+/** Verdict carried by a save refused for its name (`display_name_<reason>`), or null. */
+export function refusedNameReason(error: unknown): DisplayNameReason | null {
+  if (typeof error !== 'string' || !error.startsWith(REFUSAL_PREFIX)) return null
+  const reason = error.slice(REFUSAL_PREFIX.length) as DisplayNameReason
+  return reason in DISPLAY_NAME_FLAGS ? reason : null
+}

@@ -11,7 +11,11 @@ from services.portal import strip_tags_and_trim
 from services.portal._rank_tiers import tier_for_level
 from services.portal.admin_users_constants import ROLE_ADMIN, ROLE_VIEWER
 from services.portal.avatars import resolve_avatar_url
-from services.portal.display_name_rules import is_display_name_taken, judge_display_name
+from services.portal.display_name_rules import (
+    clean_display_name,
+    is_display_name_taken,
+    judge_display_name,
+)
 from services.portal.profile_serializers import (
     DISPLAY_NAME_LOCK_DAYS as DISPLAY_NAME_LOCK_DAYS,
 )
@@ -170,8 +174,9 @@ async def update_profile(
         if key not in allowed:
             continue
 
-        if key == "display_name" and isinstance(value, str):
-            cleaned = strip_tags_and_trim(value, max_len=dn.MAX_LENGTH)
+        if key == "display_name":
+            # A name is replaced, never removed: null is ignored like an empty name.
+            cleaned = clean_display_name(value) if isinstance(value, str) else ""
             if not cleaned:
                 continue
             verdict = await judge_display_name(

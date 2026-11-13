@@ -129,7 +129,7 @@ import { usePortalSettings } from '@/composables/portal/usePortalSettings'
 import { useSettingsTabHash } from '@/composables/portal/useSettingsTabHash'
 import { useApi } from '@/composables/useApi'
 import { useToast } from '@/composables/useToast'
-import { NAME_REFUSAL_KEYS } from '@/constants/displayName'
+import { DISPLAY_NAME_FLAGS, refusedNameReason } from '@/constants/displayName'
 import { TOAST_TYPE } from '@/constants/toast'
 import { useProfileData } from '@/composables/portal/useProfileData'
 import { useProfileXp } from '@/composables/portal/useProfileXp'
@@ -228,17 +228,11 @@ async function onSave() {
       return
     }
     showToast(t('portal.settings.save.saved'), TOAST_TYPE.OK)
-  } else if (NAME_REFUSAL_KEYS[res.error]) {
+  } else if (refusedNameReason(res.error)) {
+    // A refused name: the field re-checks to show why, the toast says it.
+    const flag = DISPLAY_NAME_FLAGS[refusedNameReason(res.error)]
     checkUsername(form.display_name)
-    showToast(t(NAME_REFUSAL_KEYS[res.error]), TOAST_TYPE.ERR)
-    activeTab.value = 'identity'
-  } else if (res.error === 'display_name_locked') {
-    showToast(
-      t('portal.settings.identity.usernameLockedShort', {
-        days: usernameState.lock_days || 180,
-      }),
-      TOAST_TYPE.ERR,
-    )
+    showToast(t(flag.key, { days: usernameState.lock_days || 180 }), TOAST_TYPE.ERR)
     activeTab.value = 'identity'
   } else {
     showToast(t('portal.settings.save.error'), TOAST_TYPE.ERR)

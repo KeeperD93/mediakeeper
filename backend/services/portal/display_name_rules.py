@@ -3,6 +3,7 @@
 The live check, the profile update and the first-login wizard all ask
 ``judge_display_name``: a name the check accepts is a name the save accepts.
 """
+import re
 import unicodedata
 from datetime import UTC, datetime
 
@@ -11,6 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from constants import display_name as dn
 from models.portal.profile import UserProfile
+from services.portal import strip_tags_and_trim
 from services.portal._pseudo_words import generate_pseudo
 from services.portal.admin_users_constants import ROLE_ADMIN
 from services.portal.profile_serializers import display_name_locked_until
@@ -42,13 +44,20 @@ _LOOKALIKES = str.maketrans({
     # Latin dotless i, alpha and script g
     0x0131: "i", 0x0251: "a", 0x0261: "g",
 })
+_SAME_SHAPE = str.maketrans({"l": "i", "1": "i", "0": "o"})
 
 
 def display_name_skeleton(name: str) -> str:
     """What a name reads as: look-alike letters, accents, width, case, invisible
-    characters and punctuation folded away, only ``a-z`` and ``0-9`` kept."""
+    characters and punctuation folded away, only ``a-z`` and ``0-9`` kept. The
+    table runs before and after NFKD and casefold: decomposed letters (Cyrillic yi),
+    casefolded ones (capital palochka) and mathematical capitals only reach it after."""
     folded = unicodedata.normalize("NFKD", (name or "").translate(_LOOKALIKES)).casefold()
-    return "".join(ch for ch in folded if "a" <= ch <= "z" or "0" <= ch <= "9")
+    folded = folded.translate(_LOOKALIKES)
+    kept = "".join(ch for ch in folded if "a" <= ch <= "z" or "0" <= ch <= "9")
+    # Latin shapes a reader mixes up: I, l and 1 (once casefolded: i, l, 1), O and 0,
+    # « rn » and « m ».
+    return kept.replace("rn", "m").translate(_SAME_SHAPE)
 
 
 _RESERVED_SKELETONS = frozenset(display_name_skeleton(n) for n in RESERVED_DISPLAY_NAMES)
@@ -58,10 +67,67 @@ def is_reserved_display_name(name: str) -> bool:
     return display_name_skeleton(name) in _RESERVED_SKELETONS
 
 
-def _has_format_characters(name: str) -> bool:
-    """Invisible and direction-changing characters (Unicode category Cf), which can
-    make a name show as another one."""
-    return any(unicodedata.category(ch) == "Cf" for ch in name)
+# Blank fillers and joiners with no ink of their own: a name could hide behind them.
+_BLANKS = frozenset({0x034F, 0x115F, 0x1160, 0x2800, 0x3164, 0xFFA0})
+# Zero-width non-joiner and joiner: part of Persian words and emoji, so allowed
+# between two visible characters, never at an edge or next to a space.
+_JOINERS = frozenset({0x200C, 0x200D})
+_EDGES = re.compile(r"^[\s﻿]+|[\s﻿]+$")
+
+
+def clean_display_name(raw: str | None) -> str:
+    """A submitted name as it is judged and stored: tags stripped, clipped, and
+    trimmed of spaces and byte-order marks, as the browser trims it."""
+    return _EDGES.sub("", strip_tags_and_trim(raw, max_len=dn.MAX_LENGTH))
+
+
+def _visible(ch: str) -> bool:
+    return unicodedata.category(ch) not in ("Mn", "Me", "Cf") and ord(ch) not in _BLANKS
+
+
+def _hides_text(name: str) -> bool:
+    """Characters that can make a name blank or show it as another one: controls,
+    private-use and unassigned code points, line breaks, blank fillers, and format
+    characters (direction marks, zero-width spaces) save a joiner between two
+    visible characters."""
+    for i, ch in enumerate(name):
+        category = unicodedata.category(ch)
+        if category in ("Cc", "Co", "Cn", "Zl", "Zp") or ord(ch) in _BLANKS:
+            return True
+        if category == "Cf":
+            joined = (
+                ord(ch) in _JOINERS
+                and 0 < i < len(name) - 1
+                and _visible(name[i - 1]) and not name[i - 1].isspace()
+                and _visible(name[i + 1]) and not name[i + 1].isspace()
+            )
+            if not joined:
+                return True
+    return False
+
+
+def _has_ink(name: str) -> bool:
+    """At least one letter, digit or symbol to see."""
+    return any(unicodedata.category(ch)[0] in "LNS" for ch in name if _visible(ch))
+
+
+def _visible_length(name: str) -> int:
+    """Characters a reader counts: combining marks and invisible ones aside."""
+    return sum(1 for ch in name if _visible(ch))
+
+
+def _fold(name: str) -> str:
+    return "".join(
+        ch for ch in unicodedata.normalize("NFKC", name).casefold()
+        if unicodedata.category(ch) != "Cf" and ord(ch) not in _BLANKS
+        and not 0xFE00 <= ord(ch) <= 0xFE0F
+    )
+
+
+def _same_name(a: str, b: str) -> bool:
+    """The same name to the eye: equal once folded, or equal non-empty skeletons."""
+    skeleton = display_name_skeleton(a)
+    return _fold(a) == _fold(b) or (bool(skeleton) and skeleton == display_name_skeleton(b))
 
 
 def is_display_name_locked(profile: UserProfile) -> bool:
@@ -94,31 +160,30 @@ async def judge_display_name(
     *,
     admin_override: bool = False,
 ) -> str:
-    """Verdict on ``name`` (already stripped of tags and trimmed) for ``profile``:
+    """Verdict on ``name`` (as ``clean_display_name`` returns it) for ``profile``:
     ``current`` or ``free`` when it may be kept or taken, else the refusal.
 
     A member who still owes a name (first login, or reset by an admin) cannot
-    confirm the stored one: it is the random placeholder or the name the admin
-    reset. The reserved check runs before « same as now », so a reserved name
-    stored by an older path cannot be kept either.
+    confirm the stored one, nor anything that looks like it: it is the random
+    placeholder or the name the admin reset. The reserved check runs before
+    « same as now », so a reserved name stored by an older path cannot be kept.
     """
-    if not name or _has_format_characters(name):
+    if not name or _hides_text(name) or not _has_ink(name):
         return dn.INVALID
     is_admin = profile.role == ROLE_ADMIN
     # An admin never owes a public name: the flag is masked for them everywhere.
     must_set = bool(profile.display_name_must_set) and not is_admin
-    lowered = name.lower()
-    stored = (profile.display_name or "").lower()
+    stored = profile.display_name or ""
     if must_set:
-        if lowered == stored:
+        if _same_name(name, stored):
             return dn.PREVIOUS if profile.display_name_changed_at else dn.GENERATED
-        if lowered in {generate_pseudo(profile.user_id, lang).lower() for lang in ("fr", "en")}:
+        if any(_same_name(name, generate_pseudo(profile.user_id, lang)) for lang in ("fr", "en")):
             return dn.GENERATED
     if not is_admin and is_reserved_display_name(name):
         return dn.RESERVED
-    if lowered == stored:
+    if name.lower() == stored.lower():
         return dn.CURRENT
-    if len(name) < dn.MIN_LENGTH:
+    if _visible_length(name) < dn.MIN_LENGTH:
         return dn.TOO_SHORT
     if not admin_override and not must_set and is_display_name_locked(profile):
         return dn.LOCKED

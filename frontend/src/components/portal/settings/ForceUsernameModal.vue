@@ -72,6 +72,7 @@ import { usePortalAuth } from '@/composables/portal/usePortalAuth'
 import { useApi } from '@/composables/useApi'
 import { useFocusTrap } from '@/composables/useFocusTrap'
 import { useToast } from '@/composables/useToast'
+import { DISPLAY_NAME_FLAGS, refusedNameReason } from '@/constants/displayName'
 import { TOAST_TYPE } from '@/constants/toast'
 // The modal's heavy styles (overlay backdrop, premium panel, input,
 // suggestion chips, action bar) live in settings-premium.css alongside
@@ -83,7 +84,6 @@ import '@/assets/styles/portal/settings-premium.css'
 
 const props = defineProps({
   open: { type: Boolean, default: false },
-  initial: { type: String, default: '' },
 })
 const emit = defineEmits(['done'])
 
@@ -106,19 +106,14 @@ const usernameCheck = reactive({
 
 let timer = null
 
-// Opens pre-filled with the viewer's generated pseudo (``initial``) so a
-// silent account can keep its anonymous ``Renard-Bleu-42`` by simply
-// confirming, or type over it. No Emby login can leak here — the stored
-// display name is already the generated pseudo, never the raw login.
-// onInput() runs immediately so the pre-filled pseudo (reason ``current``)
-// is savable without an edit; it also handles the empty / too-short cases.
+// Opens empty: the stored name is the random placeholder or the one an admin
+// reset, and the server refuses to have either confirmed.
 function arm() {
-  candidate.value = (props.initial || '').trim()
+  candidate.value = ''
   errorKey.value = null
   usernameCheck.available = null
   usernameCheck.reason = null
   usernameCheck.suggestions = []
-  onInput()
 }
 
 watch(
@@ -145,21 +140,14 @@ const state = computed(() => {
       flagText: t('portal.settings.forceUsername.checking'),
     }
   }
-  if (usernameCheck.reason === 'taken') {
-    return {
-      flag: true,
-      flagClass: 'pt-settings-uname-flag--err',
-      flagText: t('portal.settings.forceUsername.taken'),
-    }
+  // Every verdict says itself, refusals included (reserved, placeholder, reset name…).
+  const verdict = DISPLAY_NAME_FLAGS[usernameCheck.reason]
+  if (!verdict) return { flag: false }
+  return {
+    flag: true,
+    flagClass: `pt-settings-uname-flag--${verdict.tone}`,
+    flagText: t(verdict.key),
   }
-  if (usernameCheck.available) {
-    return {
-      flag: true,
-      flagClass: 'pt-settings-uname-flag--ok',
-      flagText: t('portal.settings.forceUsername.available'),
-    }
-  }
-  return { flag: false }
 })
 
 const canSave = computed(() => {
@@ -219,11 +207,10 @@ async function confirm() {
     showToast(t('portal.settings.save.saved'), TOAST_TYPE.OK)
     emit('done')
   } catch (err) {
-    const detail = err?.data?.detail || err?.message
-    if (detail === 'display_name_taken') {
+    const refused = refusedNameReason(err?.data?.detail || err?.message)
+    if (refused) {
       usernameCheck.available = false
-      usernameCheck.reason = 'taken'
-      onInput()
+      usernameCheck.reason = refused
     } else {
       errorKey.value = 'portal.settings.save.error'
     }

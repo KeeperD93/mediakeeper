@@ -32,7 +32,6 @@ from models.portal.achievement import UserAchievement
 from models.portal.profile import UserProfile
 from models.user import User
 from services.instance_time import get_instance_zone
-from services.portal import strip_tags_and_trim
 from services.portal.achievement_defs import ACHIEVEMENT_DEFS
 from services.portal.achievements import safe_check_all_achievements_in_new_session
 from services.portal.admin_users_constants import ROLE_ADMIN
@@ -43,6 +42,7 @@ from services.portal.avatars import (
     save_avatar,
 )
 from services.portal.display_name_rules import (
+    clean_display_name,
     is_display_name_locked,
     judge_display_name,
 )
@@ -82,7 +82,7 @@ async def check_username(
     and up to 5 free variants come with ``taken``.
     """
     user, profile = up
-    cleaned = strip_tags_and_trim(name, max_len=dn.MAX_LENGTH)
+    cleaned = clean_display_name(name)
     verdict = await judge_display_name(db, profile, cleaned)
     locked_until = display_name_locked_until(profile)
     suggestions: list[str] = []

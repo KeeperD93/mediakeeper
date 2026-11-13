@@ -3904,6 +3904,8 @@
         "usernameLockedShort": "Verrouillé encore {days} j",
         "usernameReserved": "Pseudo réservé",
         "usernameTooShort": "3 caractères minimum",
+        "usernameGenerated": "Pseudo provisoire : choisissez le vôtre",
+        "usernamePrevious": "Pseudo réinitialisé : choisissez-en un autre",
         "usernameTakenSuggestion": "Pseudo déjà pris. Suggestions :",
         "usernameImposedHint": "Pseudo provisoire. Vous pouvez le modifier dès maintenant sans attendre.",
         "adminPreviewBanner": "Aperçu administrateur — votre profil n'est pas visible des autres utilisateurs.",
@@ -3962,10 +3964,7 @@
         "save": "Confirmer",
         "saving": "Enregistrement…",
         "tooShort": "3 caractères minimum",
-        "tooLong": "50 caractères maximum",
-        "checking": "Vérification…",
-        "available": "Disponible",
-        "taken": "Déjà utilisé"
+        "checking": "Vérification…"
       },
       "share": {
         "copy": "Copier le lien",

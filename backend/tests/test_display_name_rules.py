@@ -31,6 +31,9 @@ ME_URL = "/api/portal/profiles/me"
     "Ad-min",
     "R O O T",
     "Administr\u0430teur",  # Cyrillic a inside
+    "ADMlN",  # small L for capital I
+    "adrnin",  # r and n for m
+    "R00T",  # zeros for O
 ])
 def test_look_alikes_of_a_reserved_name_are_reserved(name):
     assert is_reserved_display_name(name)
@@ -41,8 +44,9 @@ def test_other_names_are_not_reserved(name):
     assert not is_reserved_display_name(name)
 
 
-def test_skeleton_keeps_only_latin_letters_and_digits():
-    assert display_name_skeleton("\u00c9cureuil-Dor\u00e9-42") == "ecureuildore42"
+def test_skeleton_folds_to_latin_letters_and_digits():
+    # l reads as i once case is gone, as I and 1 do.
+    assert display_name_skeleton("\u00c9cureuil-Dor\u00e9-42") == "ecureuiidore42"
     assert display_name_skeleton("") == ""
 
 
@@ -161,3 +165,95 @@ async def test_a_short_name_already_chosen_stays_current(client, db_session):
     await _login(client, db_session, username="alice", display_name="Al", changed_days_ago=10)
     body = (await client.get(CHECK_URL, params={"name": "al"})).json()
     assert (body["available"], body["reason"]) == (True, "current")
+
+
+# Bypasses found by the adversarial review, written with chr() so the source
+# shows which code point each case uses.
+
+
+@pytest.mark.parametrize("name", [
+    "ADM" + chr(0x04C0) + "N",  # capital palochka, folded to the small one in the table
+    chr(0x1D6A8) + "DMIN",  # mathematical bold capital Alpha
+    chr(0x03AC) + "dmin",  # Greek alpha with tonos, decomposed before the table
+])
+def test_look_alikes_reached_after_normalisation_are_reserved(name):
+    assert is_reserved_display_name(name)
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("name", [
+    chr(0x3164) * 3,  # Hangul fillers only
+    chr(0x2800) * 3,  # Braille blanks only
+    "Alice" + chr(0x034F),  # grapheme joiner after a name
+    "Bob" + chr(0x0007) + "by",  # control character
+    chr(0x200D) + "Alice",  # joiner at an edge
+    "!!!",  # nothing to read
+])
+async def test_blank_or_hidden_names_are_invalid(client, db_session, name):
+    await _login(client, db_session, username="carol", display_name="Carol")
+    body = (await client.get(CHECK_URL, params={"name": name})).json()
+    assert (body["available"], body["reason"]) == (False, "invalid")
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("name", [
+    chr(0x0639) + chr(0x0644) + chr(0x06CC) + chr(0x200C) + chr(0x0631) + chr(0x0636) + chr(0x0627),
+    "Dev " + chr(0x1F469) + chr(0x200D) + chr(0x1F4BB),
+    chr(0x3086) + chr(0x304D) + chr(0x306A),  # three Japanese letters
+])
+async def test_joiners_between_letters_stay_allowed(client, db_session, name):
+    await _login(client, db_session, username="carol", display_name="Carol")
+    body = (await client.get(CHECK_URL, params={"name": name})).json()
+    assert (body["available"], body["reason"]) == (True, "free")
+
+
+@pytest.mark.asyncio
+async def test_combining_marks_do_not_count_toward_the_minimum(client, db_session):
+    await _login(client, db_session, username="carol", display_name="Carol")
+    body = (await client.get(CHECK_URL, params={"name": "A" + chr(0x0300) * 2})).json()
+    assert body["reason"] == "too_short"
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("name", [
+    chr(0x0410) + "lice_42",  # Cyrillic capital A
+    "Alice-42",  # another separator
+    "Alice_42" + chr(0x200B),  # zero-width space: refused as invalid first
+])
+async def test_reset_name_cannot_come_back_as_a_look_alike(client, db_session, name):
+    await _login(
+        client, db_session, username="alice", display_name="Alice_42",
+        must_set=True, changed_days_ago=30,
+    )
+    body = (await client.get(CHECK_URL, params={"name": name})).json()
+    assert body["available"] is False
+    assert body["reason"] in ("previous", "invalid")
+
+
+@pytest.mark.asyncio
+async def test_placeholder_cannot_come_back_with_another_hyphen(client, db_session):
+    user, profile = await _login(client, db_session, username="alice", must_set=True)
+    profile.display_name = generate_pseudo(user.id, "fr")
+    await db_session.commit()
+    look_alike = profile.display_name.replace("-", chr(0x2010))
+    body = (await client.get(CHECK_URL, params={"name": look_alike})).json()
+    assert (body["available"], body["reason"]) == (False, "generated")
+
+
+@pytest.mark.asyncio
+async def test_byte_order_marks_at_the_edges_are_trimmed_by_both_routes(client, db_session):
+    await _login(client, db_session, username="carol", display_name="Carol")
+    name = chr(0xFEFF) + "Bobby" + chr(0xFEFF)
+    body = (await client.get(CHECK_URL, params={"name": name})).json()
+    assert (body["available"], body["reason"]) == (True, "free")
+    resp = await client.put(ME_URL, json={"display_name": name})
+    assert resp.status_code == 200, resp.text
+    assert resp.json()["display_name"] == "Bobby"
+
+
+@pytest.mark.asyncio
+async def test_a_null_name_is_ignored_not_a_server_error(client, db_session):
+    await _login(client, db_session, username="carol", display_name="Carol")
+    resp = await client.put(ME_URL, json={"display_name": None, "bio": "hi"})
+    assert resp.status_code == 200, resp.text
+    assert resp.json()["display_name"] == "Carol"
