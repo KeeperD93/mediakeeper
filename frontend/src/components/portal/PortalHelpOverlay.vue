@@ -152,6 +152,7 @@
 
 <script setup>
 import { computed, nextTick, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { BookOpen, Plus, Search, Trash2, X } from 'lucide-vue-next'
 
 import MkSpinner from '@/components/common/MkSpinner.vue'
@@ -181,6 +182,7 @@ const mode = ref('view') // 'view' | 'edit' | 'trash'
 const editingArticle = ref(null)
 const expandedId = ref(null)
 
+const { locale } = useI18n()
 const { profile } = usePortalAuth()
 const isAdmin = computed(() => profile.value?.role === 'admin')
 
@@ -205,7 +207,9 @@ function onToggle(id) {
 const { createArticle } = usePortalHelpAdmin()
 
 async function reloadArticles() {
-  await load(props.lang || undefined, { admin: isAdmin.value })
+  // A member reads in the portal's language; the editor works on the French text.
+  const lang = props.lang || (isAdmin.value ? undefined : locale.value)
+  await load(lang, { admin: isAdmin.value })
 }
 
 function onSelectCategory(cat) {

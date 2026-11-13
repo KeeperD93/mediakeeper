@@ -1,11 +1,12 @@
-"""Help Center service — CRUD, soft-delete, restore, purge, seed.
+"""Help Center service — CRUD, soft-delete, restore, purge.
 
 The user-facing API is read-only and shows only published, non-deleted
 articles. The admin API can create / edit / delete / restore. Soft-deleted
 articles are kept for 30 days then purged by ``purge_expired``.
 
-HTML sanitization + slug helpers live in ``help_sanitize`` (project
-file-size convention: keep individual modules under 300 lines).
+HTML sanitization + slug helpers live in ``help_sanitize``, the starter
+articles in ``help_seed`` (project file-size convention: keep individual
+modules under 300 lines).
 """
 from __future__ import annotations
 
@@ -15,19 +16,24 @@ from typing import Iterable, Optional
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from constants.portal_content import INVALID_CATEGORY, INVALID_LANG
+from constants.portal_content import (
+    HELP_LANGS,
+    HELP_SOURCE_LANG,
+    INVALID_CATEGORY,
+    INVALID_LANG,
+)
 from core.errors import CodedError
 from models.portal.help import HelpArticle, HelpArticleTranslation
-from services.portal.help_content import HELP_SEED
 from services.portal.help_sanitize import resolve_unique_slug, sanitize_html
+from services.portal.help_seed import drop_stale_starter_translations
 
 
 VALID_CATEGORIES = (
     "general", "requests", "profile", "lists", "issues", "misc",
 )
 
-SUPPORTED_LANGS = ("fr", "en")
-DEFAULT_LANG = "fr"
+SUPPORTED_LANGS = HELP_LANGS
+DEFAULT_LANG = HELP_SOURCE_LANG
 
 PURGE_AFTER_DAYS = 30
 
@@ -184,6 +190,7 @@ async def upsert_translation(db: AsyncSession, article: HelpArticle, *,
     cleaned_title = (title or "").strip()[:300]
     cleaned_body = sanitize_html(body_html)
     existing = next((t for t in article.translations if t.lang == lang), None)
+    previous_title = existing.title if existing else None
     if existing:
         existing.title = cleaned_title
         existing.body_html = cleaned_body
@@ -191,8 +198,12 @@ async def upsert_translation(db: AsyncSession, article: HelpArticle, *,
         article.translations.append(HelpArticleTranslation(
             lang=lang, title=cleaned_title, body_html=cleaned_body,
         ))
-    # Keep the slug aligned with the FR title — it drives deep links.
-    if lang == DEFAULT_LANG and cleaned_title:
+    if lang == DEFAULT_LANG:
+        drop_stale_starter_translations(article)
+    # Keep the slug aligned with the FR title — it drives deep links. Only a new
+    # title moves it: a starter article's slug is not its title's, and the
+    # editor's auto-save would otherwise move it at the first keystroke.
+    if lang == DEFAULT_LANG and cleaned_title and cleaned_title != previous_title:
         article.slug = await resolve_unique_slug(
             db, cleaned_title, exclude_id=article.id,
         )
@@ -230,37 +241,3 @@ async def purge_expired(db: AsyncSession,
     if n:
         await db.flush()
     return n
-
-
-# Seed (idempotent)
-
-
-async def ensure_seed(db: AsyncSession) -> int:
-    """Create the starter articles if their slug is missing. Never updates
-    an existing article — admins are free to rewrite anything without the
-    seed silently overwriting their changes on the next boot."""
-    created = 0
-    for entry in HELP_SEED:
-        exists = (await db.execute(
-            select(HelpArticle.id).where(HelpArticle.slug == entry["slug"])
-        )).scalar_one_or_none()
-        if exists:
-            continue
-        article = HelpArticle(
-            slug=entry["slug"],
-            category=entry["category"],
-            icon=entry.get("icon"),
-            sort_order=entry.get("sort_order", 0),
-            is_draft=False,
-        )
-        fr = entry.get("fr") or {}
-        article.translations.append(HelpArticleTranslation(
-            lang="fr",
-            title=fr.get("title", "")[:300],
-            body_html=sanitize_html(fr.get("body_html", "")),
-        ))
-        db.add(article)
-        created += 1
-    if created:
-        await db.commit()
-    return created

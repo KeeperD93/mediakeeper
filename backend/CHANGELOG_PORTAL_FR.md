@@ -16,6 +16,9 @@ utilisateurs.
 
 ## [Unreleased]
 
+### Added
+- Aide — articles de départ aussi en anglais.
+
 ### Changed
 - Jours d'affilée et Régulier — dès 5 min regardées ; musique et livres audio exclus.
 - Trophées secrets — nom et icône visibles, description et progression cachées jusqu'au déblocage.
@@ -23,6 +26,7 @@ utilisateurs.
 - Pseudos — mots réservés et imitations refusés, 3 caractères (2 en chinois ou coréen).
 
 ### Fixed
+- Aide — six guides réécrits : demandes, quotas, pseudo, XP, classement, événements.
 - Barre d'XP — même pourcentage dans le résumé du jour et le profil.
 - Notifications — barre à la bonne durée, message entier sur petits téléphones.
 - Problèmes — dates du ticket : deux-points à la bonne place en français et en anglais.

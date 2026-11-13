@@ -14,6 +14,9 @@ This section intentionally has no date so it is not shown to users.
 
 ## [Unreleased]
 
+### Added
+- Help — starter articles also in English.
+
 ### Changed
 - Days in a row and Regular — from 5 min watched; music and audiobooks left out.
 - Secret trophies — name and icon shown, description and progress hidden until unlocked.
@@ -21,6 +24,7 @@ This section intentionally has no date so it is not shown to users.
 - Usernames — reserved words and look-alikes refused, 3 characters (2 in Chinese or Korean).
 
 ### Fixed
+- Help — six guides rewritten: requests, quotas, username, XP, leaderboard, events.
 - XP bar — same percentage in today's digest and the profile.
 - Notifications — bar lasts as long as the message, full message on small phones.
 - Issues — ticket dates: colons placed right in English and French.

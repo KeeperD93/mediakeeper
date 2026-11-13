@@ -1,7 +1,6 @@
 """Help Center seed — Portal / Requests category."""
 from __future__ import annotations
 
-
 HELP_REQUESTS: list[dict] = [
     {
         "slug": "comment-faire-une-demande",
@@ -11,17 +10,14 @@ HELP_REQUESTS: list[dict] = [
         "fr": {
             "title": "Comment faire une demande ?",
             "body_html": """
-<p>MediaKeeper te permet de demander un film ou une série qui n'est pas encore disponible sur la plateforme. La procédure tient en quelques étapes :</p>
+<p>MediaKeeper te permet de demander un film ou une série qui n'est pas encore dans la bibliothèque. Tout se fait depuis la page d'accueil ou la recherche :</p>
 <ol>
-  <li>Ouvre l'onglet <strong>Demandes</strong> depuis la barre du haut.</li>
-  <li>Clique sur le bouton <strong>« Nouvelle demande »</strong>.</li>
-  <li>Recherche le titre via la barre de recherche : MediaKeeper interroge directement TMDB pour t'éviter les fautes d'orthographe.</li>
-  <li>Choisis la fiche correcte dans les résultats (vérifie l'année et l'affiche).</li>
-  <li>Ajoute un commentaire si tu veux préciser une saison, un format, ou une raison particulière.</li>
-  <li>Valide. Ta demande passe automatiquement en statut <em>« En attente »</em>.</li>
+  <li>Sur la <strong>page d'accueil</strong>, un titre mis en avant se demande directement avec le bouton <strong>« Demander »</strong>.</li>
+  <li>Sinon, tape son nom dans <strong>« Rechercher »</strong>, en haut (la loupe sur téléphone), puis choisis une suggestion ou parcours les résultats.</li>
+  <li>Ouvre la fiche du titre et touche <strong>« Demander »</strong>. À la souris, le bouton apparaît aussi sur l'affiche, dans les résultats.</li>
+  <li>Dans la fenêtre <strong>« Faire une demande »</strong>, valide. Pour une série, coche d'abord les saisons voulues.</li>
 </ol>
-<p>Une fois validée par l'administrateur, ta demande est ajoutée à la file de téléchargement et tu reçois une notification dès que le contenu est disponible sur Emby.</p>
-<p><strong>Astuce :</strong> avant de demander, vérifie toujours que le titre n'est pas déjà disponible via la barre de recherche du portail.</p>
+<p>Le titre passe à <em>« Demandé »</em>. Une fois la demande approuvée et le titre ajouté, la cloche des notifications te prévient qu'il est disponible.</p>
 """.strip(),
         },
     },
@@ -55,14 +51,20 @@ HELP_REQUESTS: list[dict] = [
         "fr": {
             "title": "Les quotas de demandes",
             "body_html": """
-<p>Pour préserver la file de téléchargement et éviter les abus, chaque utilisateur dispose d'un <strong>quota de demandes actives</strong>.</p>
-<p>Une demande consomme une place de quota tant qu'elle est <em>en attente</em>, <em>validée</em> ou <em>en cours</em>. Dès qu'elle passe en <em>disponible</em>, <em>refusée</em> ou <em>indisponible</em>, la place se libère automatiquement.</p>
+<p>Le nombre de demandes que tu peux envoyer est limité <strong>par mois</strong>. C'est l'administrateur qui fixe cette limite, pour chaque membre.</p>
 <ul>
-  <li><strong>Quota standard</strong> : 5 demandes simultanées.</li>
-  <li><strong>Quota augmenté</strong> : selon ton niveau et tes trophées, tu peux débloquer des places supplémentaires.</li>
-  <li><strong>Demandes refusées récentes</strong> : si tu cumules trop de refus en peu de temps, le système peut temporairement réduire ton quota — il revient à la normale après quelques jours.</li>
+  <li><strong>Chaque demande envoyée compte</strong>, quelle que soit la suite : approuvée, disponible ou refusée, elle reste comptée jusqu'à la fin du mois. Une demande renvoyée après un refus compte aussi.</li>
+  <li>Une série compte pour <strong>une seule demande</strong>, même si tu coches plusieurs saisons.</li>
+  <li>Le compteur repart à zéro <strong>le 1er de chaque mois</strong>.</li>
 </ul>
-<p>Tu peux toujours voir ton quota courant en haut de l'onglet <strong>Demandes</strong>.</p>
+<p><strong>Pour suivre ton compteur :</strong></p>
+<ul>
+  <li>Dans la fenêtre <strong>« Quoi de neuf aujourd'hui ? »</strong> (menu de ton avatar), case <strong>« Demandes restantes »</strong>.</li>
+  <li>Après chaque demande, un message t'indique combien tu en as utilisé ce mois-ci.</li>
+  <li>Tes demandes et leur état sont dans <strong>« Mes demandes »</strong>, sur <strong>« Mon profil »</strong>.</li>
+</ul>
+<p>Quand la limite est atteinte, le portail affiche <em>« Vous avez atteint votre quota de demandes pour ce mois. »</em> Attends le mois suivant, ou parles-en à l'administrateur.</p>
+<p>L'administrateur peut aussi te laisser des demandes <strong>illimitées</strong>, ou choisir un quota <strong>automatique</strong> : il monte peu à peu quand tu es actif (visionnages, connexions, demandes, listes, tickets) et ne baisse qu'après une longue absence.</p>
 """.strip(),
         },
     },
