@@ -43,6 +43,7 @@ This section intentionally has no date so it is not shown to users.
 - Requests — "Requested by" shows the display name, no longer the sign-in name ("you" for your own requests).
 - Events — the display name replaces the sign-in name (guests, host, notifications).
 - Events — replying to an invitation from a deleted host no longer fails.
+- Usernames — a username the rules now refuse can be changed at once, without the six-month wait.
 
 ### Removed
 - "What's new" window after an update — replaced by today's digest.

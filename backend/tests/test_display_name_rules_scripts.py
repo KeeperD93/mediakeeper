@@ -1,13 +1,14 @@
 """Display name rules across scripts: Greek capitals reached after NFKD, invisible
 characters that would copy another member's name, joiners and emoji sequences that
-shape real names, the minimum length (vowel signs, spaces, Chinese and Korean), and
-names that contain a reserved word.
+shape real names, the minimum length (vowel signs, spaces, Chinese and Korean),
+names that contain a reserved word, and the rename lock.
 
 Special characters are written with chr() so the source shows each code point."""
 from __future__ import annotations
 
 import pytest
 
+from services.portal.admin_users import update_user_identity
 from services.portal.display_name_rules import (
     display_name_skeleton,
     is_reserved_display_name,
@@ -55,12 +56,31 @@ def test_accented_greek_capitals_keep_their_latin_reading():
     "Root Beer",
     "root42",
     chr(0x0410) + "dmin du soir",  # Cyrillic capital A
+    "ITAdmin",  # capitals glued to the word
+    "1Admin",
+    "Root1",  # 0 and 1 are padding, not o and i
+    "Bob2Admin",
+    "AdMinistratrice",  # a capital inside the word
+    "RoOt42",
+    "Bob" + chr(0x02BC) + "Admin",  # modifier apostrophe, a letter without case
+    "SUPERADMIN",  # « admin » closing the word
+    "sysadmin",
+    "Madmin",  # the same shape as « sysadmin »
+    "Bob Ad-min",  # a sign does not part words, only a space does
+    "Super Ad.min",
+    "Joe-root",
+    "Bob Ad" + chr(0x1F600) + "min",  # nor does an emoji
+    "IAmRoot",
 ])
 def test_a_reserved_word_inside_a_name_is_reserved(name):
     assert is_reserved_display_name(name)
 
 
-@pytest.mark.parametrize("name", ["Badminton", "Groot", "Roots", "Rootkit", "Madmin"])
+@pytest.mark.parametrize("name", [
+    "Badminton", "Groot", "Roots", "Rootkit", "BadMinton", "Admiral Ackbar",
+    "Beetroot", "Adam Minh", "McDonald", "LeBron", "MacKenzie", "IAMROOT",
+    "Brad-Minh", "Hero_Otaku", "Mad Mind",
+])
 def test_names_that_only_share_letters_are_free(name):
     assert not is_reserved_display_name(name)
 
@@ -125,6 +145,7 @@ async def test_a_stored_name_with_a_rainbow_flag_stays_current(client, db_sessio
     chr(0x674E) + chr(0x5A1C),  # two Chinese ideographs
     chr(0xBBFC) + chr(0xC218),  # two Korean syllables
     chr(0x1106) + chr(0x1175) + chr(0x11AB) + chr(0x1109) + chr(0x116E),  # the same, decomposed
+    chr(0x5948) + chr(0x3005),  # an ideograph and its iteration mark
 ])
 async def test_short_names_of_other_scripts_are_long_enough(client, db_session, name):
     await _login(client, db_session, username="carol", display_name="Carol")
@@ -138,7 +159,37 @@ async def test_short_names_of_other_scripts_are_long_enough(client, db_session, 
     chr(0x674E),  # one Chinese ideograph
     chr(0x3086) + chr(0x3044),  # two Japanese kana
     chr(0x0915) + chr(0x093F) * 5,  # one Devanagari letter under stacked vowel signs
+    chr(0x674E) + chr(0x0301),  # an accent on an ideograph is no second character
 ])
 async def test_spaces_and_stacked_signs_do_not_reach_the_minimum(client, db_session, name):
     await _login(client, db_session, username="carol", display_name="Carol")
     assert await _verdict(client, name) == "too_short"
+
+
+@pytest.mark.asyncio
+async def test_a_refused_stored_name_is_not_locked(client, db_session):
+    # Given by an admin, or kept from older rules, a month ago: the lock does not hold it.
+    await _login(client, db_session, username="bob", display_name="Admin Bob", changed_days_ago=30)
+    state = (await client.get("/api/portal/profiles/me/username-state")).json()
+    assert state["locked"] is False
+    assert await _verdict(client, "Admin Bob") == "reserved"
+    assert await _verdict(client, "Robert") == "free"
+
+
+@pytest.mark.asyncio
+async def test_an_accepted_stored_name_stays_locked(client, db_session):
+    await _login(client, db_session, username="bob", display_name="Bobby", changed_days_ago=30)
+    assert (await client.get("/api/portal/profiles/me/username-state")).json()["locked"] is True
+    assert await _verdict(client, "Robert") == "locked"
+
+
+@pytest.mark.asyncio
+async def test_a_name_given_by_an_admin_starts_the_lock(client, db_session, admin_user):
+    # As a name the member chose would: they cannot pick another one at once.
+    user, profile = await _login(client, db_session, username="henry", display_name="Henry")
+    result = await update_user_identity(
+        db_session, profile, user, display_name="Henri", admin_user_id=admin_user.id,
+    )
+    assert result["ok"] is True
+    assert (await client.get("/api/portal/profiles/me/username-state")).json()["locked"] is True
+    assert await _verdict(client, "Harry") == "locked"

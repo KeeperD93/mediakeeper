@@ -45,6 +45,7 @@ from services.portal.display_name_rules import (
     clean_display_name,
     is_display_name_locked,
     judge_display_name,
+    stored_name_refused,
 )
 from services.portal.profile_serializers import (
     DISPLAY_NAME_LOCK_DAYS,
@@ -102,12 +103,18 @@ async def check_username(
 async def username_state(
     up: tuple[User, UserProfile] = Depends(get_current_profile),
 ):
-    """Surface the cooldown info without round-tripping a candidate name."""
+    """Surface the cooldown info without round-tripping a candidate name. A member
+    who owes a name, or whose stored name the rules now refuse, is never locked:
+    the save lets them pick one whatever the date."""
     _, profile = up
     locked_until = display_name_locked_until(profile)
+    owes_name = bool(profile.display_name_must_set)
     return {
-        "must_set": bool(profile.display_name_must_set),
-        "locked": is_display_name_locked(profile),
+        "must_set": owes_name,
+        "locked": (
+            is_display_name_locked(profile) and not owes_name
+            and not stored_name_refused(profile)
+        ),
         "locked_until": locked_until.isoformat() if locked_until else None,
         "lock_days": DISPLAY_NAME_LOCK_DAYS,
         "current": profile.display_name,
