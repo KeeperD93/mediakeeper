@@ -149,7 +149,6 @@ describe('PortalDailyDigestOverlay.vue', () => {
   })
 
   it.each([
-    ['the cross', w => w.find('.dd-close').trigger('click')],
     ['the button at the bottom', w => w.find('.dd-cta').trigger('click')],
     ['Escape', () => document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }))],
   ])('closes for the day with %s', async (_, close) => {
@@ -182,7 +181,7 @@ describe('PortalDailyDigestOverlay.vue', () => {
     await open({ digest: digest({ news: [news(7, { is_new: true })] }) })
     expect(postedUrls()).not.toContain('/api/portal/news/read/7?dismissed=true')
 
-    await wrapper.find('.dd-close').trigger('click')
+    await wrapper.find('.dd-cta').trigger('click')
 
     expect(postedUrls()).toContain('/api/portal/news/read/7?dismissed=true')
   })
@@ -197,14 +196,14 @@ describe('PortalDailyDigestOverlay.vue', () => {
     expect(wrapper.find('.dd-new-mini').exists()).toBe(false)
     expect(postedUrls()).toEqual(['/api/portal/news/read/8?dismissed=true'])
 
-    await wrapper.find('.dd-close').trigger('click')
+    await wrapper.find('.dd-cta').trigger('click')
     expect(postedUrls().filter(url => url.includes('/news/read/'))).toHaveLength(1)
   })
 
   it('reads nothing on close that was already read', async () => {
     await open({ digest: digest({ news: [news(7)] }) })
 
-    await wrapper.find('.dd-close').trigger('click')
+    await wrapper.find('.dd-cta').trigger('click')
 
     expect(postedUrls()).toEqual([DISMISS])
   })

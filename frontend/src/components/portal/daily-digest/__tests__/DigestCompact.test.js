@@ -87,9 +87,13 @@ describe('DigestCompact.vue', () => {
     vi.unstubAllGlobals()
   })
 
-  it('keeps only the hello, the progress and the footer when there is nothing else', () => {
+  it('keeps only the hello, the figures, the progress and the footer when there is nothing else', () => {
     render(digest())
-    expect(labels()).toEqual(['portal.dailyDigest.sections.progress'])
+    expect(labels()).toEqual([
+      'portal.dailyDigest.aria.stats',
+      'portal.dailyDigest.sections.progress',
+    ])
+    expect(wrapper.findAll('.ddc-stat-value').map(value => value.text())).toEqual(['0', '0'])
     expect(wrapper.find('.ddc-expiry').exists()).toBe(false)
     expect(wrapper.find('.ddc-split').exists()).toBe(false)
     expect(wrapper.find('.ddc-pi-top').exists()).toBe(false)
@@ -137,7 +141,10 @@ describe('DigestCompact.vue', () => {
       'portal.dailyDigest.sections.recentAdds',
       'portal.dailyDigest.sections.upNext',
     ])
-    expect(wrapper.find('.ddc-stat-caption').text()).toBe('portal.dailyDigest.pills.ticketsCompact')
+    expect(wrapper.findAll('.ddc-stat-caption').map(caption => caption.text())).toEqual([
+      'portal.dailyDigest.pills.streakCompact',
+      'portal.dailyDigest.pills.ticketsCompact',
+    ])
   })
 
   it('lists the top 3, a move or else the trophies, then the viewer', () => {

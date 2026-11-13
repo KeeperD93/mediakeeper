@@ -114,6 +114,5 @@
   /* Daily digest window ---------------------------------- */
   --portal-digest-bg: #1a1c22; /* the window */
   --portal-digest-bg-rgb: 26, 28, 34;
-  --portal-digest-backdrop: #121318; /* behind the window */
   --portal-digest-ring-bg: #1d1f27; /* hole of the level ring */
 }

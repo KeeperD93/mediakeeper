@@ -184,11 +184,25 @@ describe('DigestFull.vue', () => {
   it('leaves out every section it has nothing for', () => {
     render(base())
     expect(wrapper.findAll('section').map(section => section.attributes('aria-label'))).toEqual([
+      'portal.dailyDigest.aria.stats',
       'portal.dailyDigest.sections.progress',
     ])
     expect(wrapper.find('.dd-expiry').exists()).toBe(false)
     expect(wrapper.find('.dd-ach').exists()).toBe(false)
     expect(wrapper.find('.dd-top3').exists()).toBe(false)
+  })
+
+  it('shows the streak and the open tickets at 0 rather than leaving a hole', () => {
+    render(base())
+    const cards = wrapper.findAll('.dd-stat')
+    expect(cards.map(card => card.find('.dd-stat-label').text())).toEqual([
+      'portal.dailyDigest.pills.streak',
+      'portal.dailyDigest.pills.tickets',
+    ])
+    expect(cards.map(card => card.find('.dd-stat-value').text())).toEqual(['0', '0'])
+    expect(cards[1].find('.dd-stat-caption').text()).toBe(
+      'portal.dailyDigest.pills.ticketsCaptionNone',
+    )
   })
 
   it('greets the viewer by their public name', () => {

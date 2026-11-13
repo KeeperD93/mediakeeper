@@ -1,6 +1,7 @@
 /**
- * Daily digest window and the keyboard: the focus starts on the close button, Tab and
- * Shift+Tab loop inside the window, and closing it gives the focus back to the page.
+ * Daily digest window and the keyboard: the focus starts on the window (no cross, the
+ * « Close » button is at its foot), Tab and Shift+Tab loop inside it, and closing it,
+ * by its button or Escape, gives the focus back to the page at once.
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { flushPromises, mount } from '@vue/test-utils'
@@ -73,10 +74,11 @@ describe('PortalDailyDigestOverlay.vue, focus trap', () => {
     opener.remove()
   })
 
-  it('starts on the close button, inside a dialog named by its title', async () => {
+  it('starts on the window, a dialog named by its title, with no cross', async () => {
     await open()
     const panel = wrapper.find('[role="dialog"]')
-    expect(document.activeElement).toBe(wrapper.find('.dd-close').element)
+    expect(document.activeElement).toBe(panel.element)
+    expect(wrapper.find('.dd-close').exists()).toBe(false)
     expect(panel.attributes('aria-modal')).toBe('true')
     const title = document.getElementById(panel.attributes('aria-labelledby'))
     expect(title.textContent).toBe('portal.dailyDigest.title')
@@ -100,13 +102,24 @@ describe('PortalDailyDigestOverlay.vue, focus trap', () => {
     expect(document.activeElement).toBe(wrapper.find('.dd-cta').element)
   })
 
-  it('gives the focus back to what had it once the window closes', async () => {
+  it('leaves at once with its « Close » button and gives the focus back', async () => {
     await open()
     expect(document.activeElement).not.toBe(opener)
 
-    await wrapper.find('.dd-close').trigger('click')
+    await wrapper.find('.dd-cta').trigger('click')
     await nextTick()
 
+    expect(document.querySelector('.dd-overlay')).toBeNull()
+    expect(document.activeElement).toBe(opener)
+  })
+
+  it('leaves at once with Escape too', async () => {
+    await open()
+
+    press('Escape')
+    await flushPromises()
+
+    expect(document.querySelector('.dd-overlay')).toBeNull()
     expect(document.activeElement).toBe(opener)
   })
 })
