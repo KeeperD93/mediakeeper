@@ -78,6 +78,7 @@ export function useDailyDigest() {
 
   function sendRead(item) {
     item.is_new = false
+    // Best effort, like closing for the day: a lost mark only shows « New » again next time.
     markRead(item.id, true).catch(() => {})
   }
 
@@ -105,6 +106,7 @@ export function useDailyDigest() {
     const release = digest.value?.release
     if (!release?.is_new) return
     release.is_new = false
+    // Best effort too: a lost mark only shows the version as new again next time.
     apiPost(CHANGELOG_SEEN_URL, { version: release.version }).catch(() => {})
   }
 
