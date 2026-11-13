@@ -36,6 +36,7 @@ async def create_event(
     comment: str | None,
     invitees: list[int] | None = None,
     max_participants: int | None = None,
+    lang: str | None = None,
 ) -> dict:
     """
     Create a new event. For private events, `invitees` is the list of
@@ -124,7 +125,7 @@ async def create_event(
 
     await db.commit()
     await db.refresh(event)
-    return await _serialize_event(db, event)
+    return await _serialize_event(db, event, lang)
 
 
 async def update_event(
@@ -136,6 +137,7 @@ async def update_event(
     tmdb_ids: list[dict] | None = None,
     scheduled_at: datetime | None = None,
     comment: str | None = None,
+    lang: str | None = None,
 ) -> dict:
     """
     Edit an event. Only the creator can edit. Notifies every accepted
@@ -181,7 +183,7 @@ async def update_event(
 
     await db.commit()
     await db.refresh(event)
-    return await _serialize_event(db, event)
+    return await _serialize_event(db, event, lang)
 
 
 async def cancel_event(
@@ -215,7 +217,9 @@ async def cancel_event(
     return {"ok": True}
 
 
-async def list_for_user(db: AsyncSession, user_id: int) -> list[dict]:
+async def list_for_user(
+    db: AsyncSession, user_id: int, lang: str | None = None,
+) -> list[dict]:
     """
     Calendar view: every event the user is involved in (created or
     invited) PLUS every public scheduled event in the future, even
@@ -238,7 +242,7 @@ async def list_for_user(db: AsyncSession, user_id: int) -> list[dict]:
     rows = (await db.execute(q)).scalars().all()
     out: list[dict] = []
     for ev in rows:
-        out.append(await _serialize_event(db, ev))
+        out.append(await _serialize_event(db, ev, lang))
     return out
 
 
@@ -255,7 +259,12 @@ async def list_upcoming_admin(db: AsyncSession, limit: int = 5) -> list[dict]:
     return [await _serialize_event(db, ev) for ev in rows]
 
 
-async def get_one(db: AsyncSession, event_id: int, user_id: int | None = None) -> dict | None:
+async def get_one(
+    db: AsyncSession,
+    event_id: int,
+    user_id: int | None = None,
+    lang: str | None = None,
+) -> dict | None:
     ev = (await db.execute(
         select(MKEvent).where(MKEvent.id == event_id)
     )).scalar_one_or_none()
@@ -271,4 +280,4 @@ async def get_one(db: AsyncSession, event_id: int, user_id: int | None = None) -
         )).scalar_one_or_none()
         if not inv:
             return {"error": "forbidden"}
-    return await _serialize_event(db, ev)
+    return await _serialize_event(db, ev, lang)

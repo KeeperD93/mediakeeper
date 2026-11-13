@@ -39,6 +39,7 @@ This section intentionally has no date so it is not shown to users.
 - Report form — description counter shows its real limit (1,500), sending stops before any cut.
 - Credits — the full stop follows the link directly.
 - Requests — "Requested by" shows the display name, no longer the sign-in name.
+- Events — the display name replaces the sign-in name (guests, host, notifications).
 
 ## [1.0.0-rc.10] - 2026-11-11
 
