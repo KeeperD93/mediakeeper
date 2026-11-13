@@ -245,13 +245,15 @@ async def respond(
             db, user_id, event.scheduled_at, exclude_event_id=event.id,
         )
 
-    user_label = await _user_label(db, user_id)
-    notif_type = NOTIF_EVENT_ACCEPTED if decision == "accept" else NOTIF_EVENT_DECLINED
-    await notifs.create(db, event.creator_user_id, notif_type, {
-        "event_id": event.id,
-        "title": event.title,
-        "from": user_label,
-    })
+    # A purged creator (``SET NULL``) has nobody left to notify.
+    if event.creator_user_id is not None:
+        user_label = await _user_label(db, user_id)
+        notif_type = NOTIF_EVENT_ACCEPTED if decision == "accept" else NOTIF_EVENT_DECLINED
+        await notifs.create(db, event.creator_user_id, notif_type, {
+            "event_id": event.id,
+            "title": event.title,
+            "from": user_label,
+        })
     await db.commit()
     return {"ok": True, "conflict": conflict_warning}
 

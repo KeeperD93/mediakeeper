@@ -138,6 +138,7 @@ async def create_mk_event(
     request: Request,
     data: CreateMKEvent,
     background_tasks: BackgroundTasks,
+    lang: str = Depends(get_request_lang),
     up: tuple[User, UserProfile] = Depends(get_current_profile),
     db: AsyncSession = Depends(get_db),
 ):
@@ -151,6 +152,7 @@ async def create_mk_event(
         comment=data.comment,
         invitees=data.invitees,
         max_participants=data.max_participants,
+        lang=lang,
     )
     _err(result)
     background_tasks.add_task(
@@ -163,21 +165,23 @@ async def create_mk_event(
 
 @router.get("/rooms")
 async def list_mk_events(
+    lang: str = Depends(get_request_lang),
     up: tuple[User, UserProfile] = Depends(get_current_profile),
     db: AsyncSession = Depends(get_db),
 ):
     user, _ = up
-    return {"items": await mk_svc.list_for_user(db, user.id)}
+    return {"items": await mk_svc.list_for_user(db, user.id, lang)}
 
 
 @router.get("/rooms/{event_id}")
 async def get_mk_event(
     event_id: int,
+    lang: str = Depends(get_request_lang),
     up: tuple[User, UserProfile] = Depends(get_current_profile),
     db: AsyncSession = Depends(get_db),
 ):
     user, _ = up
-    ev = await mk_svc.get_one(db, event_id, user.id)
+    ev = await mk_svc.get_one(db, event_id, user.id, lang)
     if not ev:
         raise HTTPException(status_code=404, detail="not_found")
     _err(ev)
@@ -188,6 +192,7 @@ async def get_mk_event(
 async def update_mk_event(
     event_id: int,
     data: UpdateMKEvent,
+    lang: str = Depends(get_request_lang),
     up: tuple[User, UserProfile] = Depends(get_current_profile),
     db: AsyncSession = Depends(get_db),
 ):
@@ -196,7 +201,7 @@ async def update_mk_event(
     if "tmdb_ids" in payload and payload["tmdb_ids"] is not None:
         payload["tmdb_ids"] = [m.model_dump() if hasattr(m, "model_dump") else m
                                 for m in payload["tmdb_ids"]]
-    result = await mk_svc.update_event(db, event_id, user.id, **payload)
+    result = await mk_svc.update_event(db, event_id, user.id, lang=lang, **payload)
     _err(result)
     return result
 
@@ -255,11 +260,12 @@ async def remove_mk_member(
 @router.post("/rooms/{event_id}/enter")
 async def enter_mk_room(
     event_id: int,
+    lang: str = Depends(get_request_lang),
     up: tuple[User, UserProfile] = Depends(get_current_profile),
     db: AsyncSession = Depends(get_db),
 ):
     user, _ = up
-    result = await mk_svc.enter_room(db, event_id, user.id)
+    result = await mk_svc.enter_room(db, event_id, user.id, lang)
     _err(result)
     return result
 

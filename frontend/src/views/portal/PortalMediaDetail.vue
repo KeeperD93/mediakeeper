@@ -202,6 +202,7 @@ const reqStatusTooltip = computed(() => {
   if (r.status === REQUEST_STATUS.APPROVED) return t('portal.card.tooltipApprovedOn', { date })
   if (r.status === REQUEST_STATUS.REJECTED) return t('portal.card.tooltipRejectedOn', { date })
   if (r.status === REQUEST_STATUS.PENDING) {
+    if (r.requested_by_self) return t('portal.card.tooltipRequestedByYou', { date })
     const user = r.requester_username || r.requester || r.requested_by || ''
     return t('portal.card.tooltipRequestedBy', { user, date })
   }

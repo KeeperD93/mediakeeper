@@ -17,6 +17,7 @@ async def enter_room(
     db: AsyncSession,
     event_id: int,
     user_id: int,
+    lang: str | None = None,
 ) -> dict:
     """
     User signals they entered the cinema room. Returns their seat
@@ -116,5 +117,5 @@ async def enter_room(
     return {
         "ok": True,
         "seat_index": inv.seat_index,
-        "event": await _serialize_event(db, event),
+        "event": await _serialize_event(db, event, lang),
     }

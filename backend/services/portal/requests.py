@@ -1,37 +1,38 @@
-"""Media request system: lists, batch status, serialization.
+"""Media request system: lists and serialization.
 
-``create_request`` lives in ``requests_create.py``, the admin status
-changes and hard delete in ``requests_status.py`` (all re-exported here for
-back-compat). Blacklist helpers live in ``requests_blacklist.py``, quota
-management (creation, monthly reset, snapshot) lives in
-``requests_quota.py``.
+``create_request`` lives in ``requests_create.py``, ``get_batch_status`` in
+``requests_batch_status.py``, the admin status changes and hard delete in
+``requests_status.py`` (all re-exported here for back-compat). Blacklist
+helpers live in ``requests_blacklist.py``, quota management (creation,
+monthly reset, snapshot) lives in ``requests_quota.py``.
 """
-from sqlalchemy import select, func, update
+from sqlalchemy import func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm.attributes import set_committed_value
 
-from constants.requests import (
-    REQUEST_APPROVED,
-    REQUEST_AVAILABLE,
-    REQUEST_PENDING,
-    REQUEST_REJECTED,
-)
-from models.user import User
+from constants.requests import REQUEST_AVAILABLE
+from core.pagination import build_cursor_response, decode_cursor
+from models.portal.profile import UserProfile
 from models.portal.request import MediaRequest
-from core.pagination import decode_cursor, build_cursor_response
+from models.user import User
 from services.portal._rank_tiers import tier_for_level
+from services.portal.media_title_localize import localize_titles
 from services.portal.profile_serializers import _resolve_avatar_url
+from services.portal.requests_batch_status import get_batch_status  # noqa: F401
+from services.portal.requests_create import create_request  # noqa: F401
 from services.portal.requests_quota import (
     current_month as _current_month,  # noqa: F401 — re-exported
+)
+from services.portal.requests_quota import (
     get_or_create_quota as _get_or_create_quota,  # noqa: F401 — re-exported
+)
+from services.portal.requests_quota import (
     get_user_quota,  # noqa: F401 — re-exported
 )
-from services.portal.requests_create import create_request  # noqa: F401
 from services.portal.requests_status import (  # noqa: F401 — re-exported
     delete_request,
     update_request_status,
 )
-from services.portal.media_title_localize import localize_titles
 
 # Sort keys accepted by the admin queue (offset mode), mapped to ORDER BY
 # clauses. Mirrors REQUEST_SORT in frontend/src/constants/requests.ts.
@@ -40,76 +41,6 @@ _REQUEST_SORTS = {
     "oldest": (MediaRequest.id.asc(),),
     "title": (func.lower(MediaRequest.title).asc(), MediaRequest.id.desc()),
 }
-
-
-async def get_batch_status(
-    db: AsyncSession,
-    tmdb_ids: list[int],
-    *,
-    anonymize: bool = False,
-) -> dict:
-    """
-    Return the most relevant request status per tmdb_id.
-
-    Priority order (highest first):
-        approved > pending > available > rejected
-
-    ``rejected`` IS returned so MediaCard can surface the "Rejected"
-    sash and swap the CTA to "Re-request" — but any fresher active
-    status for the same item wins via the priority table.
-
-    When ``anonymize`` is True, ``requested_by``, ``requested_by_deleted``
-    and ``reject_reason`` are stripped so the caller can't tell who filed
-    or moderated each request — only status and date stay visible. Used
-    for non-admins when the Portal-wide ``anonymize_requests`` flag is
-    on; admins always see the full payload to moderate.
-
-    Archived requests are left out, like in the Requests lists.
-    """
-    if not tmdb_ids:
-        return {}
-
-    # Pick the "best" (highest priority) status per tmdb_id.
-    PRIO = {REQUEST_APPROVED: 3, REQUEST_PENDING: 2, REQUEST_AVAILABLE: 1, REQUEST_REJECTED: 0}
-    rows = await db.execute(
-        select(MediaRequest, User.username)
-        .join(User, MediaRequest.user_id == User.id, isouter=True)
-        .where(
-            MediaRequest.tmdb_id.in_(tmdb_ids),
-            MediaRequest.status.in_(list(PRIO)),
-            MediaRequest.archived_at.is_(None),
-        )
-        .order_by(MediaRequest.created_at.desc())
-    )
-
-    out: dict[str, dict] = {}
-    for req, username in rows.all():
-        key = str(req.tmdb_id)
-        existing = out.get(key)
-        new_prio = PRIO.get(req.status, 0)
-        if existing and PRIO.get(existing["status"], 0) >= new_prio:
-            continue
-        entry: dict = {
-            "status": req.status,
-            "requested_at": req.created_at.isoformat() if req.created_at else None,
-            "request_id": req.id,
-            "retry_count": req.retry_count or 0,
-        }
-        if not anonymize:
-            entry["reject_reason"] = (
-                req.reject_reason if req.status == REQUEST_REJECTED else None
-            )
-            # ``user_id IS NULL`` after GDPR-purge (FK ``SET NULL`` since
-            # migration 041). Flag it so the frontend renders an i18n
-            # placeholder instead of ``user#None``.
-            if req.user_id is None:
-                entry["requested_by"] = None
-                entry["requested_by_deleted"] = True
-            else:
-                entry["requested_by"] = username or f"user#{req.user_id}"
-                entry["requested_by_deleted"] = False
-        out[key] = entry
-    return out
 
 
 async def list_requests(
@@ -241,7 +172,6 @@ async def _load_requester_profiles(
     """Return {user_id: {display_name, avatar_url, username}} for a batch."""
     if not user_ids:
         return {}
-    from models.portal.profile import UserProfile
     result = await db.execute(
         select(User, UserProfile)
         .join(UserProfile, UserProfile.user_id == User.id, isouter=True)

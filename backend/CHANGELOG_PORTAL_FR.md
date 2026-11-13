@@ -41,6 +41,9 @@ utilisateurs.
 - Jours d'affilée — un appareil éteint au début d'un titre non vu ne compte plus.
 - Signalement — compteur de la description sur sa vraie limite (1 500), envoi bloqué avant toute coupure.
 - Crédits — le point suit directement le lien.
+- Demandes — « Demandé par » affiche le pseudo, plus le nom de connexion (« vous » pour vos demandes).
+- Événements — le pseudo remplace le nom de connexion (invités, créateur, notifications).
+- Événements — plus d'erreur en répondant à l'invitation d'un organisateur supprimé.
 
 ## [1.0.0-rc.10] - 2026-11-11
 
