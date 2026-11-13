@@ -3,6 +3,8 @@ update, the first-login wizard and their tests."""
 from typing import Final
 
 MIN_LENGTH: Final[int] = 3
+# Chinese ideographs and Korean syllables each write a whole syllable.
+MIN_LENGTH_SYLLABIC: Final[int] = 2
 MAX_LENGTH: Final[int] = 50
 
 INVALID: Final[str] = "invalid"

@@ -50,10 +50,11 @@ _SAME_SHAPE = str.maketrans({"l": "i", "1": "i", "0": "o"})
 def display_name_skeleton(name: str) -> str:
     """What a name reads as: look-alike letters, accents, width, case, invisible
     characters and punctuation folded away, only ``a-z`` and ``0-9`` kept. The
-    table runs before and after NFKD and casefold: decomposed letters (Cyrillic yi),
-    casefolded ones (capital palochka) and mathematical capitals only reach it after."""
-    folded = unicodedata.normalize("NFKD", (name or "").translate(_LOOKALIKES)).casefold()
-    folded = folded.translate(_LOOKALIKES)
+    table runs before NFKD, between NFKD and casefold (the capitals NFKD brings out
+    of mathematical or accented letters are still capitals there), and after
+    casefold (decomposed letters such as Cyrillic yi, the capital palochka)."""
+    folded = unicodedata.normalize("NFKD", (name or "").translate(_LOOKALIKES))
+    folded = folded.translate(_LOOKALIKES).casefold().translate(_LOOKALIKES)
     kept = "".join(ch for ch in folded if "a" <= ch <= "z" or "0" <= ch <= "9")
     # Latin shapes a reader mixes up: I, l and 1 (once casefolded: i, l, 1), O and 0,
     # « rn » and « m ».
@@ -61,17 +62,62 @@ def display_name_skeleton(name: str) -> str:
 
 
 _RESERVED_SKELETONS = frozenset(display_name_skeleton(n) for n in RESERVED_DISPLAY_NAMES)
+# Every admin title starts with « admin » (administrator, administratrice…): a word
+# that does is reserved. « root » only as a whole word, so « Roots » stays free.
+_RESERVED_PREFIX = display_name_skeleton("admin")
+
+
+def _words(name: str) -> list[str]:
+    """Runs of letters, digits and marks, also cut where a small letter meets a
+    capital (« AdminBob »)."""
+    words: list[str] = []
+    current = ""
+    for ch in name:
+        if unicodedata.category(ch)[0] not in "LNM":
+            if current:
+                words.append(current)
+            current = ""
+            continue
+        if current and current[-1].islower() and ch.isupper():
+            words.append(current)
+            current = ""
+        current += ch
+    if current:
+        words.append(current)
+    return words
 
 
 def is_reserved_display_name(name: str) -> bool:
-    return display_name_skeleton(name) in _RESERVED_SKELETONS
+    """A reserved name or a look-alike of one, alone or as a word of the name
+    (« Admin MediaKeeper », « root42 »)."""
+    if display_name_skeleton(name) in _RESERVED_SKELETONS:
+        return True
+    for word in _words(name):
+        # 0 and 1 already read as o and i; other digits only pad the word.
+        skeleton = display_name_skeleton(word).strip("23456789")
+        if skeleton in _RESERVED_SKELETONS or skeleton.startswith(_RESERVED_PREFIX):
+            return True
+    return False
 
 
-# Blank fillers and joiners with no ink of their own: a name could hide behind them.
-_BLANKS = frozenset({0x034F, 0x115F, 0x1160, 0x2800, 0x3164, 0xFFA0})
-# Zero-width non-joiner and joiner: part of Persian words and emoji, so allowed
-# between two visible characters, never at an edge or next to a space.
-_JOINERS = frozenset({0x200C, 0x200D})
+# Blank fillers with no ink of their own (the null notehead is drawn empty): a name
+# could hide behind them.
+_BLANKS = frozenset({0x034F, 0x115F, 0x1160, 0x2800, 0x3164, 0xFFA0, 0x1D159})
+# Default_Ignorable marks (variation selectors, Mongolian and Khmer ones), drawn as
+# nothing; format characters (Cf) are ignorable too.
+_IGNORABLE_MARKS = ((0x17B4, 0x17B5), (0x180B, 0x180F), (0xFE00, 0xFE0F), (0xE0100, 0xE01EF))
+_ZWNJ, _ZWJ, _EMOJI_STYLE = 0x200C, 0x200D, 0xFE0F
+_KEYCAP = chr(0x20E3)
+_VIRAMA_CLASS = 9
+_SKIN_TONES = range(0x1F3FB, 0x1F400)
+# A subdivision flag (Scotland, England, Wales): black flag, tag letters, cancel tag.
+_TAG_FLAG = re.compile(
+    chr(0x1F3F4) + "[" + chr(0xE0020) + "-" + chr(0xE007E) + "]+" + chr(0xE007F)
+)
+# Chinese ideographs and Korean syllables: each character is a whole syllable.
+_SYLLABIC = ("CJK UNIFIED IDEOGRAPH", "CJK COMPATIBILITY IDEOGRAPH", "HANGUL SYLLABLE")
+# Scripts that write vowels as letters, so their accents do not count as characters.
+_LETTER_VOWEL_SCRIPTS = ("LATIN", "GREEK", "CYRILLIC")
 _EDGES = re.compile(r"^[\s﻿]+|[\s﻿]+$")
 
 
@@ -85,24 +131,50 @@ def _visible(ch: str) -> bool:
     return unicodedata.category(ch) not in ("Mn", "Me", "Cf") and ord(ch) not in _BLANKS
 
 
+def _ignorable(ch: str) -> bool:
+    cp = ord(ch)
+    return unicodedata.category(ch) == "Cf" or any(lo <= cp <= hi for lo, hi in _IGNORABLE_MARKS)
+
+
+def _emoji_ends_at(name: str, i: int) -> bool:
+    """An emoji (So or Sk) ends at ``i``, past its style selector and skin tone."""
+    while i >= 0 and (ord(name[i]) == _EMOJI_STYLE or ord(name[i]) in _SKIN_TONES):
+        i -= 1
+    return i >= 0 and unicodedata.category(name[i]) in ("So", "Sk")
+
+
+def _shapes_text(name: str, i: int) -> bool:
+    """An invisible character at ``i`` that changes the drawing: a joiner after a
+    virama (RFC 5892, Indic half-forms), ZWNJ between two Arabic letters, ZWJ
+    between two emoji, and the emoji style selector after an emoji or a keycap."""
+    cp = ord(name[i])
+    before = name[i - 1] if i else ""
+    after = name[i + 1] if i + 1 < len(name) else ""
+    if cp == _EMOJI_STYLE:
+        keycap = bool(before) and before in "0123456789#*" and after == _KEYCAP
+        return keycap or (bool(before) and _emoji_ends_at(name, i - 1))
+    if cp not in (_ZWNJ, _ZWJ) or not before:
+        return False
+    if unicodedata.combining(before) == _VIRAMA_CLASS:
+        return True
+    if not after:
+        return False
+    if cp == _ZWNJ:
+        return unicodedata.bidirectional(before) == unicodedata.bidirectional(after) == "AL"
+    return _emoji_ends_at(name, i - 1) and unicodedata.category(after) in ("So", "Sk")
+
+
 def _hides_text(name: str) -> bool:
     """Characters that can make a name blank or show it as another one: controls,
-    private-use and unassigned code points, line breaks, blank fillers, and format
-    characters (direction marks, zero-width spaces) save a joiner between two
-    visible characters."""
+    private-use and unassigned code points, line breaks, blank fillers, and every
+    character Unicode draws as nothing (format characters, variation selectors),
+    save where ``_shapes_text`` finds it shapes the text and in a subdivision flag."""
+    flag_tags = {i for m in _TAG_FLAG.finditer(name) for i in range(m.start() + 1, m.end())}
     for i, ch in enumerate(name):
-        category = unicodedata.category(ch)
-        if category in ("Cc", "Co", "Cn", "Zl", "Zp") or ord(ch) in _BLANKS:
+        if unicodedata.category(ch) in ("Cc", "Co", "Cn", "Zl", "Zp") or ord(ch) in _BLANKS:
             return True
-        if category == "Cf":
-            joined = (
-                ord(ch) in _JOINERS
-                and 0 < i < len(name) - 1
-                and _visible(name[i - 1]) and not name[i - 1].isspace()
-                and _visible(name[i + 1]) and not name[i + 1].isspace()
-            )
-            if not joined:
-                return True
+        if _ignorable(ch) and i not in flag_tags and not _shapes_text(name, i):
+            return True
     return False
 
 
@@ -112,15 +184,43 @@ def _has_ink(name: str) -> bool:
 
 
 def _visible_length(name: str) -> int:
-    """Characters a reader counts: combining marks and invisible ones aside."""
-    return sum(1 for ch in name if _visible(ch))
+    """Characters a reader counts: letters, digits and symbols, plus one vowel sign
+    per letter of a script that writes vowels as marks (Indic, Thai). Spaces,
+    punctuation, invisible characters and stacked accents do not count."""
+    count, base, marked = 0, "", False
+    for ch in unicodedata.normalize("NFC", name):
+        category = unicodedata.category(ch)
+        if category[0] in "LNS" and _visible(ch):
+            count, base, marked = count + 1, ch, False
+        elif category in ("Mn", "Mc"):
+            if not marked and _counts_its_marks(base) and not _ignorable(ch):
+                count, marked = count + 1, True
+        else:
+            base = ""
+    return count
+
+
+def _counts_its_marks(base: str) -> bool:
+    return (
+        bool(base) and unicodedata.category(base)[0] == "L"
+        and not unicodedata.name(base, "").startswith(_LETTER_VOWEL_SCRIPTS)
+    )
+
+
+def _min_length(name: str) -> int:
+    """Two characters for a name written in Chinese ideographs or Korean
+    syllables, three otherwise."""
+    composed = unicodedata.normalize("NFC", name)
+    letters = [ch for ch in composed if unicodedata.category(ch)[0] == "L"]
+    if letters and all(unicodedata.name(ch, "").startswith(_SYLLABIC) for ch in letters):
+        return dn.MIN_LENGTH_SYLLABIC
+    return dn.MIN_LENGTH
 
 
 def _fold(name: str) -> str:
     return "".join(
         ch for ch in unicodedata.normalize("NFKC", name).casefold()
-        if unicodedata.category(ch) != "Cf" and ord(ch) not in _BLANKS
-        and not 0xFE00 <= ord(ch) <= 0xFE0F
+        if not _ignorable(ch) and ord(ch) not in _BLANKS
     )
 
 
@@ -183,7 +283,7 @@ async def judge_display_name(
         return dn.RESERVED
     if name.lower() == stored.lower():
         return dn.CURRENT
-    if _visible_length(name) < dn.MIN_LENGTH:
+    if _visible_length(name) < _min_length(name):
         return dn.TOO_SHORT
     if not admin_override and not must_set and is_display_name_locked(profile):
         return dn.LOCKED

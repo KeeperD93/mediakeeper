@@ -39,7 +39,7 @@ def test_look_alikes_of_a_reserved_name_are_reserved(name):
     assert is_reserved_display_name(name)
 
 
-@pytest.mark.parametrize("name", ["Administrateur2", "Rootkit", "Alice", "Bob"])
+@pytest.mark.parametrize("name", ["Rootkit", "Alice", "Bob"])
 def test_other_names_are_not_reserved(name):
     assert not is_reserved_display_name(name)
 

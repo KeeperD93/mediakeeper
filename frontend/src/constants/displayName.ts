@@ -39,5 +39,6 @@ const REFUSAL_PREFIX = 'display_name_'
 export function refusedNameReason(error: unknown): DisplayNameReason | null {
   if (typeof error !== 'string' || !error.startsWith(REFUSAL_PREFIX)) return null
   const reason = error.slice(REFUSAL_PREFIX.length) as DisplayNameReason
-  return reason in DISPLAY_NAME_FLAGS ? reason : null
+  // Own keys only: `in` would also accept inherited ones (`display_name_constructor`).
+  return Object.hasOwn(DISPLAY_NAME_FLAGS, reason) ? reason : null
 }
