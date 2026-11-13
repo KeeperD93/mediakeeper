@@ -38,6 +38,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Utilisateurs — historique XP : retraits en « -20 XP », aucune ligne si l'XP ne bouge pas.
 - Portail — « Demandé par » affiche le pseudo, plus le nom de connexion (« vous » pour vos demandes).
 - Portail — Événements : le pseudo remplace le nom de connexion (invités, créateur, notifications).
+- Portail — Événements : plus d'erreur en répondant à l'invitation d'un organisateur supprimé.
 
 ## [1.0.0-rc.10] - 2026-11-11
 

@@ -167,3 +167,16 @@ async def test_event_list_reads_the_portal_language_once(db_session, monkeypatch
 
     assert len(await list_for_user(db_session, guest.id)) == 3
     assert len(calls) == 1
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("decision", ["accept", "decline"])
+async def test_reply_to_an_event_whose_creator_was_purged(db_session, decision):
+    creator, _ = await make_portal_user(db_session, username="mia_login", display_name="Mia")
+    guest, _ = await make_portal_user(db_session, username="noah_login", display_name="Noah")
+    event = await _event(db_session, creator.id, [guest.id])
+    event.creator_user_id = None  # what the FK does when the creator's account is purged
+    await db_session.commit()
+
+    assert (await respond(db_session, event.id, guest.id, decision)).get("ok") is True
+    assert (await db_session.execute(select(MKNotification))).scalars().all() == []

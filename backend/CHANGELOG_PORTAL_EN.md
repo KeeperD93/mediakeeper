@@ -40,6 +40,7 @@ This section intentionally has no date so it is not shown to users.
 - Credits — the full stop follows the link directly.
 - Requests — "Requested by" shows the display name, no longer the sign-in name ("you" for your own requests).
 - Events — the display name replaces the sign-in name (guests, host, notifications).
+- Events — replying to an invitation from a deleted host no longer fails.
 
 ## [1.0.0-rc.10] - 2026-11-11
 
