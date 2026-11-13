@@ -26,6 +26,8 @@ class UserProfile(Base):
     bio             = Column(Text, nullable=True)
     display_name_must_set = Column(Boolean, server_default="true", nullable=False)
     display_name_changed_at = Column(DateTime(timezone=True), nullable=True)
+    # Empty until the first-login wizard is finished (migration 070).
+    onboarding_completed_at = Column(DateTime(timezone=True), nullable=True)
     favorite_genres = Column(JSON, nullable=True)
     level           = Column(Integer, server_default="1", nullable=False)
     xp              = Column(Integer, server_default="0", nullable=False)

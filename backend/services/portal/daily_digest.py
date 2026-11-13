@@ -86,6 +86,12 @@ def invalidate_cache(user_id: int) -> None:
             _digest_cache.pop(key, None)
 
 
+def clear_cache() -> None:
+    """Drop every cached payload: a member's public name or visibility changed,
+    and any reader's podium may show them."""
+    _digest_cache.clear()
+
+
 async def _load_prefs(db: AsyncSession, user_id: int, *, lock_row: bool = False) -> dict:
     row = await get_user_preferences(db, user_id, lock_row=lock_row)
     if not row or not row.preferences:

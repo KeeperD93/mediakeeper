@@ -46,6 +46,7 @@ utilisateurs.
 - Événements — le pseudo remplace le nom de connexion (invités, créateur, notifications).
 - Événements — plus d'erreur en répondant à l'invitation d'un organisateur supprimé.
 - Pseudos — un pseudo devenu refusé se change aussitôt, sans attendre six mois.
+- Quoi de neuf aujourd'hui ? — nouveau pseudo ou profil privé pris en compte aussitôt.
 
 ### Removed
 - Fenêtre « Nouveautés » après une mise à jour — remplacée par « Quoi de neuf aujourd'hui ? ».
