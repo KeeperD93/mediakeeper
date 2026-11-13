@@ -4040,6 +4040,20 @@
           "already_running": "A fix is already running.",
           "backup_incomplete": "The backup is incomplete: nothing was changed."
         },
+        "watchXpSection": "Recalculate watch XP",
+        "watchXpHint": "Redoes the XP earned by watching, watched title by watched title, with the current rule: 20 XP per hour of the title, on the date it was watched. Sign-ins, requests, trophies and admin grants do not move. A backup is made just before.",
+        "watchXpSimulate": "Simulate",
+        "watchXpSimulating": "Simulating…",
+        "watchXpPlayers": "{players} players affected out of {total}: watch XP {before} → {after}",
+        "watchXpLevels": "Levels: {up} go up, {down} go down (by {max} at most)",
+        "watchXpLost": "{lost} players lose all their watch XP: {noEnd} with no title finished, {stats} with statistics deleted or merged",
+        "watchXpSkipped": "Watched titles not counted: {noAccount} without an account, {notEarning} on an account that does not earn, {excluded} excluded, {cooldown} watched again within 24 h, {parallel} played at the same time as another, {beforeLedger} too old",
+        "watchXpNamesakes": "{namesake} watched titles linked by name to another account",
+        "watchXpEvents": "Bonuses applied: {events}; ignored because switched off: {ignored}",
+        "watchXpEvent": "{name} ({titles} title(s), {xp} XP)",
+        "watchXpMonths": "Past months whose leader changes: {n}",
+        "watchXpNothing": "Nothing to recalculate.",
+        "watchXpRow": "XP {xp} → {xpAfter} · level {level} → {levelAfter}",
         "errorGeneric": "Action failed"
       },
       "blacklist": {

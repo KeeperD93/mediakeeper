@@ -4040,6 +4040,20 @@
           "already_running": "Une correction est déjà en cours.",
           "backup_incomplete": "La sauvegarde est incomplète : rien n'a été modifié."
         },
+        "watchXpSection": "Recalculer l'XP de visionnage",
+        "watchXpHint": "Refait l'XP gagnée en regardant, titre vu par titre vu, avec la règle actuelle : 20 XP par heure de titre, à la date où il a été vu. Connexions, demandes, trophées et gains admin ne bougent pas. Une sauvegarde est faite juste avant.",
+        "watchXpSimulate": "Simuler",
+        "watchXpSimulating": "Simulation…",
+        "watchXpPlayers": "{players} joueurs concernés sur {total} : XP de visionnage {before} → {after}",
+        "watchXpLevels": "Niveaux : {up} montent, {down} baissent (au plus {max})",
+        "watchXpLost": "{lost} joueurs perdent toute leur XP de visionnage : {noEnd} sans titre fini, {stats} statistiques supprimées ou fusionnées",
+        "watchXpSkipped": "Titres vus non comptés : {noAccount} sans compte, {notEarning} compte qui ne gagne pas, {excluded} exclus, {cooldown} revus dans les 24 h, {parallel} lus en même temps qu'un autre, {beforeLedger} trop anciens",
+        "watchXpNamesakes": "{namesake} titres vus rattachés par le nom à un autre compte",
+        "watchXpEvents": "Bonus appliqués : {events} ; ignorés car désactivés : {ignored}",
+        "watchXpEvent": "{name} ({titles} titre(s), {xp} XP)",
+        "watchXpMonths": "Mois passés dont le premier change : {n}",
+        "watchXpNothing": "Rien à recalculer.",
+        "watchXpRow": "XP {xp} → {xpAfter} · niveau {level} → {levelAfter}",
         "errorGeneric": "L'action a échoué"
       },
       "blacklist": {

@@ -4,6 +4,7 @@
 
     <AdminDebugBulkTools :achievements="achievements" @changed="loadUsers" />
     <AdminDebugZoneCorrection @changed="loadUsers" />
+    <AdminDebugWatchXp />
 
     <!-- User picker -->
     <section class="pt-debug-card">
@@ -134,6 +135,7 @@ import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import AdminDebugBulkTools from '@/components/portal/admin/AdminDebugBulkTools.vue'
+import AdminDebugWatchXp from '@/components/portal/admin/AdminDebugWatchXp.vue'
 import AdminDebugZoneCorrection from '@/components/portal/admin/AdminDebugZoneCorrection.vue'
 import { useToast } from '@/composables/useToast'
 import { usePortalAdminDebug } from '@/composables/portal/usePortalAdminDebug'
