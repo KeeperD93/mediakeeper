@@ -4,7 +4,7 @@ Event cards, guest lists, cinema seats and the event notifications show what
 the chat shows: the chosen pseudo, the generated one while it is not
 confirmed, the admin label for an admin.
 """
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import pytest
 from sqlalchemy import select
@@ -16,7 +16,11 @@ from models.user import User
 from services.portal._pseudo_words import generate_pseudo
 from services.portal.mk_events_crud import create_event
 from services.portal.mk_events_members import respond
-from services.portal.mk_events_utils import MAX_PARTICIPANTS, _serialize_event, _user_label
+from services.portal.mk_events_utils import (
+    MAX_PARTICIPANTS,
+    _serialize_event,
+    _user_label,
+)
 from services.settings import set_setting
 from tests._portal_profile_helpers import PORTAL_COOKIE, make_portal_user, portal_token
 
@@ -27,7 +31,7 @@ async def _event(db, creator_id: int, guest_ids: list[int]) -> MKEvent:
         title="Movie Night",
         kind="private",
         tmdb_ids=[{"tmdb_id": 12345, "media_type": "movie", "title": "Test Movie"}],
-        scheduled_at=datetime.now(timezone.utc) + timedelta(hours=1),
+        scheduled_at=datetime.now(UTC) + timedelta(hours=1),
         status=EventStatus.SCHEDULED.value,
         max_participants=MAX_PARTICIPANTS,
     )
@@ -103,7 +107,7 @@ async def test_invitation_and_reply_notifications_carry_the_public_name(db_sessi
         db_session, creator.id,
         title="Movie Night", kind="private",
         tmdb_ids=[{"tmdb_id": 12345, "media_type": "movie", "title": "Test Movie"}],
-        scheduled_at=datetime.now(timezone.utc) + timedelta(hours=1),
+        scheduled_at=datetime.now(UTC) + timedelta(hours=1),
         comment=None, invitees=[guest.id], max_participants=10,
     )
     assert "error" not in created, created
