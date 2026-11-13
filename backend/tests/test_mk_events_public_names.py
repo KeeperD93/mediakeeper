@@ -159,7 +159,7 @@ async def test_event_list_reads_the_portal_language_once(db_session, monkeypatch
         await _event(db_session, creator.id, [guest.id])
     calls = []
 
-    async def _counting_default(db, default=None):  # noqa: ARG001
+    async def _counting_default(*_):
         calls.append(1)
         return "fr"
 
