@@ -13,8 +13,9 @@ from core.i18n import DEFAULT_LOCALE
 from core.security import hash_password
 from models.portal.event import EventStatus, MKEvent, MKEventInvitation, MKNotification
 from models.user import User
+from services.portal import mk_events_crud
 from services.portal._pseudo_words import generate_pseudo
-from services.portal.mk_events_crud import create_event
+from services.portal.mk_events_crud import create_event, list_for_user
 from services.portal.mk_events_members import respond
 from services.portal.mk_events_utils import (
     MAX_PARTICIPANTS,
@@ -135,3 +136,34 @@ async def test_event_route_follows_the_viewer_language(client, db_session):
     body = resp.json()
     assert body["creator_label"] == generate_pseudo(creator.id, "en")
     assert _guest_name(body, guest.id) == generate_pseudo(guest.id, "en")
+
+
+@pytest.mark.asyncio
+async def test_admin_upcoming_widget_follows_the_reader_language(client, db_session):
+    creator, _ = await make_portal_user(db_session, username="jane_emby", must_set=True)
+    admin, _ = await make_portal_user(db_session, username="admin_login", role="admin")
+    await _event(db_session, creator.id, [])
+
+    client.cookies.set(PORTAL_COOKIE, portal_token(admin.username))
+    resp = await client.get("/api/portal/admin/events/upcoming", headers={"x-mk-locale": "en"})
+
+    assert resp.status_code == 200
+    assert resp.json()["items"][0]["creator_label"] == generate_pseudo(creator.id, "en")
+
+
+@pytest.mark.asyncio
+async def test_event_list_reads_the_portal_language_once(db_session, monkeypatch):
+    creator, _ = await make_portal_user(db_session, username="kim_emby", must_set=True)
+    guest, _ = await make_portal_user(db_session, username="liam_emby", must_set=True)
+    for _ in range(3):
+        await _event(db_session, creator.id, [guest.id])
+    calls = []
+
+    async def _counting_default(db, default=None):  # noqa: ARG001
+        calls.append(1)
+        return "fr"
+
+    monkeypatch.setattr(mk_events_crud, "get_portal_default_language", _counting_default)
+
+    assert len(await list_for_user(db_session, guest.id)) == 3
+    assert len(calls) == 1

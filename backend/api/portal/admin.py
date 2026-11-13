@@ -10,7 +10,7 @@ from core.database import get_db
 from models.user import User
 from models.portal.profile import UserProfile
 from api.auth import get_current_user
-from api.portal.deps import require_admin
+from api.portal.deps import get_request_lang, require_admin
 from services.portal import admin as admin_svc
 from services.portal import admin_engagement as engagement_svc
 from services.portal import chat as chat_svc
@@ -46,11 +46,12 @@ async def admin_engagement(
 @router.get("/events/upcoming")
 async def admin_events_upcoming(
     limit: int = Query(5, ge=1, le=20),
+    lang: str = Depends(get_request_lang),
     admin: tuple[User, UserProfile] = Depends(require_admin),
     db: AsyncSession = Depends(get_db),
 ):
     """Next scheduled events portal-wide, regardless of privacy (admin view)."""
-    return {"items": await mk_events_svc.list_upcoming_admin(db, limit=limit)}
+    return {"items": await mk_events_svc.list_upcoming_admin(db, limit=limit, lang=lang)}
 
 
 @router.put("/users/{user_id}/chat")

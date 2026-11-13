@@ -23,6 +23,7 @@ from services.portal.admin import (
 from services.portal.mk_events_utils import (
     _user_label, _serialize_event, is_invitable,
 )
+from services.settings import get_portal_default_language
 
 
 async def create_event(
@@ -240,13 +241,17 @@ async def list_for_user(
         )
     ).order_by(MKEvent.scheduled_at.asc())
     rows = (await db.execute(q)).scalars().all()
+    # Resolved once here, not once per event.
+    lang = lang or await get_portal_default_language(db)
     out: list[dict] = []
     for ev in rows:
         out.append(await _serialize_event(db, ev, lang))
     return out
 
 
-async def list_upcoming_admin(db: AsyncSession, limit: int = 5) -> list[dict]:
+async def list_upcoming_admin(
+    db: AsyncSession, limit: int = 5, lang: str | None = None,
+) -> list[dict]:
     """Every scheduled future event regardless of privacy — admin view."""
     now = datetime.now(timezone.utc)
     q = (
@@ -256,7 +261,8 @@ async def list_upcoming_admin(db: AsyncSession, limit: int = 5) -> list[dict]:
         .limit(limit)
     )
     rows = (await db.execute(q)).scalars().all()
-    return [await _serialize_event(db, ev) for ev in rows]
+    lang = lang or await get_portal_default_language(db)
+    return [await _serialize_event(db, ev, lang) for ev in rows]
 
 
 async def get_one(
