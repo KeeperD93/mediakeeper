@@ -3014,14 +3014,17 @@
     "changelog": {
       "title": "Journal des nouveautés",
       "subtitle": "Toutes les évolutions visibles côté utilisateurs",
-      "whatsNew": "Nouveautés",
       "empty": "Aucune nouveauté publiée pour l'instant."
     },
     "dailyDigest": {
       "title": "Quoi de neuf aujourd'hui ?",
-      "subtitle": "Votre résumé quotidien sur Demandes — les nouveautés, votre progression et ce qui vous attend.",
+      "subtitle": "Votre résumé du jour : les actualités, votre progression et les nouveautés.",
       "empty": "Rien de neuf pour aujourd'hui — revenez demain !",
       "errorLoad": "Impossible de charger le résumé du jour.",
+      "viewSwitch": "Vue compacte",
+      "viewError": "Impossible d'enregistrer la vue choisie.",
+      "footer": "Cette fenêtre revient demain avec du nouveau.",
+      "footerShort": "Revient demain avec du nouveau.",
       "greeting": {
         "morning": "Bonjour",
         "afternoon": "Bon après-midi",
@@ -3033,42 +3036,99 @@
         "nightWithName": "Vous êtes encore là, {name} ?"
       },
       "aria": {
-        "stats": "Statistiques du jour",
-        "recentAdds": "Ajouts récents à la bibliothèque",
-        "scrollLeft": "Faire défiler vers la gauche",
-        "scrollRight": "Faire défiler vers la droite"
+        "stats": "Vos chiffres du jour",
+        "scrollLeft": "Jaquettes précédentes",
+        "scrollRight": "Jaquettes suivantes"
       },
       "sections": {
+        "news": "Actualité",
+        "progress": "Votre progression",
         "recentAdds": "Nouveautés dans la bibliothèque",
+        "recentAddsShort": "Nouveautés",
+        "forYou": "Pour vous",
+        "upNext": "À suivre",
         "events": "Événements à venir",
         "nextAchievement": "Prochain trophée",
         "top3": "Top 3 du mois"
       },
-      "top3": {
-        "xpUnit": "XP",
-        "xpMonthTitle": "XP gagnés ce mois-ci"
+      "news": {
+        "new": "Nouveau",
+        "pinned": "Épinglée",
+        "readMore": "Lire la suite",
+        "readLess": "Réduire",
+        "moreCount": "+{n} autre actualité | +{n} autres actualités",
+        "hideMore": "Masquer"
+      },
+      "release": {
+        "section": "Nouvelle version",
+        "badge": "Version",
+        "title": "Ce qui change pour vous",
+        "titleCompact": "Nouvelle version : ce qui change pour vous",
+        "line": "Nouvelle version {version} · {n} changement pour vous | Nouvelle version {version} · {n} changements pour vous",
+        "more": "+{n} autre changement | +{n} autres changements",
+        "showAll": "Voir toutes les nouveautés",
+        "showAllCompact": "Voir le changement | Voir les {n} changements",
+        "collapse": "Réduire les nouveautés"
+      },
+      "expiry": {
+        "title": "Votre compte expire le {date}, {when}.",
+        "when": "aujourd'hui | demain | dans {n} jours",
+        "hint": "Pour le prolonger, contactez l'administrateur avant cette date.",
+        "lead": "Votre compte expire le {date}",
+        "whenCompact": "({when}).",
+        "hintCompact": "Contactez l'administrateur pour le prolonger."
       },
       "pills": {
         "rank": "Classement",
         "rankOf": "sur {total}",
+        "rankCompact": "Classement sur {total}",
         "quota": "Demandes restantes",
         "quotaOf": "sur {total}",
         "tickets": "Tickets ouverts",
         "ticketsCaption": "à suivre",
+        "ticketsCompact": "Ticket ouvert | Tickets ouverts",
         "streak": "Série",
-        "streakDays": "{n} jours consécutifs"
+        "streakDays": "jour consécutif | jours consécutifs",
+        "streakCompact": "Jour d'affilée | Jours d'affilée"
       },
       "level": {
         "eyebrow": "Votre niveau",
+        "ringUnit": "NIV.",
+        "ringLabel": "Niveau {level}, {percent} % du niveau suivant",
+        "ringLabelMaxed": "Niveau {level}, niveau maximum atteint",
+        "xpYesterday": "+{n} XP hier",
         "toNext": "Plus que {xp} XP pour le niveau {level}",
+        "toNextShort": "{xp} XP avant le niveau {level}",
         "maxed": "Niveau maximum atteint"
+      },
+      "achievement": {
+        "remaining": "Plus que {count}",
+        "remainingShort": "Prochain trophée · plus que {count}"
+      },
+      "top3": {
+        "levelShort": "Niv. {level} · {title}",
+        "seeAll": "Voir le classement",
+        "seeAllShort": "Classement"
+      },
+      "posters": {
+        "series": "Série",
+        "seriesYear": "Série · {year}"
+      },
+      "forYou": {
+        "available": "« {title} » est disponible",
+        "availableSince": "Disponible {when}",
+        "approved": "Votre demande « {title} » est approuvée",
+        "approvedShort": "Demande « {title} » approuvée",
+        "approvedHint": "Elle arrive bientôt dans la bibliothèque",
+        "ticketReply": "Nouvelle réponse à votre problème « {title} »",
+        "ticketReplyShort": "Réponse à votre problème « {title} »",
+        "see": "Voir",
+        "read": "Lire"
       },
       "events": {
         "public": "Public",
-        "private": "Privé"
-      },
-      "achievement": {
-        "remaining": "Plus que {count}"
+        "private": "Privé",
+        "when": "{date} · {time}"
       }
     },
     "lists": {
@@ -3481,9 +3541,6 @@
       }
     },
     "news": {
-      "whatsNew": "Quoi de neuf ?",
-      "gotIt": "Compris !",
-      "noNews": "Aucune actualité",
       "titleLabel": "Titre",
       "content": "Contenu",
       "typeLabel": "Type",

@@ -5,53 +5,20 @@
       <div class="gc-starfield"><span v-for="i in 15" :key="'s' + i" class="gc-star" /></div>
     </template>
     <div class="gc-sidebar-inner">
-      <!-- Avatar zone -->
-      <div class="gc-avatar-zone" :class="avatarEffectClass">
-        <!-- Master avatar cosmetic overlays (one block per equipped effect) -->
-        <template v-if="avatarEffect === 'dedication'">
-          <div class="gc-fx-comet-core" />
-          <div class="gc-fx-comet-trail" />
-          <div class="gc-fx-comet-head" />
-        </template>
-        <template v-else-if="avatarEffect === 'special'">
-          <div class="gc-fx-holy-rays" />
-          <div class="gc-fx-holy-glow" />
-          <div class="gc-fx-holy-ring" />
-          <div class="gc-fx-rune" />
-          <div class="gc-fx-rune" />
-          <div class="gc-fx-rune" />
-          <div class="gc-fx-rune" />
-        </template>
-        <template v-else-if="avatarEffect === 'community'">
-          <div class="gc-fx-nebula" />
-          <span v-for="i in 8" :key="'cstar' + i" class="gc-fx-star" />
-        </template>
-        <template v-else-if="avatarEffect === 'ranking'">
-          <div v-for="i in 5" :key="'rhalo' + i" class="gc-fx-rhalo" :class="`gc-fx-rhalo--${i}`" />
-        </template>
-        <template v-else-if="avatarEffect === 'meta'">
-          <div class="gc-fx-mandala gc-fx-mandala--dots" />
-          <div class="gc-fx-mandala gc-fx-mandala--outer" />
-          <div class="gc-fx-mandala gc-fx-mandala--mid" />
-          <div class="gc-fx-mandala gc-fx-mandala--inner" />
-        </template>
-
-        <div class="gc-avatar-ring">
-          <div class="gc-avatar-inner">
-            <MkAvatar
-              :name="profileData?.display_name || ''"
-              :src="profileData?.avatar_url || null"
-              :size="88"
-              class="gc-avatar-mk"
-            />
+      <!-- Avatar zone: the frame of a Master trophy around the tier ring. -->
+      <div class="gc-avatar-zone">
+        <AvatarFrame :size="88" :effect="profileData?.avatar_effect" reserve>
+          <div class="gc-avatar-ring">
+            <div class="gc-avatar-inner">
+              <MkAvatar
+                :name="profileData?.display_name || ''"
+                :src="profileData?.avatar_url || null"
+                :size="88"
+                class="gc-avatar-mk"
+              />
+            </div>
           </div>
-        </div>
-
-        <!-- Ranking stars render above the avatar — must be placed AFTER the
-             avatar-ring so they're z-stacked on top with their orbit paths. -->
-        <template v-if="avatarEffect === 'ranking'">
-          <div v-for="i in 5" :key="'rstar' + i" class="gc-fx-rstar" :class="`gc-fx-rstar--${i}`" />
-        </template>
+        </AvatarFrame>
       </div>
 
       <div class="gc-rank-title">✦ {{ $t(`portal.profile.titles.${titleKey}`) }} ✦</div>
@@ -132,6 +99,7 @@
 import { computed } from 'vue'
 import { HelpCircle } from 'lucide-vue-next'
 import MkAvatar from '@/components/common/MkAvatar.vue'
+import AvatarFrame from '@/components/portal/common/AvatarFrame.vue'
 import { xpForLevel } from '@/composables/portal/useProfileXp'
 import { MIN_LEVEL } from '@/constants/portal'
 import { localizedNumber } from '@/utils/localizedNumber'
@@ -151,23 +119,6 @@ const props = defineProps({
 
 defineEmits(['edit-profile'])
 
-const VALID_AVATAR_FX = new Set([
-  'watching',
-  'dedication',
-  'diversity',
-  'special',
-  'community',
-  'ranking',
-  'meta',
-])
-const avatarEffect = computed(() => {
-  const raw = props.profileData?.avatar_effect
-  return VALID_AVATAR_FX.has(raw) ? raw : null
-})
-const avatarEffectClass = computed(() =>
-  avatarEffect.value ? `gc-avatar-fx--${avatarEffect.value}` : '',
-)
-
 const pinnedTrophies = computed(() => {
   const ids = props.profileData?.selected_badges || []
   if (!ids.length) return []
@@ -177,5 +128,4 @@ const pinnedTrophies = computed(() => {
 
 <style>
 @import url('@/assets/styles/portal/rank-card.css');
-@import url('@/assets/styles/portal/trophy-master-avatar-fx.css');
 </style>

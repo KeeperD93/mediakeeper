@@ -5,17 +5,21 @@ Distinct from the admin changelog so that the public Portal surface shows
 only viewer-facing changes, with its own version line that drifts from the
 admin APP_VERSION. Authenticates via the Portal-scoped ``rq_token`` cookie.
 """
-import re
 import json
 import logging
+import re
 from pathlib import Path
+
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel, ConfigDict
 from sqlalchemy.ext.asyncio import AsyncSession
-from core.database import get_db
-from models.user import User
-from models.portal.profile import UserProfile
+
 from api.portal.deps import get_current_profile
+from constants.changelog import PORTAL_SEEN_VERSION_KEY
+from core.database import get_db
+from models.portal.profile import UserProfile
+from models.user import User
+from services.portal import daily_digest as dd_svc
 
 logger = logging.getLogger("mediakeeper.portal_changelog")
 
@@ -108,6 +112,12 @@ def _parse_changelog(lang: str = "fr", max_versions: int = 0) -> list[dict]:
     return versions
 
 
+def latest_release(lang: str) -> dict | None:
+    """The current Portal version as its changelog describes it; None until it is dated."""
+    versions = _parse_changelog(lang=lang, max_versions=1)
+    return versions[0] if versions and versions[0]["version"] == PORTAL_VERSION else None
+
+
 @router.get("/")
 async def get_portal_changelog(
     limit: int = 0,
@@ -142,7 +152,7 @@ async def check_new_portal_version(
     user, _ = up
     prefs = await get_user_preferences(db, user.id)
     prefs_data = json.loads(prefs.preferences) if prefs and prefs.preferences else {}
-    seen_version = prefs_data.get("portal_changelog_seen_version", "")
+    seen_version = prefs_data.get(PORTAL_SEEN_VERSION_KEY, "")
     return {
         "current_version": PORTAL_VERSION,
         "seen_version": seen_version,
@@ -166,8 +176,12 @@ async def mark_portal_changelog_seen(
     user, _ = up
     version = req.version or PORTAL_VERSION
     from services.settings import get_user_preferences, upsert_user_preferences
-    prefs = await get_user_preferences(db, user.id)
+    # Locked like the daily digest writes to the same JSON: closing both overlays
+    # at once must not lose either change.
+    prefs = await get_user_preferences(db, user.id, lock_row=True)
     prefs_data = json.loads(prefs.preferences) if prefs and prefs.preferences else {}
-    prefs_data["portal_changelog_seen_version"] = version
+    prefs_data[PORTAL_SEEN_VERSION_KEY] = version
     await upsert_user_preferences(db, user.id, preferences=json.dumps(prefs_data))
+    # The digest shows the version as new until now: its next opening must not.
+    dd_svc.invalidate_cache(user.id)
     return {"success": True, "version": version}

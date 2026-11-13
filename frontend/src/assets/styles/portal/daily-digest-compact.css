@@ -1,0 +1,223 @@
+/* Daily digest, compact view (DigestCompact.vue and its sections): the same content in
+ * less height. Phone first; the window's own width (container dd) widens it at 360,
+ * 600 and 800 px. The posters rail lives in daily-digest-posters.css. */
+
+.ddc {
+  display: flex;
+  flex-direction: column;
+  gap: var(--portal-space-3-5);
+  padding: 58px var(--portal-space-4) 18px;
+}
+.ddc-head {
+  display: flex;
+  align-items: center;
+  gap: var(--portal-space-3);
+  min-height: 48px;
+}
+.ddc-head-av {
+  --pt-avf-size: 40;
+}
+/* Its frame kept inside the window (see .dd-hero-av). */
+.ddc-head-av.pt-avf--fx {
+  margin-left: 5px;
+}
+.ddc-hello {
+  margin: 0;
+  font-family: var(--portal-font-display);
+  font-size: var(--portal-text-lg);
+  font-weight: var(--portal-font-extrabold);
+  line-height: 1.15;
+}
+.ddc-date {
+  display: block;
+  margin-top: var(--portal-space-0-5);
+  font-size: var(--portal-text-xs);
+  color: var(--portal-text-muted-solid);
+}
+.ddc-label {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--portal-space-1-5) var(--portal-space-2);
+  margin: 0 0 var(--portal-space-1-5);
+  font-family: var(--portal-font-display);
+  font-size: var(--portal-text-2xs);
+  font-weight: var(--portal-font-extrabold);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--portal-text-muted-solid);
+}
+.ddc-box {
+  border: var(--portal-border-width) solid var(--portal-border-default);
+  border-radius: var(--portal-radius-lg);
+  background: var(--portal-surface-1);
+}
+.ddc-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--portal-space-1-5) var(--portal-space-2);
+}
+.ddc-when {
+  font-size: var(--portal-text-xs);
+  color: var(--portal-text-muted-solid);
+  white-space: nowrap;
+}
+.ddc-sub {
+  margin-top: 5px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--portal-text-xs);
+  color: var(--portal-text-muted-solid);
+}
+.ddc-dot {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--portal-radius-circle);
+}
+
+/* Account expiry */
+.ddc-expiry {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--portal-space-2) 10px;
+  padding: 10px var(--portal-space-3);
+  border: var(--portal-border-width) solid rgb(var(--portal-color-warning-rgb), 0.38);
+  border-radius: var(--portal-radius-lg);
+  background: rgb(var(--portal-color-warning-rgb), 0.1);
+  font-size: var(--portal-text-sm);
+  line-height: 1.45;
+  color: var(--portal-text-secondary-solid);
+}
+.ddc-expiry b {
+  color: var(--portal-color-warning-soft);
+}
+
+/* Rows of a list: other news, « Up next » */
+.ddc-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 48px;
+  padding: var(--portal-space-1-5) var(--portal-space-3);
+  box-sizing: border-box;
+  border-top: var(--portal-border-width) solid var(--portal-border-subtle);
+  color: var(--portal-text-secondary-solid);
+  font-size: var(--portal-text-sm);
+  text-decoration: none;
+}
+.ddc-row:first-child {
+  border-top: none;
+}
+.ddc-row-title {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Figures of the day */
+.ddc-stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--portal-space-2);
+}
+.ddc-stat {
+  padding: 10px var(--portal-space-1-5);
+  border: var(--portal-border-width) solid var(--portal-border-default);
+  border-radius: var(--portal-radius-lg);
+  background: var(--portal-surface-2);
+  text-align: center;
+}
+.ddc-stat-icon {
+  display: block;
+  margin: 0 auto var(--portal-space-1);
+}
+.ddc-stat-value {
+  display: block;
+  font-size: var(--portal-text-lg);
+  font-weight: var(--portal-font-extrabold);
+  font-variant-numeric: tabular-nums;
+}
+.ddc-stat-delta {
+  font-size: var(--portal-text-2xs);
+  font-style: normal;
+  color: var(--portal-color-success-light);
+}
+.ddc-stat-delta.dd-delta--down {
+  color: var(--portal-color-error-light);
+}
+.ddc-stat-caption {
+  display: block;
+  margin-top: var(--portal-space-0-5);
+  font-size: var(--portal-text-3xs);
+  line-height: 1.25;
+  color: var(--portal-text-muted-solid);
+}
+
+/* Library additions and « Up next », side by side on a wide window */
+.ddc-split {
+  display: flex;
+  flex-direction: column;
+  gap: var(--portal-space-3-5);
+}
+
+/* Footer */
+.ddc-foot {
+  display: flex;
+  flex-direction: column-reverse;
+  align-items: stretch;
+  gap: 10px;
+}
+.ddc-foot-text {
+  margin: 0;
+  font-size: var(--portal-text-xs);
+  color: var(--portal-text-muted-solid);
+  text-align: center;
+}
+
+@container dd (min-width: 360px) {
+  .ddc-stats {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+  .ddc-foot {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .ddc-foot-text {
+    text-align: left;
+  }
+}
+@container dd (min-width: 600px) {
+  .ddc-head-av.pt-avf--fx {
+    margin-left: 0;
+  }
+  .ddc {
+    gap: var(--portal-space-4);
+    padding: 58px var(--portal-space-6) var(--portal-space-5);
+  }
+  .ddc-hello {
+    font-size: var(--portal-text-xl);
+  }
+}
+@container dd (min-width: 800px) {
+  .ddc {
+    padding: 58px 28px 22px;
+  }
+  .ddc-split {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--portal-space-4);
+  }
+  .ddc-split > :only-child {
+    grid-column: 1 / -1;
+  }
+}

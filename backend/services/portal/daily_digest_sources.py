@@ -1,7 +1,7 @@
 """Leaf aggregators feeding the Portal daily digest.
 
 Each helper is a standalone, defensively-wrapped call into an existing
-service (Emby, events, ranking, quota, tickets, achievements, playback).
+service (Emby, events, news, ranking, quota, tickets, achievements, playback).
 They live in this sibling module so the orchestrator in
 ``daily_digest.py`` stays under the 300-line cap with just the caching,
 dismissal and composition logic.
@@ -15,13 +15,16 @@ from datetime import datetime, timezone, timedelta
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from constants.daily_digest import NEWS_LIMIT
 from models.user import User
+from models.portal.event import EventStatus, InvitationStatus
 from models.portal.profile import UserProfile
 from models.portal.ticket import Ticket
 from services.instance_time import get_instance_zone
 from services.portal.available import get_recently_added
 from services.portal.available_localize import localize_emby_items
 from services.portal.mk_events_crud import list_for_user as list_events_for_user
+from services.portal.news import list_active_for_user as list_news_for_user
 from services.portal.profile_stats_ranking import (
     compute_ranking, title_for_level, tier_for_level,
 )
@@ -39,6 +42,7 @@ logger = logging.getLogger("mediakeeper.portal.daily_digest")
 RECENT_ADDS_FETCH_LIMIT = 80
 RECENT_ADDS_CAP = 30
 EVENTS_WINDOW_DAYS = 7
+_LEFT_INVITATION = frozenset({InvitationStatus.DECLINED.value, InvitationStatus.REMOVED.value})
 
 
 def _parse_emby_iso(raw: str) -> datetime | None:
@@ -106,7 +110,10 @@ async def recent_adds(
 
 
 async def upcoming_events(db: AsyncSession, user_id: int) -> list[dict]:
-    """Future events the user is involved in, capped at the next 7 days."""
+    """Future events the user is still involved in, capped at the next 7 days.
+
+    Cancelled events and those the user declined or was removed from are left out.
+    """
     try:
         rows = await list_events_for_user(db, user_id)
     except Exception as e:  # noqa: BLE001
@@ -116,6 +123,13 @@ async def upcoming_events(db: AsyncSession, user_id: int) -> list[dict]:
     horizon = now + timedelta(days=EVENTS_WINDOW_DAYS)
     out: list[dict] = []
     for ev in rows:
+        mine = next(
+            (inv for inv in ev.get("invitations") or [] if inv.get("user_id") == user_id), None,
+        )
+        if ev.get("status") == EventStatus.CANCELLED.value or (
+            mine and mine.get("status") in _LEFT_INVITATION
+        ):
+            continue
         sched_raw = ev.get("scheduled_at")
         if not sched_raw:
             continue
@@ -134,6 +148,14 @@ async def upcoming_events(db: AsyncSession, user_id: int) -> list[dict]:
             "scheduled_at": sched_raw,
         })
     return out
+
+
+async def latest_news(db: AsyncSession, user_id: int) -> list[dict]:
+    try:
+        return await list_news_for_user(db, user_id, limit=NEWS_LIMIT)
+    except Exception as e:  # noqa: BLE001
+        logger.debug("[DIGEST] news failed: %s", e)
+        return []
 
 
 async def open_tickets_count(db: AsyncSession, user_id: int) -> int:
@@ -199,6 +221,7 @@ async def ranking_snapshot(
             "user_id": entry.get("user_id"),
             "display_name": entry.get("display_name"),
             "avatar_url": entry.get("avatar_url"),
+            "avatar_effect": entry.get("avatar_effect"),
             "level": entry.get("level"),
             "tier": entry.get("tier"),
             "title_key": entry.get("title_key"),

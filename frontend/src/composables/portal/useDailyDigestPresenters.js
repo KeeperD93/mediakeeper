@@ -1,39 +1,42 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { Crown, Flame, Send, MessageCircle } from 'lucide-vue-next'
+import { Calendar, Check, CircleCheck, Crown, Flame, MessageCircle, Send } from 'lucide-vue-next'
+import { FOR_YOU_KIND } from '@/constants/dailyDigest'
+import { MEDIA_TYPE } from '@/constants/media'
+import { PORTAL_TAB } from '@/constants/portal'
+import { localizedDate, localizedTime } from '@/utils/datetime'
+import { localizedNumber } from '@/utils/localizedNumber'
+import { capitalize, relativeTime } from '@/utils/portal/dailyDigest'
+import { timeAgoForNotification } from '@/utils/portal/notificationLabel'
+
+const percentOf = (part, whole) =>
+  whole ? Math.min(100, Math.max(0, Math.round((part / whole) * 100))) : 0
 
 /**
- * Pure presentation helpers for the Daily Digest overlay.
+ * What both views of the daily digest write from its payload: the greeting, the
+ * figures of the day, the level, the next trophy, the expiry warning, the « For you »
+ * rows and the events. All computeds follow the digest ref.
  *
- * Pulled out of the component so the .vue file stays under the 300L cap
- * and the layout logic stays readable. All inputs are reactive refs so
- * the returned computeds stay in sync with the source of truth.
- *
- * @param {import('vue').Ref} digest — the digest payload ref
- * @param {import('vue').Ref} profile — the Portal profile ref
+ * @param {import('vue').Ref} digest — the digest payload
  */
-export function useDailyDigestPresenters(digest, profile) {
-  const { t, locale } = useI18n()
+export function useDailyDigestPresenters(digest) {
+  const { t } = useI18n()
+  const k = key => `portal.dailyDigest.${key}`
 
-  const formattedDate = computed(() => {
-    try {
-      return new Date().toLocaleDateString(locale.value, {
-        weekday: 'long',
-        day: 'numeric',
-        month: 'long',
-      })
-    } catch {
-      return ''
-    }
+  // The digest's day is the instance's: read at local midnight, not the browser's today.
+  const day = computed(() => {
+    const iso = digest.value?.date
+    return iso ? new Date(`${iso}T00:00:00`) : new Date()
   })
+  const formattedDate = computed(() =>
+    capitalize(localizedDate(day.value, { weekday: 'long', day: 'numeric', month: 'long' })),
+  )
 
   const greeting = computed(() => {
-    const name = profile?.value?.display_name || ''
+    const name = digest.value?.me?.display_name || ''
     const hour = new Date().getHours()
     const slot = hour < 6 ? 'night' : hour < 12 ? 'morning' : hour < 18 ? 'afternoon' : 'evening'
-    return name
-      ? t(`portal.dailyDigest.greeting.${slot}WithName`, { name })
-      : t(`portal.dailyDigest.greeting.${slot}`)
+    return name ? t(k(`greeting.${slot}WithName`), { name }) : t(k(`greeting.${slot}`))
   })
 
   const statCards = computed(() => {
@@ -45,23 +48,22 @@ export function useDailyDigestPresenters(digest, profile) {
       out.push({
         key: 'rank',
         icon: Crown,
-        cls: 'ddd-stat--rank',
-        label: t('portal.dailyDigest.pills.rank'),
+        label: t(k('pills.rank')),
         value: `#${r.position}`,
-        caption: t('portal.dailyDigest.pills.rankOf', { total: r.total }),
-        delta: r.movement ? (r.movement > 0 ? `↑${r.movement}` : `↓${Math.abs(r.movement)}`) : '',
-        deltaClass:
-          r.movement > 0 ? 'ddd-stat-delta--up' : r.movement < 0 ? 'ddd-stat-delta--down' : '',
+        caption: t(k('pills.rankOf'), { total: r.total }),
+        compactCaption: t(k('pills.rankCompact'), { total: r.total }),
+        delta: r.movement ? `${r.movement > 0 ? '↑' : '↓'}${Math.abs(r.movement)}` : '',
+        deltaDown: r.movement < 0,
       })
     }
     if (d.streak > 0) {
       out.push({
         key: 'streak',
         icon: Flame,
-        cls: 'ddd-stat--streak',
-        label: t('portal.dailyDigest.pills.streak'),
+        label: t(k('pills.streak')),
         value: d.streak,
-        caption: t('portal.dailyDigest.pills.streakDays', { n: d.streak }),
+        caption: t(k('pills.streakDays'), d.streak),
+        compactCaption: t(k('pills.streakCompact'), d.streak),
       })
     }
     const q = d.quota
@@ -69,74 +71,162 @@ export function useDailyDigestPresenters(digest, profile) {
       out.push({
         key: 'quota',
         icon: Send,
-        cls: 'ddd-stat--quota',
-        label: t('portal.dailyDigest.pills.quota'),
+        label: t(k('pills.quota')),
         value: q.remaining,
-        caption: t('portal.dailyDigest.pills.quotaOf', { total: q.max_allowed }),
+        compactValue: `${q.remaining}/${q.max_allowed}`,
+        caption: t(k('pills.quotaOf'), { total: q.max_allowed }),
+        compactCaption: t(k('pills.quota')),
       })
     }
     if (d.tickets_open > 0) {
       out.push({
         key: 'tickets',
         icon: MessageCircle,
-        cls: 'ddd-stat--tickets',
-        label: t('portal.dailyDigest.pills.tickets'),
+        label: t(k('pills.tickets')),
         value: d.tickets_open,
-        caption: t('portal.dailyDigest.pills.ticketsCaption'),
+        caption: t(k('pills.ticketsCaption')),
+        compactCaption: t(k('pills.ticketsCompact'), d.tickets_open),
       })
     }
     return out
   })
 
-  const achPercent = computed(() => {
-    const n = digest.value?.next_achievement
-    if (!n || !n.threshold) return 0
-    return Math.min(100, Math.max(0, Math.round((n.progress / n.threshold) * 100)))
+  const level = computed(() => {
+    const l = digest.value?.level
+    if (!l) return null
+    const percent = l.maxed ? 100 : percentOf(l.percent || 0, 100)
+    const xp = localizedNumber(Math.max(0, l.xp_next_level - l.xp))
+    const next = { xp, level: l.level + 1 }
+    return {
+      level: l.level,
+      percent,
+      title: t(`portal.profile.titles.${l.title_key || 'spectator'}`),
+      ringLabel: l.maxed
+        ? t(k('level.ringLabelMaxed'), { level: l.level })
+        : t(k('level.ringLabel'), { level: l.level, percent }),
+      xpYesterday:
+        l.xp_yesterday > 0 ? t(k('level.xpYesterday'), { n: localizedNumber(l.xp_yesterday) }) : '',
+      progress: l.maxed
+        ? `${localizedNumber(l.xp)} XP`
+        : `${localizedNumber(l.xp_into_level)} / ${localizedNumber(l.xp_next_level - l.xp_current_level)} XP`,
+      toNext: l.maxed ? t(k('level.maxed')) : t(k('level.toNext'), next),
+      toNextShort: l.maxed ? t(k('level.maxed')) : t(k('level.toNextShort'), next),
+    }
   })
 
-  function movementLabel(m) {
-    if (m > 0) return `↑${m}`
-    if (m < 0) return `↓${Math.abs(m)}`
-    return '—'
+  const achievement = computed(() => {
+    const n = digest.value?.next_achievement
+    if (!n) return null
+    return {
+      name: t(n.name_key),
+      description: n.description_key ? t(n.description_key) : '',
+      percent: percentOf(n.progress, n.threshold),
+      count: `${localizedNumber(n.progress)} / ${localizedNumber(n.threshold)}`,
+      remaining: t(k('achievement.remaining'), { count: n.remaining }),
+      remainingShort: t(k('achievement.remainingShort'), { count: n.remaining }),
+    }
+  })
+
+  const expiry = computed(() => {
+    const e = digest.value?.expiry
+    if (!e) return null
+    const date = localizedDate(e.ends_at, { day: 'numeric', month: 'long', year: 'numeric' })
+    const when = t(k('expiry.when'), { n: e.days_left }, e.days_left)
+    return {
+      title: t(k('expiry.title'), { date, when }),
+      hint: t(k('expiry.hint')),
+      lead: t(k('expiry.lead'), { date }),
+      whenShort: t(k('expiry.whenCompact'), { when }),
+      hintShort: t(k('expiry.hintCompact')),
+    }
+  })
+
+  function forYouRow(item, index) {
+    const title = item.title || ''
+    const base = {
+      key: `${item.kind}-${index}`,
+      kind: item.kind,
+      ago: timeAgoForNotification(item.at, t),
+    }
+    if (item.kind === FOR_YOU_KIND.REQUEST_AVAILABLE) {
+      return {
+        ...base,
+        tone: 'available',
+        icon: CircleCheck,
+        compactIcon: Check,
+        text: t(k('forYou.available'), { title }),
+        textShort: t(k('forYou.available'), { title }),
+        sub: t(k('forYou.availableSince'), { when: relativeTime(item.at) }),
+        link: t(k('forYou.see')),
+        to: item.tmdb_id
+          ? {
+              name: 'portal-media-detail',
+              params: { type: item.media_type || MEDIA_TYPE.MOVIE, id: item.tmdb_id },
+            }
+          : null,
+      }
+    }
+    if (item.kind === FOR_YOU_KIND.REQUEST_APPROVED) {
+      return {
+        ...base,
+        tone: 'approved',
+        icon: Send,
+        compactIcon: Send,
+        text: t(k('forYou.approved'), { title }),
+        textShort: t(k('forYou.approvedShort'), { title }),
+        sub: t(k('forYou.approvedHint')),
+        link: '',
+        to: null,
+      }
+    }
+    return {
+      ...base,
+      tone: 'ticket',
+      icon: MessageCircle,
+      compactIcon: MessageCircle,
+      text: t(k('forYou.ticketReply'), { title }),
+      textShort: t(k('forYou.ticketReplyShort'), { title }),
+      sub: capitalize(relativeTime(item.at)),
+      link: t(k('forYou.read')),
+      to: item.ticket_id
+        ? { name: PORTAL_TAB.TICKET_DETAIL, params: { id: item.ticket_id } }
+        : null,
+    }
   }
 
-  function movementClass(m) {
-    if (m > 0) return 'ddd-top3-move--up'
-    if (m < 0) return 'ddd-top3-move--down'
-    return 'ddd-top3-move--flat'
-  }
+  const forYou = computed(() => (digest.value?.for_you || []).map(forYouRow))
 
-  function formatEventDay(iso) {
-    try {
-      return new Date(iso).toLocaleDateString(locale.value, { day: '2-digit' })
-    } catch {
-      return ''
-    }
-  }
-  function formatEventMonth(iso) {
-    try {
-      return new Date(iso).toLocaleDateString(locale.value, { month: 'short' })
-    } catch {
-      return ''
-    }
-  }
-  function formatEventTime(iso) {
-    try {
-      return new Date(iso).toLocaleTimeString(locale.value, { hour: '2-digit', minute: '2-digit' })
-    } catch {
-      return ''
-    }
-  }
+  const events = computed(() =>
+    (digest.value?.events || []).map(ev => {
+      const at = new Date(ev.scheduled_at)
+      const dayNumber = localizedDate(at, { day: 'numeric' })
+      const month = localizedDate(at, { month: 'short' })
+      const time = localizedTime(at, { hour: '2-digit', minute: '2-digit' })
+      return {
+        id: ev.id,
+        title: ev.title,
+        kind: t(k(`events.${ev.kind}`)),
+        day: dayNumber,
+        month,
+        time,
+        when: t(k('events.when'), {
+          date: localizedDate(at, { day: 'numeric', month: 'short' }),
+          time,
+        }),
+        icon: Calendar,
+        to: { name: 'portal-rooms', params: { id: ev.id } },
+      }
+    }),
+  )
 
   return {
     formattedDate,
     greeting,
     statCards,
-    achPercent,
-    movementLabel,
-    movementClass,
-    formatEventDay,
-    formatEventMonth,
-    formatEventTime,
+    level,
+    achievement,
+    expiry,
+    forYou,
+    events,
   }
 }

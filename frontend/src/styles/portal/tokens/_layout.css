@@ -22,6 +22,8 @@
   --portal-space-2: 8px;
   --portal-space-3: 12px;
   --portal-space-3-5: 14px;
+  --portal-space-4: 16px;
+  --portal-space-5: 20px;
   --portal-space-6: 24px;
 
   /* Border width — mirrors admin --border-width-thin (cards, sub-dividers)
@@ -84,6 +86,8 @@
     rgb(255, 255, 255, 0.04) 50%,
     transparent
   );
+  /* Night indigo shown where a news item has no image. */
+  --portal-gradient-news-fallback: linear-gradient(160deg, #3730a3 0%, #1e1b4b 55%, #0f172a 100%);
 
   /* Overlays */
   --portal-veil-page: rgb(var(--portal-bg-primary-rgb), 0.6); /* page root backdrop tint */
@@ -102,7 +106,7 @@
   --portal-panel-bg-dark: rgb(
     var(--portal-chrome-bg-rgb),
     0.96
-  ); /* daily digest panel — portal chrome tint */
+  ); /* help center panel — portal chrome tint */
 
   /* Z-index (portal layers) */
   --portal-z-sticky: 200;

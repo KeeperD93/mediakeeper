@@ -1,0 +1,243 @@
+/* Daily digest, full view (DigestFull.vue): frame of the view, hello, expiry warning,
+ * figures of the day and footer. The other sections have their own sheet (news, lists,
+ * progress, podium, posters). Phone first; the window's own width (container dd)
+ * widens the layout at 480, 640 and 820 px. */
+
+.dd-full {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  padding: 64px var(--portal-space-5) 40px;
+}
+.dd-sh {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--portal-space-2) 10px;
+  margin: 0 0 var(--portal-space-3);
+}
+.dd-st {
+  margin: 0;
+  font-family: var(--portal-font-display);
+  font-size: var(--portal-text-xs);
+  font-weight: var(--portal-font-extrabold);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--portal-text-muted-solid);
+}
+.dd-box {
+  border: var(--portal-border-width) solid var(--portal-border-default);
+  border-radius: var(--portal-radius-xl);
+  background: var(--portal-surface-1);
+}
+.dd-eyebrow {
+  display: block;
+  margin: 0 0 var(--portal-space-1);
+  font-size: var(--portal-text-2xs);
+  font-weight: var(--portal-font-bold);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+/* Hello */
+.dd-hero {
+  display: flex;
+  align-items: center;
+  gap: var(--portal-space-3-5);
+  padding-right: var(--portal-touch-target);
+}
+.dd-hero-av {
+  --pt-avf-size: 56;
+}
+/* A frame reaches about half the avatar's size past its edge: kept inside the window,
+   whose padding grows with it (none needed from 640 px). */
+.dd-hero-av.pt-avf--fx {
+  margin-left: 10px;
+}
+.dd-date {
+  display: inline-block;
+  margin-bottom: var(--portal-space-2);
+  padding: var(--portal-space-1) 10px;
+  border: var(--portal-border-width) solid rgb(var(--portal-accent-500-rgb), 0.24);
+  border-radius: var(--portal-radius-pill);
+  background: rgb(var(--portal-accent-500-rgb), 0.12);
+  font-size: var(--portal-text-2xs);
+  font-weight: var(--portal-font-bold);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--portal-accent-light);
+}
+.dd-hello {
+  margin: 0;
+  font-family: var(--portal-font-display);
+  font-size: var(--portal-text-2xl);
+  font-weight: var(--portal-font-extrabold);
+  line-height: 1.15;
+  background: linear-gradient(
+    120deg,
+    var(--portal-text-primary-solid) 0%,
+    var(--portal-accent-200) 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.dd-sub {
+  margin: var(--portal-space-1-5) 0 0;
+  font-size: var(--portal-text-base);
+  line-height: 1.45;
+  color: var(--portal-text-muted-solid);
+}
+
+/* Account expiry */
+.dd-expiry {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--portal-space-3);
+  padding: var(--portal-space-3-5) var(--portal-space-4);
+  border: var(--portal-border-width) solid rgb(var(--portal-color-warning-rgb), 0.38);
+  border-radius: var(--portal-radius-lg);
+  background: linear-gradient(
+    135deg,
+    rgb(var(--portal-color-warning-rgb), 0.15),
+    rgb(var(--portal-color-warning-rgb), 0.04)
+  );
+}
+.dd-expiry-ic {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--portal-radius-circle);
+  color: var(--portal-color-warning);
+  background: rgb(var(--portal-color-warning-rgb), 0.18);
+}
+.dd-expiry-t {
+  margin: 0;
+  font-size: var(--portal-text-base);
+  font-weight: var(--portal-font-bold);
+  line-height: 1.4;
+  color: var(--portal-color-warning-soft);
+}
+.dd-expiry-s {
+  margin: 3px 0 0;
+  font-size: var(--portal-text-sm);
+  line-height: 1.45;
+  color: var(--portal-text-secondary-solid);
+}
+
+/* Figures of the day */
+.dd-stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+.dd-stat {
+  padding: var(--portal-space-3-5) var(--portal-space-3-5) var(--portal-space-4);
+  border: var(--portal-border-width) solid var(--portal-border-default);
+  border-radius: var(--portal-radius-xl);
+  background: var(--portal-gradient-glass);
+}
+.dd-stat-icon {
+  display: block;
+  margin-bottom: var(--portal-space-2);
+}
+.dd-stat-label {
+  display: block;
+  font-size: var(--portal-text-3xs);
+  font-weight: var(--portal-font-bold);
+  letter-spacing: var(--portal-tracking-eyebrow);
+  text-transform: uppercase;
+  color: var(--portal-text-muted-solid);
+}
+.dd-stat-value {
+  display: flex;
+  align-items: baseline;
+  gap: var(--portal-space-2);
+  margin-top: var(--portal-space-1);
+  font-size: var(--portal-text-2xl);
+  font-weight: var(--portal-font-extrabold);
+  font-variant-numeric: tabular-nums;
+}
+.dd-stat-delta {
+  padding: var(--portal-space-0-5) var(--portal-space-2);
+  border-radius: var(--portal-radius-pill);
+  font-size: var(--portal-text-xs);
+  font-weight: var(--portal-font-bold);
+  color: var(--portal-color-success-light);
+  background: rgb(var(--portal-color-success-light-rgb), 0.12);
+}
+.dd-stat-delta.dd-delta--down {
+  color: var(--portal-color-error-light);
+  background: rgb(var(--portal-color-error-light-rgb), 0.12);
+}
+.dd-stat-caption {
+  display: block;
+  margin-top: var(--portal-space-0-5);
+  font-size: var(--portal-text-xs);
+  color: var(--portal-text-muted-solid);
+}
+
+/* Footer */
+.dd-foot {
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 10px;
+  padding-top: 18px;
+  border-top: var(--portal-border-width) solid var(--portal-border-subtle);
+}
+.dd-foot .dd-cta {
+  width: 100%;
+}
+.dd-foot-text {
+  margin: 0;
+  font-size: var(--portal-text-sm);
+  color: var(--portal-text-muted-solid);
+  text-align: center;
+}
+
+@container dd (min-width: 480px) {
+  .dd-full {
+    padding: 64px 28px 36px;
+  }
+  .dd-hello {
+    font-size: var(--portal-text-3xl);
+  }
+  .dd-hero-av {
+    --pt-avf-size: 64;
+  }
+  .dd-hero-av.pt-avf--fx {
+    margin-left: 6px;
+  }
+}
+@container dd (min-width: 640px) {
+  .dd-hero-av.pt-avf--fx {
+    margin-left: 0;
+  }
+  .dd-full {
+    gap: 30px;
+    padding: 72px 36px 36px;
+  }
+  .dd-stats {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--portal-space-3);
+  }
+  .dd-foot {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .dd-foot .dd-cta {
+    width: auto;
+  }
+  .dd-foot-text {
+    text-align: left;
+  }
+}
+@container dd (min-width: 820px) {
+  .dd-full {
+    padding: 72px 48px 36px;
+  }
+}

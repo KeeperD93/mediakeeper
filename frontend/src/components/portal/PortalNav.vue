@@ -142,7 +142,7 @@
                 {{ $t('portal.avatar.help') }}
               </button>
 
-              <button class="pt-avatar-pop-item" type="button" @click="openWhatsNew">
+              <button class="pt-avatar-pop-item" type="button" @click="goToChangelog">
                 {{ $t('portal.avatar.whatsNew') }}
               </button>
 
@@ -222,7 +222,7 @@ const props = defineProps({
   donation: { type: Object, default: null },
 })
 
-const emit = defineEmits(['navigate', 'open-whats-new', 'open-daily-digest', 'open-help'])
+const emit = defineEmits(['navigate', 'open-daily-digest', 'open-help'])
 
 const {
   navRef,
@@ -240,7 +240,7 @@ const {
   goToSettings,
   toggleMenu,
   doLogout,
-  openWhatsNew,
+  goToChangelog,
   openDailyDigest,
   openHelp,
   goToLists,

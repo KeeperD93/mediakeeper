@@ -10,7 +10,6 @@
       :show-requests-tab="showRequestsTab"
       :donation="ui.donation"
       @navigate="onNavigate"
-      @open-whats-new="onOpenWhatsNew"
       @open-daily-digest="onOpenDailyDigest"
       @open-help="onOpenHelp"
     />
@@ -35,17 +34,6 @@
 
     <SurpriseOverlay v-if="surpriseOpen" @close="surpriseOpen = false" />
 
-    <!-- Auto-opening overlays wait for the picker: when the admin reset a
-         viewer's display name, ForceUsernameModal must stay the topmost
-         layer until they pick a new one, otherwise the What's-new and
-         Daily-digest popups (whose z-index is higher than the portal
-         overlay token) paint over the picker and trap them. -->
-    <NewsPopup
-      v-if="showNewsPopup && !pickerShownThisVisit && !isMaintenancePage"
-      :items="unreadNews"
-      @dismiss="dismissNews"
-    />
-
     <!-- GDPR opt-in: persistent grace-period banner shown on every page
          while a deletion request is pending. EventBanner stacks below
          it so neither hides the other. -->
@@ -54,17 +42,12 @@
     <!-- Top scrolling banner for upcoming events I'm part of. -->
     <EventBanner v-if="!isMaintenancePage" />
 
-    <!-- "What's new" popup for the Portal viewer (auto-shows once per version,
-         can also be manually re-opened from the avatar menu). -->
-    <PortalWhatsNewModal
-      v-if="!mustPickUsername && !isMaintenancePage"
-      :open="whatsNewOpen"
-      :auto="!pickerShownThisVisit"
-      @close="whatsNewOpen = false"
-    />
-
     <!-- Daily digest overlay: auto-opens once per calendar day when there is
-         content to show, can also be re-opened manually from the avatar menu. -->
+         content to show, can also be re-opened manually from the avatar menu.
+         It carries the news and the new Portal version too, so neither pops up
+         on its own. It waits for the picker: when the admin reset a viewer's
+         display name, ForceUsernameModal must stay the topmost layer until they
+         pick a new one, otherwise the digest paints over it and traps them. -->
     <PortalDailyDigestOverlay
       v-if="!mustPickUsername && !isMaintenancePage"
       :open="dailyDigestOpen"
@@ -96,17 +79,14 @@
 import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { usePortalAuth } from '@/composables/portal/usePortalAuth'
-import { usePortalNews } from '@/composables/portal/usePortalNews'
 import { usePortalLocale } from '@/composables/portal/usePortalLocale'
 import { usePortalChat } from '@/composables/portal/usePortalChat'
 import PortalNav from './PortalNav.vue'
 import PortalBottomNav from './PortalBottomNav.vue'
 import HomeFab from './HomeFab.vue'
 import SurpriseOverlay from './SurpriseOverlay.vue'
-import NewsPopup from './NewsPopup.vue'
 import EventBanner from './EventBanner.vue'
 import DeletionPendingBanner from './DeletionPendingBanner.vue'
-import PortalWhatsNewModal from './PortalWhatsNewModal.vue'
 import PortalDailyDigestOverlay from './PortalDailyDigestOverlay.vue'
 import PortalHelpOverlay from './PortalHelpOverlay.vue'
 import ForceUsernameModal from './settings/ForceUsernameModal.vue'
@@ -116,7 +96,6 @@ import { PORTAL_TAB } from '@/constants/portal'
 const route = useRoute()
 const router = useRouter()
 const { profile, ui, checkPortalAuth } = usePortalAuth()
-const { unreadNews, fetchUnread, markRead } = usePortalNews()
 const { applyPortalLocale, restoreGlobalLocale } = usePortalLocale()
 const { initGlobalChat, shutdownGlobalChat } = usePortalChat()
 
@@ -149,15 +128,9 @@ watch(
   { immediate: true },
 )
 
-const showNewsPopup = ref(false)
 const surpriseOpen = ref(false)
-const whatsNewOpen = ref(false)
 const dailyDigestOpen = ref(false)
 const helpOpen = ref(false)
-
-function onOpenWhatsNew() {
-  whatsNewOpen.value = true
-}
 
 function onOpenDailyDigest() {
   dailyDigestOpen.value = true
@@ -208,19 +181,8 @@ function onNavigate(name) {
   router.push({ name })
 }
 
-async function dismissNews() {
-  for (const n of unreadNews.value) {
-    await markRead(n.id, true)
-  }
-  showNewsPopup.value = false
-}
-
-onMounted(async () => {
-  await checkPortalAuth()
-  await fetchUnread()
-  if (unreadNews.value.length > 0 && !pickerShownThisVisit.value) {
-    showNewsPopup.value = true
-  }
+onMounted(() => {
+  checkPortalAuth()
 })
 </script>
 

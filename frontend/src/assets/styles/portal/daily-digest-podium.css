@@ -1,0 +1,189 @@
+/* Daily digest, full view: the top 3 of the month (DigestPodium.vue), with the codes
+ * of the ranking page: metal frames (leaderboard-metal.css), tier rings, XP, trophies,
+ * moves, and the viewer's row when they are further down. */
+
+/* Top 3 of the month: podium 2-1-3 */
+.dd-top3 {
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  padding: var(--portal-space-4) 18px var(--portal-space-1-5);
+}
+.dd-podium {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: end;
+  gap: var(--portal-space-2);
+  width: 100%;
+  max-width: 460px;
+  margin: var(--portal-space-3) auto;
+}
+.dd-pcard {
+  position: relative;
+  grid-row: 1;
+  /* The frame of an avatar stays in its card, off its neighbour's. */
+  overflow: clip;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--portal-space-1);
+  min-width: 0;
+  padding: var(--portal-space-3) var(--portal-space-1-5) 10px;
+  border-radius: var(--portal-radius-lg);
+  color: var(--portal-text-primary-solid);
+  text-align: center;
+  text-decoration: none;
+}
+.dd-pcard--1 {
+  grid-column: 2;
+  padding: var(--portal-space-4) var(--portal-space-1-5) var(--portal-space-3-5);
+}
+.dd-pcard--2 {
+  grid-column: 1;
+}
+.dd-pcard--3 {
+  grid-column: 3;
+}
+.dd-prank {
+  font-family: var(--portal-font-display);
+  font-size: var(--portal-text-lg);
+  font-weight: var(--portal-font-black);
+  line-height: var(--portal-lh-tight);
+}
+.dd-pcard--1 .dd-prank {
+  font-size: var(--portal-text-2xl);
+}
+.dd-pav {
+  --pt-avf-size: 44;
+  margin: var(--portal-space-1) 0 var(--portal-space-0-5);
+}
+.dd-pcard--1 .dd-pav {
+  --pt-avf-size: 56;
+}
+/* The first place wears a thicker tier ring, as on the ranking page. */
+.dd-pcard--1 .dd-pav .mk-avatar:not(.mk-avatar-tier--legendary) {
+  --mk-avatar-ring-width: 3px;
+}
+.dd-pname {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--portal-text-sm);
+  font-weight: var(--portal-font-bold);
+}
+.dd-pmeta {
+  font-size: var(--portal-text-3xs);
+  line-height: 1.35;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--portal-text-muted-solid);
+}
+.dd-pxp {
+  font-family: var(--portal-font-display);
+  font-size: var(--portal-text-base);
+  font-weight: var(--portal-font-extrabold);
+  color: var(--lb-metal-light);
+}
+.dd-pcard--1 .dd-pxp {
+  font-size: var(--portal-text-md);
+}
+.dd-pfig {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: var(--portal-space-1) var(--portal-space-1-5);
+  font-size: var(--portal-text-2xs);
+  font-weight: var(--portal-font-extrabold);
+}
+.dd-pfig .dd-mv {
+  font-family: var(--portal-font-display);
+}
+.dd-trophies {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--portal-space-0-5) var(--portal-space-1-5);
+  border-radius: var(--portal-radius-pill);
+  background: rgb(var(--portal-color-warning-rgb), 0.18);
+  color: var(--portal-color-warning);
+  font-size: var(--portal-text-3xs);
+  font-weight: var(--portal-font-bold);
+}
+
+/* The viewer, when further down than the top 3 */
+.dd-me {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 48px;
+  padding: var(--portal-space-1-5) 10px;
+  box-sizing: border-box;
+  border-left: var(--portal-border-width-accent) solid var(--portal-accent-500);
+  border-radius: var(--portal-radius-md);
+  background: var(--portal-row-me-bg);
+}
+.dd-me-pos {
+  min-width: 22px;
+  text-align: center;
+  font-family: var(--portal-font-display);
+  font-size: var(--portal-text-base);
+  font-weight: var(--portal-font-black);
+  color: var(--portal-text-muted-solid);
+}
+.dd-me-av {
+  --pt-avf-size: 28;
+}
+.dd-me-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  column-gap: var(--portal-space-1-5);
+}
+.dd-me-n {
+  font-size: var(--portal-text-sm);
+  font-weight: var(--portal-font-regular);
+}
+.dd-me-pill {
+  padding: 0 5px;
+  border-radius: var(--portal-radius-pill);
+  /* One step darker than the 500: white small caps keep a 4.5:1 contrast. */
+  background: var(--portal-accent-600);
+  font-size: var(--portal-text-4xs);
+  font-weight: var(--portal-font-bold);
+  line-height: var(--portal-lh-relaxed);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.dd-me-tier {
+  flex: 0 0 100%;
+  font-size: var(--portal-text-3xs);
+  font-weight: var(--portal-font-regular);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--portal-text-secondary-solid);
+}
+.dd-me-fig {
+  display: flex;
+  align-items: center;
+  gap: var(--portal-space-2);
+  font-family: var(--portal-font-display);
+  font-size: var(--portal-text-sm);
+  font-weight: var(--portal-font-bold);
+}
+.dd-me-xp {
+  color: var(--portal-color-info-light);
+}
+.dd-top3-link {
+  align-self: flex-start;
+}
+
+/* The ranking page lifts its metal cards on hover; the digest keeps them still. */
+@media (hover: hover) {
+  .dd-pcard.lb-metal:hover {
+    transform: none;
+    box-shadow: none;
+  }
+}

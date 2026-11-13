@@ -1,0 +1,134 @@
+/* Daily digest: the new Portal version as a row heading the news list (DigestNews.vue,
+ * DigestCompactNews.vue), and every change of the version by section
+ * (DigestReleaseGroups.vue). A click anywhere on the row opens or closes it. */
+
+.dd-badge.dd-badge--release {
+  color: var(--portal-color-cinema-soft);
+  background: rgb(var(--portal-color-cinema-rgb), 0.2);
+}
+.dd-more-item.dd-more-item--release {
+  position: relative;
+  border-color: rgb(var(--portal-color-cinema-rgb), 0.38);
+  background: linear-gradient(
+    135deg,
+    rgb(var(--portal-color-cinema-rgb), 0.12),
+    rgb(var(--portal-color-cinema-rgb), 0.03)
+  );
+}
+.dd-more-item.dd-more-item--release.dd-more-item--open {
+  border-color: rgb(var(--portal-color-cinema-rgb), 0.55);
+  background: rgb(var(--portal-color-cinema-rgb), 0.07);
+}
+/* Compact view: the row and its changes inside the list box, tinted to its inner corners. */
+.dd-release-row {
+  --dd-release-row-radius: calc(var(--portal-radius-lg) - var(--portal-border-width));
+
+  position: relative;
+  background: linear-gradient(
+    90deg,
+    rgb(var(--portal-color-cinema-rgb), 0.12),
+    rgb(var(--portal-color-cinema-rgb), 0.02)
+  );
+}
+.dd-release-row:first-child {
+  border-radius: var(--dd-release-row-radius) var(--dd-release-row-radius) 0 0;
+}
+.dd-release-row:only-child {
+  border-radius: var(--dd-release-row-radius);
+}
+.dd-more-item--release .dd-more-row::after,
+.dd-release-row .ddc-row-item::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+}
+
+/* A section's name, in its colour (the card's first changes use it too). */
+.dd-release-cat {
+  display: block;
+  margin-bottom: var(--portal-space-0-5);
+  font-size: var(--portal-text-3xs);
+  font-weight: var(--portal-font-extrabold);
+  letter-spacing: var(--portal-tracking-eyebrow);
+  text-transform: uppercase;
+  color: var(--portal-text-muted-solid);
+}
+.dd-release-cat--added {
+  color: var(--portal-color-success-light);
+}
+.dd-release-cat--changed {
+  color: var(--portal-color-warning);
+}
+.dd-release-cat--fixed {
+  color: var(--portal-color-info-light);
+}
+.dd-release-cat--removed {
+  color: var(--portal-color-error-light);
+}
+
+/* Every change of the version, by section. */
+.dd-release-all {
+  display: flex;
+  flex-direction: column;
+  gap: var(--portal-space-1-5);
+  margin-bottom: var(--portal-space-1);
+}
+.dd-release--compact .dd-release-all {
+  margin-top: var(--portal-space-1-5);
+}
+.dd-release-group {
+  display: flex;
+  align-items: center;
+  gap: var(--portal-space-2);
+  margin-top: var(--portal-space-2);
+}
+.dd-release-group:first-child {
+  margin-top: 0;
+}
+.dd-release-group .dd-release-cat {
+  margin: 0;
+}
+.dd-release-n {
+  padding: 1px 7px;
+  border-radius: var(--portal-radius-pill);
+  background: var(--portal-surface-3);
+  color: var(--portal-text-muted-solid);
+  font-size: var(--portal-text-3xs);
+  font-weight: var(--portal-font-bold);
+  line-height: 1.4;
+}
+.dd-release-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--portal-space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.dd-release-list li {
+  position: relative;
+  padding-left: var(--portal-space-3-5);
+  font-size: var(--portal-text-base);
+  line-height: var(--portal-lh-normal);
+  color: var(--portal-text-secondary-solid);
+}
+.dd-release--compact .dd-release-list li,
+.ddc-rowbody .dd-release-list li {
+  font-size: var(--portal-text-sm);
+}
+.dd-release-list li::before {
+  content: '';
+  position: absolute;
+  top: 9px;
+  left: 0;
+  width: 5px;
+  height: 5px;
+  border-radius: var(--portal-radius-circle);
+  background: var(--portal-surface-5);
+}
+
+@media (hover: hover) {
+  .dd-more-item.dd-more-item--release:hover {
+    border-color: rgb(var(--portal-color-cinema-rgb), 0.65);
+  }
+}

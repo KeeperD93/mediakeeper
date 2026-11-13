@@ -2,12 +2,14 @@
 import logging
 from datetime import UTC, datetime
 from sqlalchemy import select, func
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from constants.portal_content import START_AT_MUST_PRECEDE_END_AT
 from models.portal.news import News, NewsRead
 from core.errors import CodedError
 from core.pagination import decode_cursor, build_cursor_response
+from services.instance_time import to_local
 from services.portal import strip_tags_and_trim
 
 logger = logging.getLogger("mediakeeper.portal.news")
@@ -102,21 +104,55 @@ async def get_unread_news(db: AsyncSession, user_id: int) -> list[dict]:
     return [_serialize(n) for n in result.scalars().all()]
 
 
+async def list_active_for_user(db: AsyncSession, user_id: int, *, limit: int) -> list[dict]:
+    """Live news, pinned first then newest; ``is_new`` until the user has a read row."""
+    rows = await db.execute(
+        select(News, NewsRead.id)
+        .outerjoin(NewsRead, (NewsRead.news_id == News.id) & (NewsRead.user_id == user_id))
+        .where(_active_window_clause(datetime.now(UTC)))
+        .order_by(News.pinned.desc(), News.id.desc())
+        .limit(limit)
+    )
+    return [
+        {
+            "id": n.id,
+            "title": n.title,
+            "content": n.content,
+            "image_url": n.image_url,
+            "type": n.type,
+            "pinned": n.pinned,
+            "created_at": to_local(n.created_at, UTC).isoformat() if n.created_at else None,
+            "is_new": read_id is None,
+        }
+        for n, read_id in rows.all()
+    ]
+
+
+async def _get_read(db: AsyncSession, news_id: int, user_id: int) -> NewsRead | None:
+    return (await db.execute(
+        select(NewsRead).where(NewsRead.news_id == news_id, NewsRead.user_id == user_id)
+    )).scalar_one_or_none()
+
+
 async def mark_news_read(
     db: AsyncSession, news_id: int, user_id: int, dismissed: bool = False
 ) -> dict:
-    existing = await db.execute(
-        select(NewsRead).where(
-            NewsRead.news_id == news_id,
-            NewsRead.user_id == user_id,
-        )
-    )
-    read = existing.scalar_one_or_none()
-    if read:
-        read.dismissed = dismissed
-    else:
-        read = NewsRead(news_id=news_id, user_id=user_id, dismissed=dismissed)
-    db.add(read)
+    if await db.get(News, news_id) is None:
+        return {"error": "not_found"}
+    read = await _get_read(db, news_id, user_id)
+    if read is None:
+        try:
+            async with db.begin_nested():
+                db.add(NewsRead(news_id=news_id, user_id=user_id, dismissed=dismissed))
+                await db.flush()
+        except IntegrityError:
+            # A concurrent first read won the unique race: update its row instead.
+            read = await _get_read(db, news_id, user_id)
+            if read is None:
+                raise
+    if read is not None:
+        # Reading again never brings back a news the user already dismissed.
+        read.dismissed = read.dismissed or dismissed
     await db.commit()
     return {"success": True}
 

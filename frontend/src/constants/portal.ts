@@ -100,3 +100,19 @@ export const POSTER_STATUS_RIBBON: Readonly<
     labelKey: 'portal.posterCard.statusInProgress',
   },
 })
+
+/**
+ * Avatar frames a Master trophy unlocks, as `avatar_effect` stores them: one per
+ * category of trophies.
+ */
+export const AVATAR_EFFECTS = Object.freeze([
+  'watching',
+  'dedication',
+  'diversity',
+  'special',
+  'community',
+  'ranking',
+  'meta',
+] as const)
+
+export type AvatarEffect = (typeof AVATAR_EFFECTS)[number]

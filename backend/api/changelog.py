@@ -4,20 +4,26 @@ Changelog API — parse CHANGELOG.md and track the version the user has seen.
 The `/combined` sub-routes merge this admin changelog with the Portal
 changelog so the admin sees both surfaces in a single timeline + modal.
 """
-import re
 import json
 import logging
+import re
 from pathlib import Path
+
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel, ConfigDict
 from sqlalchemy.ext.asyncio import AsyncSession
-from core.database import get_db
-from models.user import User
+
 from api.auth import get_current_user
 from api.portal_changelog import (
     PORTAL_VERSION,
+)
+from api.portal_changelog import (
     _parse_changelog as _parse_portal_changelog,
 )
+from constants.changelog import PORTAL_SEEN_VERSION_KEY
+from core.database import get_db
+from models.user import User
+from services.portal import daily_digest as dd_svc
 
 logger = logging.getLogger("mediakeeper.changelog")
 
@@ -243,7 +249,7 @@ async def check_combined_new_versions(
     prefs_data = json.loads(prefs.preferences) if prefs and prefs.preferences else {}
 
     admin_seen = prefs_data.get("changelog_seen_version", "")
-    portal_seen = prefs_data.get("portal_changelog_seen_version", "")
+    portal_seen = prefs_data.get(PORTAL_SEEN_VERSION_KEY, "")
 
     admin_has_new = admin_seen != APP_VERSION
     portal_has_new = portal_seen != PORTAL_VERSION
@@ -281,9 +287,11 @@ async def mark_combined_seen(
     portal_version = req.portal_version or PORTAL_VERSION
 
     prefs_data["changelog_seen_version"] = app_version
-    prefs_data["portal_changelog_seen_version"] = portal_version
+    prefs_data[PORTAL_SEEN_VERSION_KEY] = portal_version
 
     await upsert_user_preferences(db, user.id, preferences=json.dumps(prefs_data))
+    # Same account on the portal: its daily digest must stop showing the version as new.
+    dd_svc.invalidate_cache(user.id)
     return {
         "success": True,
         "app_version": app_version,

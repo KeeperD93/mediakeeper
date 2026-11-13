@@ -1,24 +1,13 @@
 /* Master avatar cosmetics — one effect per meta-achievement (Master).
  *
- * Applied on `.gc-avatar-zone` via the modifier class
- * `.gc-avatar-fx--<category>` (watching / dedication / diversity / special
- * / community / ranking / meta). The seven effects are reproduced from the
- * /demo-master-effects.html preview — keep visuals in sync manually.
- *
- * The .gc-avatar-zone element must be position: relative, ~160px square,
- * with a .gc-avatar-ring child at z-index ≥ 10 holding the actual avatar.
- * Extra children per effect (orbits, stars, crystals, halos…) are emitted
- * by RankSidebarCard conditionally, one block per active effect.
+ * Drawn by AvatarFrame.vue (components/portal/common), the only place that emits
+ * these elements: a 160 px square layer around an 88 px avatar, with the modifier
+ * class `.gc-avatar-fx--<category>` (watching / dedication / diversity / special /
+ * community / ranking / meta) and the extra children of the chosen effect (orbits,
+ * stars, halos…). AvatarFrame scales that layer to the avatar's size and keeps it
+ * behind the avatar, but the ranking stars in front. The seven effects are
+ * reproduced from the /demo-master-effects.html preview — keep visuals in sync manually.
  */
-
-/* When an effect is active, force a 160×160 zone so masks/orbits have room */
-.gc-avatar-zone[class*='gc-avatar-fx--'] {
-  width: 160px;
-  height: 160px;
-}
-.gc-avatar-zone[class*='gc-avatar-fx--'] .gc-avatar-ring {
-  z-index: 10;
-}
 
 /* ═══════════════════════════════════════════════════════════════
    WATCHING — Film reel

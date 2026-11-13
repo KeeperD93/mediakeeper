@@ -1,0 +1,203 @@
+/* Daily digest: pieces both views share (badges, counts, bars, moves, tones, « new »
+ * marks, links, the closing button). Classes start with dd-. */
+
+.dd-grow {
+  flex: 1;
+  min-width: 0;
+}
+.dd-muted {
+  color: var(--portal-text-muted-solid);
+}
+.dd-badge {
+  display: inline-block;
+  padding: var(--portal-space-1) 9px;
+  border-radius: var(--portal-radius-pill);
+  font-size: var(--portal-text-3xs);
+  font-weight: var(--portal-font-bold);
+  line-height: 1.2;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--portal-accent-200);
+  background: rgb(var(--portal-accent-500-rgb), 0.24);
+}
+.dd-badge--warn {
+  color: var(--portal-color-warning-light);
+  background: rgb(var(--portal-color-warning-rgb), 0.16);
+}
+.dd-badge--event {
+  color: var(--portal-color-premium-light);
+  background: rgb(var(--portal-color-premium-rgb), 0.2);
+}
+.dd-badge--pin {
+  color: var(--portal-text-tertiary-solid);
+  background: var(--portal-surface-3);
+}
+.dd-count {
+  padding: 3px 9px;
+  border-radius: var(--portal-radius-pill);
+  font-size: var(--portal-text-xs);
+  font-weight: var(--portal-font-bold);
+  color: var(--portal-accent-200);
+  background: rgb(var(--portal-accent-500-rgb), 0.22);
+}
+.dd-bar {
+  height: 8px;
+  overflow: hidden;
+  border-radius: var(--portal-radius-pill);
+  background: var(--portal-surface-4);
+}
+.dd-bar-fill {
+  display: block;
+  height: 100%;
+  border-radius: var(--portal-radius-pill);
+}
+.dd-bar-fill--level {
+  background: linear-gradient(90deg, var(--portal-accent-500), var(--portal-accent-200));
+}
+.dd-bar-fill--ach {
+  background: linear-gradient(
+    90deg,
+    var(--portal-color-warning),
+    var(--portal-color-warning-darker)
+  );
+}
+.dd-mv--up {
+  color: var(--portal-color-success-light);
+}
+.dd-mv--down {
+  color: var(--portal-color-error-light);
+}
+.dd-mv--flat {
+  color: var(--portal-text-primary-solid);
+}
+
+/* Icon and tint of a line, by what it is about. */
+.dd-stat-icon--rank {
+  color: var(--portal-color-warning);
+}
+.dd-stat-icon--streak {
+  color: var(--portal-color-rose-light);
+}
+.dd-stat-icon--quota {
+  color: var(--portal-color-success-light);
+}
+.dd-stat-icon--tickets {
+  color: var(--portal-color-info-light);
+}
+.dd-tone--available {
+  color: var(--portal-color-success-light);
+  background: rgb(var(--portal-color-success-light-rgb), 0.14);
+}
+.dd-tone--approved,
+.dd-tone--event {
+  color: var(--portal-accent-light);
+  background: rgb(var(--portal-accent-500-rgb), 0.18);
+}
+.dd-tone--ticket {
+  color: var(--portal-color-info-light);
+  background: rgb(var(--portal-color-info-light-rgb), 0.15);
+}
+.dd-tone--warn {
+  color: var(--portal-color-warning);
+  background: rgb(var(--portal-color-warning-rgb), 0.18);
+}
+
+/* « New »: a news item this account has not read yet. */
+.dd-new-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--portal-space-1-5);
+  padding: var(--portal-space-1) 10px var(--portal-space-1) var(--portal-space-2);
+  border-radius: var(--portal-radius-pill);
+  background: linear-gradient(135deg, var(--portal-color-accent-hot), var(--portal-color-rose));
+  box-shadow: 0 0 14px rgb(var(--portal-color-accent-hot-rgb), 0.45);
+  color: var(--portal-text-primary-solid);
+  font-size: var(--portal-text-3xs);
+  font-weight: var(--portal-font-extrabold);
+  line-height: 1.2;
+  letter-spacing: var(--portal-tracking-eyebrow);
+  text-transform: uppercase;
+}
+.dd-new-dot {
+  position: relative;
+  flex: none;
+  width: 7px;
+  height: 7px;
+  border-radius: var(--portal-radius-circle);
+  background: var(--portal-text-primary-solid);
+}
+.dd-new-dot::after {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border: 2px solid var(--portal-text-body);
+  border-radius: var(--portal-radius-circle);
+  animation: dd-new-ping var(--portal-anim-pulse) var(--portal-ease-out) infinite;
+}
+@keyframes dd-new-ping {
+  from {
+    transform: scale(0.6);
+    opacity: 1;
+  }
+  to {
+    transform: scale(1.8);
+    opacity: 0;
+  }
+}
+.dd-new-mini {
+  flex: none;
+  width: 9px;
+  height: 9px;
+  border-radius: var(--portal-radius-circle);
+  background: var(--portal-color-accent-hot);
+  box-shadow: 0 0 8px rgb(var(--portal-color-accent-hot-rgb), 0.8);
+}
+.dd-news.dd-news--new,
+.ddc-news.dd-news--new {
+  border-color: rgb(var(--portal-color-accent-hot-rgb), 0.6);
+  box-shadow:
+    0 0 0 1px rgb(var(--portal-color-accent-hot-rgb), 0.35),
+    0 0 28px rgb(var(--portal-color-accent-hot-rgb), 0.18);
+}
+
+.dd-link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--portal-space-1);
+  min-height: var(--portal-touch-target);
+  font-size: var(--portal-text-base);
+  font-weight: var(--portal-font-medium);
+  color: var(--portal-accent-light);
+  text-decoration: none;
+}
+.dd-cta {
+  min-height: 46px;
+  padding: var(--portal-space-3) 22px;
+  border: none;
+  border-radius: var(--portal-radius-md);
+  background: linear-gradient(135deg, var(--portal-accent-500), var(--portal-accent));
+  box-shadow: var(--portal-shadow-accent);
+  color: var(--portal-text-primary-solid);
+  font: inherit;
+  font-size: var(--portal-text-base);
+  font-weight: var(--portal-font-bold);
+  cursor: pointer;
+}
+.dd-cta--compact {
+  min-height: var(--portal-touch-target);
+  padding: 10px 22px;
+}
+@media (hover: hover) {
+  .dd-link:hover,
+  .ddc-seeall:hover {
+    color: var(--portal-accent-200);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dd-new-dot::after {
+    animation: none;
+    opacity: 0;
+  }
+}

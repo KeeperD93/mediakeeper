@@ -3014,14 +3014,17 @@
     "changelog": {
       "title": "What's new",
       "subtitle": "All user-facing updates",
-      "whatsNew": "What's new",
       "empty": "No release notes yet."
     },
     "dailyDigest": {
       "title": "Today's digest",
-      "subtitle": "Your daily recap on Demandes — what's new, how you're doing, what's coming up.",
+      "subtitle": "Your daily recap: the news, your progress and what's new.",
       "empty": "Nothing new today — check back tomorrow!",
       "errorLoad": "Couldn't load today's digest.",
+      "viewSwitch": "Compact view",
+      "viewError": "Couldn't save the chosen view.",
+      "footer": "This window comes back tomorrow with something new.",
+      "footerShort": "Back tomorrow with something new.",
       "greeting": {
         "morning": "Good morning",
         "afternoon": "Good afternoon",
@@ -3033,42 +3036,99 @@
         "nightWithName": "Still up, {name}?"
       },
       "aria": {
-        "stats": "Today's stats",
-        "recentAdds": "Recent library additions",
-        "scrollLeft": "Scroll left",
-        "scrollRight": "Scroll right"
+        "stats": "Your figures of the day",
+        "scrollLeft": "Previous posters",
+        "scrollRight": "Next posters"
       },
       "sections": {
+        "news": "News",
+        "progress": "Your progress",
         "recentAdds": "New in the library",
+        "recentAddsShort": "New",
+        "forYou": "For you",
+        "upNext": "Up next",
         "events": "Upcoming events",
         "nextAchievement": "Next trophy",
         "top3": "Top 3 this month"
       },
-      "top3": {
-        "xpUnit": "XP",
-        "xpMonthTitle": "XP earned this month"
+      "news": {
+        "new": "New",
+        "pinned": "Pinned",
+        "readMore": "Read more",
+        "readLess": "Show less",
+        "moreCount": "+{n} more news item | +{n} more news items",
+        "hideMore": "Hide"
+      },
+      "release": {
+        "section": "New version",
+        "badge": "Version",
+        "title": "What changes for you",
+        "titleCompact": "New version: what changes for you",
+        "line": "New version {version} · {n} change for you | New version {version} · {n} changes for you",
+        "more": "+{n} other change | +{n} other changes",
+        "showAll": "See everything new",
+        "showAllCompact": "See the change | See the {n} changes",
+        "collapse": "Collapse what's new"
+      },
+      "expiry": {
+        "title": "Your account expires on {date}, {when}.",
+        "when": "today | tomorrow | in {n} days",
+        "hint": "To extend it, contact the administrator before that date.",
+        "lead": "Your account expires on {date}",
+        "whenCompact": "({when}).",
+        "hintCompact": "Contact the administrator to extend it."
       },
       "pills": {
         "rank": "Rank",
         "rankOf": "of {total}",
+        "rankCompact": "Rank of {total}",
         "quota": "Requests left",
         "quotaOf": "of {total}",
         "tickets": "Open tickets",
         "ticketsCaption": "to follow up",
+        "ticketsCompact": "Open ticket | Open tickets",
         "streak": "Streak",
-        "streakDays": "{n} days in a row"
+        "streakDays": "day in a row | days in a row",
+        "streakCompact": "Day in a row | Days in a row"
       },
       "level": {
         "eyebrow": "Your level",
+        "ringUnit": "LVL",
+        "ringLabel": "Level {level}, {percent}% of the next level",
+        "ringLabelMaxed": "Level {level}, max level reached",
+        "xpYesterday": "+{n} XP yesterday",
         "toNext": "{xp} XP to reach level {level}",
+        "toNextShort": "{xp} XP before level {level}",
         "maxed": "Max level reached"
+      },
+      "achievement": {
+        "remaining": "{count} to go",
+        "remainingShort": "Next trophy · {count} to go"
+      },
+      "top3": {
+        "levelShort": "Lvl {level} · {title}",
+        "seeAll": "See the ranking",
+        "seeAllShort": "Ranking"
+      },
+      "posters": {
+        "series": "Series",
+        "seriesYear": "Series · {year}"
+      },
+      "forYou": {
+        "available": "\"{title}\" is available",
+        "availableSince": "Available {when}",
+        "approved": "Your request \"{title}\" is approved",
+        "approvedShort": "Request \"{title}\" approved",
+        "approvedHint": "It will reach the library soon",
+        "ticketReply": "New reply to your issue \"{title}\"",
+        "ticketReplyShort": "Reply to your issue \"{title}\"",
+        "see": "See",
+        "read": "Read"
       },
       "events": {
         "public": "Public",
-        "private": "Private"
-      },
-      "achievement": {
-        "remaining": "{count} to go"
+        "private": "Private",
+        "when": "{date} · {time}"
       }
     },
     "lists": {
@@ -3481,9 +3541,6 @@
       }
     },
     "news": {
-      "whatsNew": "What's new?",
-      "gotIt": "Got it!",
-      "noNews": "No news",
       "titleLabel": "Title",
       "content": "Content",
       "typeLabel": "Type",

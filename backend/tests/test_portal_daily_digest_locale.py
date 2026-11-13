@@ -91,8 +91,9 @@ async def test_digest_endpoint_uses_request_locale(client, db_session, monkeypat
     async def _dismissed(db, uid):
         return False
 
-    async def _build(db, u, *, use_cache=True, lang="fr"):
+    async def _build(db, u, *, use_cache=True, lang="fr", name_lang="fr", release=None):
         captured["lang"] = lang
+        captured["name_lang"] = name_lang
         return {"empty": True, "recent_adds": []}
 
     monkeypatch.setattr("services.portal.daily_digest.is_dismissed_today", _dismissed)
@@ -100,7 +101,12 @@ async def test_digest_endpoint_uses_request_locale(client, db_session, monkeypat
 
     r = await client.get("/api/portal/daily-digest", headers={"X-MK-Locale": "en"})
     assert r.status_code == 200, r.text
-    assert captured["lang"] == "en"
+    assert captured == {"lang": "en", "name_lang": "en"}
+
+    # Titles keep the viewer's language; names fall back to French outside English.
+    r = await client.get("/api/portal/daily-digest", headers={"X-MK-Locale": "de"})
+    assert r.status_code == 200, r.text
+    assert captured == {"lang": "de", "name_lang": "fr"}
 
 
 @pytest.mark.asyncio
