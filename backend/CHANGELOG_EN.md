@@ -36,6 +36,9 @@ This section intentionally has no date so it is not shown to users.
 - Portal — Credits: the full stop follows the link directly.
 - Report form — description counter shows its real limit (1,500), sending stops before any cut.
 - Users — XP history: removals shown as "-20 XP", no line when XP stays the same.
+- Portal — "Requested by" shows the display name, no longer the sign-in name ("you" for your own requests).
+- Portal — Events: the display name replaces the sign-in name (guests, host, notifications).
+- Portal — Events: replying to an invitation from a deleted host no longer fails.
 
 ## [1.0.0-rc.10] - 2026-11-11
 

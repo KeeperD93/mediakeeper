@@ -351,5 +351,5 @@ async def advance_marathon_step(
     return {
         "ok": True,
         "current_step": event.current_step,
-        "event": await _serialize_event(db, event),
+        "event": await _serialize_event(db, event, lang),
     }
