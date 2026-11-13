@@ -10,32 +10,48 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, BackgroundTasks, Depends, File, HTTPException, Query, Request, UploadFile
+from fastapi import (
+    APIRouter,
+    BackgroundTasks,
+    Depends,
+    File,
+    HTTPException,
+    Query,
+    Request,
+    UploadFile,
+)
 from fastapi.responses import FileResponse
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from api.portal.deps import get_current_profile, get_request_lang
+from constants import display_name as dn
 from core.database import get_db
 from core.rate_limit import limiter, portal_user_or_ip_key
 from models.portal.achievement import UserAchievement
 from models.portal.profile import UserProfile
 from models.user import User
-from api.portal.deps import get_current_profile, get_request_lang
 from services.instance_time import get_instance_zone
+from services.portal import strip_tags_and_trim
 from services.portal.achievement_defs import ACHIEVEMENT_DEFS
 from services.portal.achievements import safe_check_all_achievements_in_new_session
+from services.portal.admin_users_constants import ROLE_ADMIN
 from services.portal.avatars import (
-    avatar_path_for, avatar_public_url, delete_avatar, save_avatar,
+    avatar_path_for,
+    avatar_public_url,
+    delete_avatar,
+    save_avatar,
+)
+from services.portal.display_name_rules import (
+    is_display_name_locked,
+    judge_display_name,
+)
+from services.portal.profile_serializers import (
+    DISPLAY_NAME_LOCK_DAYS,
+    display_name_locked_until,
 )
 from services.portal.profile_stats_ranking import compute_ranking
-from services.portal import strip_tags_and_trim
-from services.portal.profiles import (
-    DISPLAY_NAME_LOCK_DAYS, _serialize_public, display_name_locked_until,
-    is_display_name_locked, is_display_name_taken, is_reserved_display_name,
-    suggest_display_names,
-)
-from services.portal.admin_users_constants import ROLE_ADMIN
-
+from services.portal.profiles import _serialize_public, suggest_display_names
 
 router = APIRouter(prefix="/profiles", tags=["portal-profile-settings"])
 
@@ -59,54 +75,25 @@ async def check_username(
     up: tuple[User, UserProfile] = Depends(get_current_profile),
     db: AsyncSession = Depends(get_db),
 ):
-    """Live validation for the username field.
+    """Live validation for the username field, with the save's own rules.
 
-    Returns ``{available, reason, locked_until}``. ``available`` is true when
-    the user can take this name right now: the candidate is well-formed,
-    not taken by someone else (case-insensitive), and the user is either
-    setting it for the first time or out of the 6-month cooldown.
+    Returns ``{available, reason, locked_until, suggestions}``: ``reason`` is the
+    verdict of ``judge_display_name`` (``current`` and ``free`` are available),
+    and up to 5 free variants come with ``taken``.
     """
     user, profile = up
-    cleaned = strip_tags_and_trim(name, max_len=50)
-    if not cleaned:
-        return {
-            "available": False, "reason": "invalid",
-            "locked_until": None, "suggestions": [],
-        }
-
+    cleaned = strip_tags_and_trim(name, max_len=dn.MAX_LENGTH)
+    verdict = await judge_display_name(db, profile, cleaned)
     locked_until = display_name_locked_until(profile)
-    locked = is_display_name_locked(profile)
-    same_as_current = cleaned.lower() == (profile.display_name or "").lower()
-    locked_iso = locked_until.isoformat() if locked_until else None
-
-    if same_as_current:
-        return {
-            "available": True, "reason": "current",
-            "locked_until": locked_iso, "suggestions": [],
-        }
-
-    if locked:
-        return {
-            "available": False, "reason": "locked",
-            "locked_until": locked_iso, "suggestions": [],
-        }
-
-    if profile.role != ROLE_ADMIN and is_reserved_display_name(cleaned):
-        return {
-            "available": False, "reason": "reserved",
-            "locked_until": locked_iso, "suggestions": [],
-        }
-
-    taken = await is_display_name_taken(db, cleaned, exclude_user_id=user.id)
     suggestions: list[str] = []
-    if taken:
+    if verdict == dn.TAKEN:
         suggestions = await suggest_display_names(
             db, cleaned, exclude_user_id=user.id, limit=5,
         )
     return {
-        "available": not taken,
-        "reason": "taken" if taken else "free",
-        "locked_until": locked_iso,
+        "available": verdict in dn.ACCEPTED,
+        "reason": verdict,
+        "locked_until": locked_until.isoformat() if locked_until else None,
         "suggestions": suggestions,
     }
 

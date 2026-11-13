@@ -3903,6 +3903,7 @@
         "usernameLocked": "Modifiable le {date}",
         "usernameLockedShort": "Verrouillé encore {days} j",
         "usernameReserved": "Pseudo réservé",
+        "usernameTooShort": "3 caractères minimum",
         "usernameTakenSuggestion": "Pseudo déjà pris. Suggestions :",
         "usernameImposedHint": "Pseudo provisoire. Vous pouvez le modifier dès maintenant sans attendre.",
         "adminPreviewBanner": "Aperçu administrateur — votre profil n'est pas visible des autres utilisateurs.",

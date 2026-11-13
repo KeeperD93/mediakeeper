@@ -20,6 +20,7 @@ utilisateurs.
 - Jours d'affilée et Régulier — dès 5 min regardées ; musique et livres audio exclus.
 - Trophées secrets — nom et icône visibles, description et progression cachées jusqu'au déblocage.
 - Quoi de neuf aujourd'hui ? — refondu : actualités en tête, vue compacte, alerte d'expiration, « Pour vous », nouvelle version.
+- Pseudos — noms réservés et leurs imitations refusés, 3 caractères minimum.
 
 ### Fixed
 - Barre d'XP — même pourcentage dans le résumé du jour et le profil.

@@ -129,6 +129,7 @@ import { usePortalSettings } from '@/composables/portal/usePortalSettings'
 import { useSettingsTabHash } from '@/composables/portal/useSettingsTabHash'
 import { useApi } from '@/composables/useApi'
 import { useToast } from '@/composables/useToast'
+import { NAME_REFUSAL_KEYS } from '@/constants/displayName'
 import { TOAST_TYPE } from '@/constants/toast'
 import { useProfileData } from '@/composables/portal/useProfileData'
 import { useProfileXp } from '@/composables/portal/useProfileXp'
@@ -227,13 +228,9 @@ async function onSave() {
       return
     }
     showToast(t('portal.settings.save.saved'), TOAST_TYPE.OK)
-  } else if (res.error === 'display_name_taken') {
+  } else if (NAME_REFUSAL_KEYS[res.error]) {
     checkUsername(form.display_name)
-    showToast(t('portal.settings.identity.usernameTaken'), TOAST_TYPE.ERR)
-    activeTab.value = 'identity'
-  } else if (res.error === 'display_name_reserved') {
-    checkUsername(form.display_name)
-    showToast(t('portal.settings.identity.usernameReserved'), TOAST_TYPE.ERR)
+    showToast(t(NAME_REFUSAL_KEYS[res.error]), TOAST_TYPE.ERR)
     activeTab.value = 'identity'
   } else if (res.error === 'display_name_locked') {
     showToast(
