@@ -1,36 +1,36 @@
 """Display name rules shared by the live check and the save: look-alikes of the
 reserved names, the placeholder and the reset name that cannot be confirmed, the
-minimum length, and the reserved check that runs before « same as now »."""
+minimum length, and the reserved check that runs before « same as now ».
+
+Look-alike and invisible characters are spelled as escapes, never as themselves."""
 from __future__ import annotations
 
 import pytest
 
 from services.portal._pseudo_words import generate_pseudo
-from services.portal.display_name_rules import display_name_skeleton, is_reserved_display_name
+from services.portal.display_name_rules import (
+    display_name_skeleton,
+    is_reserved_display_name,
+)
 from tests._portal_profile_helpers import PORTAL_COOKIE, make_portal_user, portal_token
 
 CHECK_URL = "/api/portal/profiles/me/check-username"
 ME_URL = "/api/portal/profiles/me"
 
 
-# ─────────────────────────────────────────────────────────────────────────
-# Look-alikes of a reserved name
-# ─────────────────────────────────────────────────────────────────────────
-
-
 @pytest.mark.parametrize("name", [
-    "Аdministrateur",  # Cyrillic capital A
-    "Αdmin",  # Greek capital Alpha
-    "аdmin",  # Cyrillic small a
-    "Ad͏min",  # combining grapheme joiner
-    "Admin️",  # variation selector
-    "Adminㅤ",  # Hangul filler
-    "Admin⠀",  # Braille blank
-    "ADMİN",  # Turkish dotted capital I
-    "ａｄｍｉｎ",  # full-width letters
+    "\u0410dministrateur",  # Cyrillic capital A
+    "\u0391dmin",  # Greek capital Alpha
+    "\u0430dmin",  # Cyrillic small a
+    "Ad\u034fmin",  # combining grapheme joiner
+    "Admin\ufe0f",  # variation selector
+    "Admin\u3164",  # Hangul filler
+    "Admin\u2800",  # Braille blank
+    "ADM\u0130N",  # Turkish dotted capital I
+    "\uff41\uff44\uff4d\uff49\uff4e",  # full-width letters
     "Ad-min",
     "R O O T",
-    "Administrаteur",  # Cyrillic a inside
+    "Administr\u0430teur",  # Cyrillic a inside
 ])
 def test_look_alikes_of_a_reserved_name_are_reserved(name):
     assert is_reserved_display_name(name)
@@ -42,7 +42,7 @@ def test_other_names_are_not_reserved(name):
 
 
 def test_skeleton_keeps_only_latin_letters_and_digits():
-    assert display_name_skeleton("Écureuil-Doré-42") == "ecureuildore42"
+    assert display_name_skeleton("\u00c9cureuil-Dor\u00e9-42") == "ecureuildore42"
     assert display_name_skeleton("") == ""
 
 
@@ -55,16 +55,19 @@ async def _login(client, db_session, **kwargs):
 @pytest.mark.asyncio
 async def test_check_and_save_refuse_a_look_alike(client, db_session):
     await _login(client, db_session, username="alice", display_name="Alice")
-    body = (await client.get(CHECK_URL, params={"name": "Аdmin"})).json()
+    body = (await client.get(CHECK_URL, params={"name": "\u0410dmin"})).json()
     assert (body["available"], body["reason"]) == (False, "reserved")
 
-    resp = await client.put(ME_URL, json={"display_name": "Аdmin"})
+    resp = await client.put(ME_URL, json={"display_name": "\u0410dmin"})
     assert resp.status_code == 409
     assert resp.json()["detail"] == "display_name_reserved"
 
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize("name", ["‮nimda", "Ali​ce"])
+@pytest.mark.parametrize("name", [
+    "\u202enimda",  # right-to-left override
+    "Ali\u200bce",  # zero-width space
+])
 async def test_invisible_or_direction_characters_are_invalid(client, db_session, name):
     await _login(client, db_session, username="alice", display_name="Alice")
     body = (await client.get(CHECK_URL, params={"name": name})).json()
@@ -75,9 +78,7 @@ async def test_invisible_or_direction_characters_are_invalid(client, db_session,
     assert resp.json()["detail"] == "display_name_invalid"
 
 
-# ─────────────────────────────────────────────────────────────────────────
-# Names a member who still owes one cannot confirm
-# ─────────────────────────────────────────────────────────────────────────
+# Names a member who still owes one cannot confirm.
 
 
 @pytest.mark.asyncio
@@ -121,9 +122,7 @@ async def test_reset_member_cannot_keep_the_name_the_admin_reset(client, db_sess
     assert resp.json()["display_name_must_set"] is False
 
 
-# ─────────────────────────────────────────────────────────────────────────
-# Reserved before « same as now », minimum length
-# ─────────────────────────────────────────────────────────────────────────
+# Reserved before « same as now », minimum length.
 
 
 @pytest.mark.asyncio

@@ -4,7 +4,7 @@ The live check, the profile update and the first-login wizard all ask
 ``judge_display_name``: a name the check accepts is a name the save accepts.
 """
 import unicodedata
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -66,7 +66,7 @@ def _has_format_characters(name: str) -> bool:
 
 def is_display_name_locked(profile: UserProfile) -> bool:
     until = display_name_locked_until(profile)
-    return bool(until and until > datetime.now(timezone.utc))
+    return bool(until and until > datetime.now(UTC))
 
 
 async def is_display_name_taken(
