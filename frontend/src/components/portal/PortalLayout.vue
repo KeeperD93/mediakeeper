@@ -10,7 +10,6 @@
       :show-requests-tab="showRequestsTab"
       :donation="ui.donation"
       @navigate="onNavigate"
-      @open-whats-new="onOpenWhatsNew"
       @open-daily-digest="onOpenDailyDigest"
       @open-help="onOpenHelp"
     />
@@ -43,22 +42,12 @@
     <!-- Top scrolling banner for upcoming events I'm part of. -->
     <EventBanner v-if="!isMaintenancePage" />
 
-    <!-- Auto-opening overlays wait for the picker: when the admin reset a
-         viewer's display name, ForceUsernameModal must stay the topmost
-         layer until they pick a new one, otherwise the What's-new and
-         Daily-digest popups paint over the picker and trap them.
-         "What's new" auto-shows once per version, and can also be re-opened
-         manually from the avatar menu. -->
-    <PortalWhatsNewModal
-      v-if="!mustPickUsername && !isMaintenancePage"
-      :open="whatsNewOpen"
-      :auto="!pickerShownThisVisit"
-      @close="whatsNewOpen = false"
-    />
-
     <!-- Daily digest overlay: auto-opens once per calendar day when there is
          content to show, can also be re-opened manually from the avatar menu.
-         It carries the news too, so they no longer pop up on their own. -->
+         It carries the news and the new Portal version too, so neither pops up
+         on its own. It waits for the picker: when the admin reset a viewer's
+         display name, ForceUsernameModal must stay the topmost layer until they
+         pick a new one, otherwise the digest paints over it and traps them. -->
     <PortalDailyDigestOverlay
       v-if="!mustPickUsername && !isMaintenancePage"
       :open="dailyDigestOpen"
@@ -98,7 +87,6 @@ import HomeFab from './HomeFab.vue'
 import SurpriseOverlay from './SurpriseOverlay.vue'
 import EventBanner from './EventBanner.vue'
 import DeletionPendingBanner from './DeletionPendingBanner.vue'
-import PortalWhatsNewModal from './PortalWhatsNewModal.vue'
 import PortalDailyDigestOverlay from './PortalDailyDigestOverlay.vue'
 import PortalHelpOverlay from './PortalHelpOverlay.vue'
 import ForceUsernameModal from './settings/ForceUsernameModal.vue'
@@ -141,13 +129,8 @@ watch(
 )
 
 const surpriseOpen = ref(false)
-const whatsNewOpen = ref(false)
 const dailyDigestOpen = ref(false)
 const helpOpen = ref(false)
-
-function onOpenWhatsNew() {
-  whatsNewOpen.value = true
-}
 
 function onOpenDailyDigest() {
   dailyDigestOpen.value = true

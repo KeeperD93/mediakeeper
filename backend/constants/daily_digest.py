@@ -3,6 +3,8 @@ from typing import Final
 
 # The account expiry warning shows from this many calendar days before the end.
 EXPIRY_WARNING_DAYS: Final[int] = 30
+# A new Portal version stays in the digest this many days from the first close under it.
+RELEASE_SHOWN_DAYS: Final[int] = 7
 NEWS_LIMIT: Final[int] = 5
 FOR_YOU_LIMIT: Final[int] = 5
 

@@ -6,11 +6,12 @@ import { usePortalNews } from '@/composables/portal/usePortalNews'
 import { TOAST_TYPE } from '@/constants/toast'
 
 const DIGEST_URL = '/api/portal/daily-digest'
+const CHANGELOG_SEEN_URL = '/api/portal/changelog/seen'
 
 /**
  * Data of the daily digest window: the digest, whether it was closed today, the
  * view the account keeps (full or compact), and what the window learns about the
- * news it shows.
+ * news and the new Portal version it shows.
  */
 export function useDailyDigest() {
   const { apiGet, apiPost, apiPut } = useApi()
@@ -77,7 +78,6 @@ export function useDailyDigest() {
 
   function sendRead(item) {
     item.is_new = false
-    // Dismissed, so the news does not come back in the « What's new » window.
     markRead(item.id, true).catch(() => {})
   }
 
@@ -100,6 +100,14 @@ export function useDailyDigest() {
     seenNews.clear()
   }
 
+  /** The viewer opened the new version's changes: the « New » mark goes at once. */
+  function openRelease() {
+    const release = digest.value?.release
+    if (!release?.is_new) return
+    release.is_new = false
+    apiPost(CHANGELOG_SEEN_URL, { version: release.version }).catch(() => {})
+  }
+
   return {
     digest,
     dismissed,
@@ -111,5 +119,6 @@ export function useDailyDigest() {
     setCompact,
     readNews,
     noteNewsSeen,
+    openRelease,
   }
 }

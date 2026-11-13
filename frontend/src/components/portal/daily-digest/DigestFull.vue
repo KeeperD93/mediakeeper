@@ -7,8 +7,15 @@
     <DigestNews
       v-if="digest.news?.length"
       :news="digest.news"
+      :release="digest.release"
       @read="$emit('read-news', $event)"
       @seen="$emit('seen-news', $event)"
+      @open-release="$emit('open-release')"
+    />
+    <DigestRelease
+      v-else-if="digest.release"
+      :release="digest.release"
+      @open="$emit('open-release')"
     />
 
     <DigestStats v-if="statCards.length" :cards="statCards" />
@@ -57,6 +64,7 @@ import DigestNews from './DigestNews.vue'
 import DigestPodium from './DigestPodium.vue'
 import DigestPosters from './DigestPosters.vue'
 import DigestProgress from './DigestProgress.vue'
+import DigestRelease from './DigestRelease.vue'
 import DigestStats from './DigestStats.vue'
 import '@/assets/styles/portal/daily-digest-full.css'
 import '@/assets/styles/portal/daily-digest-progress.css'
@@ -64,7 +72,7 @@ import '@/assets/styles/portal/daily-digest-progress.css'
 const props = defineProps({
   digest: { type: Object, required: true },
 })
-defineEmits(['close', 'leave', 'read-news', 'seen-news'])
+defineEmits(['close', 'leave', 'read-news', 'seen-news', 'open-release'])
 
 const { formattedDate, greeting, statCards, level, achievement, expiry, forYou, events } =
   useDailyDigestPresenters(toRef(props, 'digest'))

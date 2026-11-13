@@ -1,9 +1,10 @@
-import { NEWS_TYPE } from '@/constants/dailyDigest'
+import { DIGEST_RELEASE_TEASER_SIZE, NEWS_TYPE, RELEASE_CATEGORY } from '@/constants/dailyDigest'
 import { getLocale } from '@/i18n'
 import { localizedDate } from '@/utils/datetime'
 import { localizedNumber } from '@/utils/localizedNumber'
 
 const NEWS_TYPES = Object.values(NEWS_TYPE)
+const RELEASE_CATEGORIES = Object.values(RELEASE_CATEGORY)
 const NEWS_BADGE_TONE = { [NEWS_TYPE.MAINTENANCE]: 'warn', [NEWS_TYPE.EVENT]: 'event' }
 
 /** Paragraphs of a news text: split on blank lines, or on line breaks when it has none. */
@@ -31,6 +32,43 @@ export function newsView(item) {
     badgeClass: tone ? `dd-badge--${tone}` : '',
     date: item.created_at ? localizedDate(item.created_at, { day: 'numeric', month: 'short' }) : '',
     paragraphs: newsParagraphs(item.content),
+  }
+}
+
+/** A section of a version: its label (the changelog's own word when unknown) and tone. */
+function releaseGroup([name, items]) {
+  const key = RELEASE_CATEGORIES.includes(name) ? name.toLowerCase() : null
+  return {
+    name,
+    labelKey: key ? `changelog.cat.${key}` : null,
+    toneClass: key ? `dd-release-cat--${key}` : '',
+    count: localizedNumber(items.length),
+    items,
+  }
+}
+
+/**
+ * The new Portal version as the digest draws it: number, short date, its sections,
+ * and the first changes the closed card shows before « +N other changes ».
+ */
+export function releaseView(release) {
+  const groups = Object.entries(release.categories || {})
+    .filter(([, items]) => items.length)
+    .map(releaseGroup)
+  const changes = groups.flatMap(group => group.items.map(text => ({ ...group, text })))
+  const rest = Math.max(0, changes.length - DIGEST_RELEASE_TEASER_SIZE)
+  return {
+    version: release.version,
+    isNew: !!release.is_new,
+    date: release.date
+      ? localizedDate(new Date(`${release.date}T00:00:00`), { day: 'numeric', month: 'short' })
+      : '',
+    groups,
+    total: changes.length,
+    totalLabel: localizedNumber(changes.length),
+    teaser: changes.slice(0, DIGEST_RELEASE_TEASER_SIZE),
+    rest,
+    restLabel: localizedNumber(rest),
   }
 }
 

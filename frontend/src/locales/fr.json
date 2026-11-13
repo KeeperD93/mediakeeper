@@ -3014,7 +3014,6 @@
     "changelog": {
       "title": "Journal des nouveautés",
       "subtitle": "Toutes les évolutions visibles côté utilisateurs",
-      "whatsNew": "Nouveautés",
       "empty": "Aucune nouveauté publiée pour l'instant."
     },
     "dailyDigest": {
@@ -3059,6 +3058,17 @@
         "readLess": "Réduire",
         "moreCount": "+{n} autre actualité | +{n} autres actualités",
         "hideMore": "Masquer"
+      },
+      "release": {
+        "section": "Nouvelle version",
+        "badge": "Version",
+        "title": "Ce qui change pour vous",
+        "titleCompact": "Nouvelle version : ce qui change pour vous",
+        "line": "Nouvelle version {version} · {n} changement pour vous | Nouvelle version {version} · {n} changements pour vous",
+        "more": "+{n} autre changement | +{n} autres changements",
+        "showAll": "Voir toutes les nouveautés",
+        "showAllCompact": "Voir le changement | Voir les {n} changements",
+        "collapse": "Réduire les nouveautés"
       },
       "expiry": {
         "title": "Votre compte expire le {date}, {when}.",
@@ -3531,9 +3541,6 @@
       }
     },
     "news": {
-      "whatsNew": "Quoi de neuf ?",
-      "gotIt": "Compris !",
-      "noNews": "Aucune actualité",
       "titleLabel": "Titre",
       "content": "Contenu",
       "typeLabel": "Type",

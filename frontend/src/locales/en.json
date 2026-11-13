@@ -3014,7 +3014,6 @@
     "changelog": {
       "title": "What's new",
       "subtitle": "All user-facing updates",
-      "whatsNew": "What's new",
       "empty": "No release notes yet."
     },
     "dailyDigest": {
@@ -3059,6 +3058,17 @@
         "readLess": "Show less",
         "moreCount": "+{n} more news item | +{n} more news items",
         "hideMore": "Hide"
+      },
+      "release": {
+        "section": "New version",
+        "badge": "Version",
+        "title": "What changes for you",
+        "titleCompact": "New version: what changes for you",
+        "line": "New version {version} · {n} change for you | New version {version} · {n} changes for you",
+        "more": "+{n} other change | +{n} other changes",
+        "showAll": "See everything new",
+        "showAllCompact": "See the change | See the {n} changes",
+        "collapse": "Collapse what's new"
       },
       "expiry": {
         "title": "Your account expires on {date}, {when}.",
@@ -3531,9 +3541,6 @@
       }
     },
     "news": {
-      "whatsNew": "What's new?",
-      "gotIt": "Got it!",
-      "noNews": "No news",
       "titleLabel": "Title",
       "content": "Content",
       "typeLabel": "Type",

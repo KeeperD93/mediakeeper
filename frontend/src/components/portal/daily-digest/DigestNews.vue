@@ -47,7 +47,45 @@
       </div>
     </article>
 
-    <div v-if="others.length" class="dd-more-news">
+    <div v-if="others.length || releaseRow" class="dd-more-news">
+      <div
+        v-if="releaseRow"
+        class="dd-more-item dd-more-item--release"
+        :class="{ 'dd-more-item--open': openId === RELEASE_ROW }"
+      >
+        <button
+          type="button"
+          class="dd-more-row"
+          :aria-expanded="openId === RELEASE_ROW ? 'true' : 'false'"
+          @click="toggleRow(RELEASE_ROW)"
+        >
+          <span
+            v-if="releaseRow.isNew"
+            class="dd-new-mini"
+            role="img"
+            :aria-label="$t('portal.dailyDigest.news.new')"
+          />
+          <span class="dd-badge dd-badge--release">
+            {{ $t('portal.dailyDigest.release.badge') }}
+          </span>
+          <span class="dd-more-title">
+            {{
+              $t(
+                'portal.dailyDigest.release.line',
+                { version: releaseRow.version, n: releaseRow.totalLabel },
+                releaseRow.total,
+              )
+            }}
+          </span>
+          <span class="dd-more-date">{{ releaseRow.date }}</span>
+          <span class="dd-chev" :class="{ 'dd-chev--up': openId === RELEASE_ROW }">
+            <ChevronDown :size="16" aria-hidden="true" />
+          </span>
+        </button>
+        <div v-if="openId === RELEASE_ROW" class="dd-more-body">
+          <DigestReleaseGroups :groups="releaseRow.groups" />
+        </div>
+      </div>
       <div
         v-for="item in others"
         :key="item.id"
@@ -84,18 +122,26 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
 import { ChevronDown, Megaphone } from 'lucide-vue-next'
-import { newsView } from '@/utils/portal/dailyDigest'
+import { newsView, releaseView } from '@/utils/portal/dailyDigest'
+import DigestReleaseGroups from './DigestReleaseGroups.vue'
 import '@/assets/styles/portal/daily-digest-news.css'
+import '@/assets/styles/portal/daily-digest-release-list.css'
 
 const props = defineProps({
   // Pinned first, then newest: the first one gets the large card.
   news: { type: Array, required: true },
+  // The new Portal version, as a row heading the other items.
+  release: { type: Object, default: null },
 })
-const emit = defineEmits(['read', 'seen'])
+const emit = defineEmits(['read', 'seen', 'open-release'])
+
+// The version's row shares the « one open at a time » of the news rows.
+const RELEASE_ROW = 'release'
 
 const views = computed(() => props.news.map(newsView))
 const main = computed(() => views.value[0])
 const others = computed(() => views.value.slice(1))
+const releaseRow = computed(() => (props.release ? releaseView(props.release) : null))
 
 const mainOpen = ref(false)
 const openId = ref(null)
@@ -106,10 +152,12 @@ function toggleMain() {
   if (mainOpen.value) emit('read', main.value.id)
 }
 
-// One other news item open at a time, under its row.
+// One other news item open at a time, under its row; a click anywhere on it closes it.
 function toggleRow(id) {
   openId.value = openId.value === id ? null : id
-  if (openId.value === id) emit('read', id)
+  if (openId.value !== id) return
+  if (id === RELEASE_ROW) emit('open-release')
+  else emit('read', id)
 }
 
 // A text that fits on the card has no « Read more »: it counts as read on close.

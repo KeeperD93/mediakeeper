@@ -1,20 +1,16 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { flushPromises, shallowMount } from '@vue/test-utils'
 import { nextTick, ref } from 'vue'
 
-import NewsPopup from '@/components/portal/NewsPopup.vue'
 import PortalDailyDigestOverlay from '@/components/portal/PortalDailyDigestOverlay.vue'
 import PortalLayout from '@/components/portal/PortalLayout.vue'
 import PortalNav from '@/components/portal/PortalNav.vue'
-import PortalWhatsNewModal from '@/components/portal/PortalWhatsNewModal.vue'
 import ForceUsernameModal from '@/components/portal/settings/ForceUsernameModal.vue'
 import { USER_ROLE } from '@/constants/auth'
 
 const profile = ref(null)
 const ui = ref({})
-const unreadNews = ref([])
 const checkPortalAuth = vi.fn().mockResolvedValue(true)
-const fetchUnread = vi.fn().mockResolvedValue(undefined)
 const apiGet = vi.fn()
 
 vi.mock('vue-router', () => ({
@@ -30,7 +26,7 @@ vi.mock('@/composables/portal/usePortalAuth', () => ({
   usePortalAuth: () => ({ profile, ui, checkPortalAuth }),
 }))
 vi.mock('@/composables/portal/usePortalNews', () => ({
-  usePortalNews: () => ({ unreadNews, fetchUnread, markRead: vi.fn() }),
+  usePortalNews: () => ({ markRead: vi.fn() }),
 }))
 vi.mock('@/composables/portal/usePortalLocale', () => ({
   usePortalLocale: () => ({ applyPortalLocale: vi.fn(), restoreGlobalLocale: vi.fn() }),
@@ -50,9 +46,16 @@ function player(overrides = {}) {
   }
 }
 
-async function visit(initial) {
+// A layout left mounted reacts to the next test's profile: each one goes at the end of its test.
+const mounted = []
+afterEach(() => mounted.splice(0).forEach(wrapper => wrapper.unmount()))
+
+async function visit(initial, stubs = {}) {
   profile.value = initial
-  const wrapper = shallowMount(PortalLayout, { global: { stubs: { RouterView: true } } })
+  const wrapper = shallowMount(PortalLayout, {
+    global: { stubs: { RouterView: true, ...stubs } },
+  })
+  mounted.push(wrapper)
   await flushPromises()
   return wrapper
 }
@@ -62,37 +65,20 @@ async function setMustPick(value) {
   await nextTick()
 }
 
-function autoFlags(wrapper) {
-  return [
-    wrapper.findComponent(PortalWhatsNewModal).props('auto'),
-    wrapper.findComponent(PortalDailyDigestOverlay).props('auto'),
-  ]
-}
+const digestOpensByItself = wrapper => wrapper.findComponent(PortalDailyDigestOverlay).props('auto')
 
-describe('PortalLayout.vue, overlays that open by themselves', () => {
-  beforeEach(() => {
-    unreadNews.value = [{ id: 1, title: 'Test news' }]
-  })
-
-  it('opens them on a visit without the username picker', async () => {
+describe('PortalLayout.vue, the window that opens by itself', () => {
+  it('opens on a visit without the username picker', async () => {
     const wrapper = await visit(player())
 
-    expect(autoFlags(wrapper)).toEqual([true, true])
+    expect(digestOpensByItself(wrapper)).toBe(true)
     expect(wrapper.findComponent(ForceUsernameModal).exists()).toBe(false)
-  })
-
-  it('leaves the news to the daily digest: the separate news window never opens by itself', async () => {
-    const wrapper = await visit(player())
-
-    expect(fetchUnread).not.toHaveBeenCalled()
-    expect(wrapper.findComponent(NewsPopup).exists()).toBe(false)
   })
 
   it('shows only the picker while a username is owed', async () => {
     const wrapper = await visit(player({ display_name_must_set: true }))
 
     expect(wrapper.findComponent(ForceUsernameModal).exists()).toBe(true)
-    expect(wrapper.findComponent(PortalWhatsNewModal).exists()).toBe(false)
     expect(wrapper.findComponent(PortalDailyDigestOverlay).exists()).toBe(false)
   })
 
@@ -102,98 +88,84 @@ describe('PortalLayout.vue, overlays that open by themselves', () => {
     await setMustPick(false)
 
     expect(wrapper.findComponent(ForceUsernameModal).exists()).toBe(false)
-    expect(autoFlags(wrapper)).toEqual([false, false])
+    expect(digestOpensByItself(wrapper)).toBe(false)
   })
 
   it('keeps the avatar menu working after the picker', async () => {
     const wrapper = await visit(player({ display_name_must_set: true }))
     await setMustPick(false)
 
-    wrapper.findComponent(PortalNav).vm.$emit('open-whats-new')
     wrapper.findComponent(PortalNav).vm.$emit('open-daily-digest')
     await nextTick()
 
-    expect(wrapper.findComponent(PortalWhatsNewModal).props('open')).toBe(true)
     expect(wrapper.findComponent(PortalDailyDigestOverlay).props('open')).toBe(true)
   })
 
-  it('opens them again on the next portal load', async () => {
+  it('opens again on the next portal load', async () => {
     const first = await visit(player({ display_name_must_set: true }))
     await setMustPick(false)
+    mounted.splice(mounted.indexOf(first), 1)
     first.unmount()
 
     const next = await visit(player())
 
-    expect(autoFlags(next)).toEqual([true, true])
+    expect(digestOpensByItself(next)).toBe(true)
   })
 
   it('applies to a name reset during the visit', async () => {
     const wrapper = await visit(player())
-    expect(autoFlags(wrapper)).toEqual([true, true])
+    expect(digestOpensByItself(wrapper)).toBe(true)
 
     await setMustPick(true)
     await setMustPick(false)
 
-    expect(autoFlags(wrapper)).toEqual([false, false])
+    expect(digestOpensByItself(wrapper)).toBe(false)
   })
 
-  it('does not hold them back for an admin', async () => {
+  it('does not hold it back for an admin', async () => {
     const wrapper = await visit(player({ role: USER_ROLE.ADMIN, display_name_must_set: true }))
 
     expect(wrapper.findComponent(ForceUsernameModal).exists()).toBe(false)
-    expect(autoFlags(wrapper)).toEqual([true, true])
+    expect(digestOpensByItself(wrapper)).toBe(true)
   })
 })
 
-describe('PortalLayout.vue, with the real overlays', () => {
+describe('PortalLayout.vue, with the real daily digest', () => {
   const DIGEST_AUTO = '/api/portal/daily-digest'
   const DIGEST_MANUAL = '/api/portal/daily-digest?force=true'
-  const CHANGELOG_AUTO = '/api/portal/changelog/check'
-  const CHANGELOG_MANUAL = '/api/portal/changelog/?limit=1&lang=fr'
 
-  async function visitWithRealOverlays(initial) {
-    profile.value = initial
-    const wrapper = shallowMount(PortalLayout, {
-      global: {
-        stubs: { RouterView: true, PortalWhatsNewModal: false, PortalDailyDigestOverlay: false },
-      },
-    })
-    await flushPromises()
-    return wrapper
-  }
+  const visitWithRealDigest = initial => visit(initial, { PortalDailyDigestOverlay: false })
 
   const urls = () => apiGet.mock.calls.map(([url]) => url)
 
   beforeEach(() => {
-    unreadNews.value = []
-    apiGet.mockReset().mockResolvedValue({ digest: null, versions: [] })
+    apiGet.mockReset().mockResolvedValue({ digest: null })
   })
 
-  it('checks for content on a visit without the picker', async () => {
-    await visitWithRealOverlays(player())
+  it('checks for content on a visit without the picker, and nothing else', async () => {
+    await visitWithRealDigest(player())
 
-    expect(urls()).toEqual(expect.arrayContaining([DIGEST_AUTO, CHANGELOG_AUTO]))
+    // The news and the new version live in the digest: no window of their own asks the server.
+    expect(urls()).toEqual([DIGEST_AUTO])
   })
 
   it('checks for nothing once the username is saved', async () => {
-    await visitWithRealOverlays(player({ display_name_must_set: true }))
+    await visitWithRealDigest(player({ display_name_must_set: true }))
 
     await setMustPick(false)
     await flushPromises()
 
-    expect(urls()).not.toContain(DIGEST_AUTO)
-    expect(urls()).not.toContain(CHANGELOG_AUTO)
+    expect(urls()).toEqual([])
   })
 
-  it('loads them on demand from the avatar menu after the picker', async () => {
-    const wrapper = await visitWithRealOverlays(player({ display_name_must_set: true }))
+  it('loads it on demand from the avatar menu after the picker', async () => {
+    const wrapper = await visitWithRealDigest(player({ display_name_must_set: true }))
     await setMustPick(false)
     await flushPromises()
 
     wrapper.findComponent(PortalNav).vm.$emit('open-daily-digest')
-    wrapper.findComponent(PortalNav).vm.$emit('open-whats-new')
     await flushPromises()
 
-    expect(urls()).toEqual(expect.arrayContaining([DIGEST_MANUAL, CHANGELOG_MANUAL]))
+    expect(urls()).toEqual([DIGEST_MANUAL])
   })
 })

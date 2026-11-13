@@ -91,7 +91,7 @@ async def test_digest_endpoint_uses_request_locale(client, db_session, monkeypat
     async def _dismissed(db, uid):
         return False
 
-    async def _build(db, u, *, use_cache=True, lang="fr", name_lang="fr"):
+    async def _build(db, u, *, use_cache=True, lang="fr", name_lang="fr", release=None):
         captured["lang"] = lang
         captured["name_lang"] = name_lang
         return {"empty": True, "recent_adds": []}

@@ -19,7 +19,7 @@ utilisateurs.
 ### Changed
 - Jours d'affilée et Régulier — dès 5 min regardées ; musique et livres audio exclus.
 - Trophées secrets — nom et icône visibles, description et progression cachées jusqu'au déblocage.
-- Quoi de neuf aujourd'hui ? — refondu : actualités en tête, vue compacte, alerte d'expiration, « Pour vous ».
+- Quoi de neuf aujourd'hui ? — refondu : actualités en tête, vue compacte, alerte d'expiration, « Pour vous », nouvelle version.
 
 ### Fixed
 - Barre d'XP — même pourcentage dans le résumé du jour et le profil.
@@ -44,6 +44,9 @@ utilisateurs.
 - Demandes — « Demandé par » affiche le pseudo, plus le nom de connexion (« vous » pour vos demandes).
 - Événements — le pseudo remplace le nom de connexion (invités, créateur, notifications).
 - Événements — plus d'erreur en répondant à l'invitation d'un organisateur supprimé.
+
+### Removed
+- Fenêtre « Nouveautés » après une mise à jour — remplacée par « Quoi de neuf aujourd'hui ? ».
 
 ## [1.0.0-rc.10] - 2026-11-11
 

@@ -49,6 +49,7 @@
             @leave="dismissToday"
             @read-news="readNews"
             @seen-news="noteNewsSeen"
+            @open-release="openRelease"
           />
         </div>
       </div>
@@ -84,6 +85,7 @@ const {
   setCompact,
   readNews,
   noteNewsSeen,
+  openRelease,
 } = useDailyDigest()
 
 const titleId = useId()

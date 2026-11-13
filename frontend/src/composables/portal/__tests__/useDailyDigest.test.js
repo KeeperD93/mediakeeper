@@ -1,6 +1,6 @@
 /**
- * useDailyDigest: the view the account keeps survives two quick switches, and a news
- * item is marked read once, dismissed, so « What's new » does not show it again.
+ * useDailyDigest: the view the account keeps survives two quick switches, a news item
+ * is marked read once, and the new Portal version is marked opened once.
  */
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
@@ -95,6 +95,24 @@ describe('useDailyDigest', () => {
       '/api/portal/news/read/1?dismissed=true',
     ])
     expect(api.digest.value.news[0].is_new).toBe(false)
+  })
+
+  it('marks the new version opened once, and never one already opened', async () => {
+    const api = await setup({ news: [], release: { version: '1.2.3', is_new: true } })
+
+    api.openRelease()
+    api.openRelease()
+
+    expect(apiPost.mock.calls).toEqual([['/api/portal/changelog/seen', { version: '1.2.3' }]])
+    expect(api.digest.value.release.is_new).toBe(false)
+  })
+
+  it('asks nothing when the digest has no version', async () => {
+    const api = await setup({ news: [], release: null })
+
+    api.openRelease()
+
+    expect(apiPost).not.toHaveBeenCalled()
   })
 
   it('reads on close the new items shown whole, then closes for the day', async () => {

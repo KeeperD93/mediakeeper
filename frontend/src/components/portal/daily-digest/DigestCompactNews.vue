@@ -46,7 +46,38 @@
       </div>
     </article>
 
-    <div v-if="others.length" class="ddc-box ddc-morelist">
+    <div v-if="others.length || releaseRow" class="ddc-box ddc-morelist">
+      <div v-if="releaseRow" class="dd-release-row">
+        <button
+          type="button"
+          class="ddc-row ddc-row-item"
+          :aria-expanded="openId === RELEASE_ROW ? 'true' : 'false'"
+          @click="toggleRow(RELEASE_ROW)"
+        >
+          <span
+            v-if="releaseRow.isNew"
+            class="dd-new-mini"
+            role="img"
+            :aria-label="$t('portal.dailyDigest.news.new')"
+          />
+          <span class="dd-badge dd-badge--release">
+            {{ $t('portal.dailyDigest.release.badge') }}
+          </span>
+          <span class="ddc-row-title">
+            {{
+              $t(
+                'portal.dailyDigest.release.line',
+                { version: releaseRow.version, n: releaseRow.totalLabel },
+                releaseRow.total,
+              )
+            }}
+          </span>
+          <span class="ddc-when">{{ releaseRow.date }}</span>
+        </button>
+        <div v-if="openId === RELEASE_ROW" class="ddc-rowbody">
+          <DigestReleaseGroups :groups="releaseRow.groups" />
+        </div>
+      </div>
       <template v-for="item in shownOthers" :key="item.id">
         <button
           type="button"
@@ -88,18 +119,26 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { Megaphone } from 'lucide-vue-next'
-import { newsView } from '@/utils/portal/dailyDigest'
+import { newsView, releaseView } from '@/utils/portal/dailyDigest'
+import DigestReleaseGroups from './DigestReleaseGroups.vue'
 import '@/assets/styles/portal/daily-digest-compact-news.css'
+import '@/assets/styles/portal/daily-digest-release-list.css'
 
 const props = defineProps({
   // Pinned first, then newest: the first one gets the card.
   news: { type: Array, required: true },
+  // The new Portal version, as a row heading the other items.
+  release: { type: Object, default: null },
 })
-const emit = defineEmits(['read', 'seen'])
+const emit = defineEmits(['read', 'seen', 'open-release'])
+
+// The version's row shares the « one open at a time » of the news rows.
+const RELEASE_ROW = 'release'
 
 const views = computed(() => props.news.map(newsView))
 const main = computed(() => views.value[0])
 const others = computed(() => views.value.slice(1))
+const releaseRow = computed(() => (props.release ? releaseView(props.release) : null))
 
 // Unread at opening stay in view; reading one must not hide it behind « +N ».
 const unreadAtOpen = new Set(
@@ -127,9 +166,12 @@ function toggleMain() {
   if (mainOpen.value) emit('read', main.value.id)
 }
 
+// One row open at a time, under itself; a click anywhere on it closes it.
 function toggleRow(id) {
   openId.value = openId.value === id ? null : id
-  if (openId.value === id) emit('read', id)
+  if (openId.value !== id) return
+  if (id === RELEASE_ROW) emit('open-release')
+  else emit('read', id)
 }
 
 // The first paragraph stops at two lines: « Read more » shows when it is cut.
