@@ -63,9 +63,7 @@ PUBLIC_TOTAL_ACHIEVEMENTS = sum(
 )
 
 
-# ─────────────────────────────────────────────────────────────────────────
 # Username availability + lock state
-# ─────────────────────────────────────────────────────────────────────────
 
 
 @router.get("/me/check-username")
@@ -121,9 +119,7 @@ async def username_state(
     }
 
 
-# ─────────────────────────────────────────────────────────────────────────
 # Custom avatar upload / delete / serve
-# ─────────────────────────────────────────────────────────────────────────
 
 
 @router.post("/me/avatar")
@@ -200,9 +196,7 @@ def _guess_mime(filename: str) -> str:
     }.get(ext, "application/octet-stream")
 
 
-# ─────────────────────────────────────────────────────────────────────────
 # Rich public profile (used by /portal/u/:id)
-# ─────────────────────────────────────────────────────────────────────────
 
 
 @router.get("/by-user-id/{user_id}/public")
