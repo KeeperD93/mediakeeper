@@ -1,0 +1,118 @@
+/* Daily digest, full view: « For you » and the upcoming events (DigestForYou.vue,
+ * DigestEvents.vue). Each line leads to its page. */
+
+/* For you */
+.dd-fy-row {
+  display: flex;
+  align-items: center;
+  gap: var(--portal-space-3);
+  padding: var(--portal-space-3) var(--portal-space-4);
+  border-top: var(--portal-border-width) solid var(--portal-border-subtle);
+}
+.dd-fy-row:first-child {
+  border-top: none;
+}
+.dd-fy-ic {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--portal-radius-circle);
+}
+.dd-fy-t {
+  display: block;
+  font-size: var(--portal-text-base);
+  line-height: 1.35;
+}
+.dd-fy-s {
+  display: block;
+  margin-top: var(--portal-space-0-5);
+  font-size: var(--portal-text-xs);
+  color: var(--portal-text-muted-solid);
+}
+
+/* Upcoming events */
+.dd-events {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 10px;
+}
+.dd-ev {
+  display: flex;
+  align-items: center;
+  gap: var(--portal-space-3-5);
+  padding: var(--portal-space-3) var(--portal-space-3-5);
+  border: var(--portal-border-width) solid var(--portal-border-default);
+  border-radius: var(--portal-radius-lg);
+  background: var(--portal-surface-1);
+  color: var(--portal-text-primary-solid);
+  text-decoration: none;
+}
+.dd-ev-date {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 56px;
+  border-radius: var(--portal-radius-md);
+  background: rgb(var(--portal-accent-500-rgb), 0.17);
+  line-height: var(--portal-lh-tight);
+}
+.dd-ev-date b {
+  font-family: var(--portal-font-display);
+  font-size: var(--portal-text-lg);
+  font-weight: var(--portal-font-extrabold);
+}
+.dd-ev-date small {
+  margin-top: 3px;
+  font-size: var(--portal-text-3xs);
+  font-weight: var(--portal-font-bold);
+  letter-spacing: var(--portal-tracking-eyebrow);
+  text-transform: uppercase;
+  color: var(--portal-accent-light);
+}
+.dd-ev-k,
+.dd-ev-t,
+.dd-ev-h {
+  display: block;
+}
+.dd-ev-k {
+  font-size: var(--portal-text-3xs);
+  font-weight: var(--portal-font-bold);
+  letter-spacing: var(--portal-tracking-eyebrow);
+  text-transform: uppercase;
+  color: var(--portal-text-muted-solid);
+}
+.dd-ev-t {
+  margin: var(--portal-space-0-5) 0;
+  font-size: var(--portal-text-base);
+  font-weight: var(--portal-font-bold);
+}
+.dd-ev-h {
+  font-size: var(--portal-text-xs);
+  color: var(--portal-text-muted-solid);
+}
+
+/* « See » and « Read » are short words: an invisible square makes a whole touch target. */
+.dd-fy-row .dd-link {
+  position: relative;
+}
+.dd-fy-row .dd-link::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: max(100%, var(--portal-touch-target));
+  height: var(--portal-touch-target);
+  transform: translate(-50%, -50%);
+}
+
+@container dd (min-width: 640px) {
+  .dd-events {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

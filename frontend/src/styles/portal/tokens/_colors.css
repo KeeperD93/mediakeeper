@@ -19,7 +19,8 @@
   --portal-accent-light: #a5b4fc; /* light accent (eyebrows on dark heroes) — mirrors admin --accent-300 */
   --portal-accent-rgb: 67, 56, 202; /* accent triplet for focus rings / alpha fills */
   /* Indigo scale of the rich rows (requests, issues, lists…) — mirrors admin
-     --accent-400/500/600 and --accent-rgb (declared values, not useTheme's). */
+     --accent-200/400/500/600 and --accent-rgb (declared values, not useTheme's). */
+  --portal-accent-200: #c7d2fe;
   --portal-accent-400: #818cf8;
   --portal-accent-500: #6366f1;
   --portal-accent-500-rgb: 99, 102, 241;
@@ -50,34 +51,43 @@
   --portal-text-muted-solid: #a8b2c2; /* slate, empty states — mirrors admin --text-muted */
   --portal-text-primary-solid: #fff; /* opaque white — mirrors admin --text-primary */
   --portal-text-secondary-solid: #dde2eb; /* light slate — mirrors admin --text-secondary */
+  --portal-text-tertiary-solid: #cbd5e1; /* slate between the two above: pins, poster years */
 
   /* Semantic colors (cohérent avec MK admin) -------------- */
   --portal-color-success: #22c55e;
   --portal-color-success-rgb: 34, 197, 94;
   --portal-color-success-light: #4ade80;
+  --portal-color-success-light-rgb: 74, 222, 128;
   --portal-color-success-soft: #86efac;
   --portal-color-warning: #fbbf24;
   --portal-color-warning-rgb: 251, 191, 36;
+  --portal-color-warning-light: #fcd34d; /* mirrors admin --color-warning-light */
   --portal-color-warning-dark: #f59e0b;
+  --portal-color-warning-darker: #d97706; /* end of a trophy progress bar */
   --portal-color-warning-soft: #fde68a;
   --portal-color-error: #ef4444;
   --portal-color-error-rgb: 239, 68, 68;
   --portal-color-error-light: #f87171;
+  --portal-color-error-light-rgb: 248, 113, 113;
   --portal-color-error-soft: #fca5a5;
   --portal-color-info: #3b82f6;
   --portal-color-info-rgb: 59, 130, 246;
   --portal-color-info-light: #60a5fa;
+  --portal-color-info-light-rgb: 96, 165, 250;
   --portal-color-info-soft: #93c5fd;
 
   /* Portal-specific palette (immersion) ------------------- */
   --portal-color-premium: #a855f7; /* purple premium badges */
   --portal-color-premium-rgb: 168, 85, 247;
+  --portal-color-premium-light: #d8b4fe; /* text on a purple tint */
   --portal-color-premium-soft: #c4b5fd;
   --portal-color-cinema: #38bdf8; /* cyan ticket / subtitles / tmdb */
   --portal-color-cinema-rgb: 56, 189, 248;
   --portal-color-cinema-soft: #7dd3fc;
   --portal-color-accent-hot: #ec4899; /* hot pink — events, hype */
   --portal-color-accent-hot-rgb: 236, 72, 153;
+  --portal-color-rose: #f43f5e; /* far end of the « new » pill, after the hot pink */
+  --portal-color-rose-light: #fb7185; /* streak flame */
   --portal-color-highlight: #f97316; /* orange — ticket audio, highlights */
   --portal-color-highlight-rgb: 249, 115, 22;
   --portal-color-rating: #fbbf24; /* gold star — TMDB rating (card + detail) */
@@ -90,6 +100,7 @@
 
   /* Solid neutrals (poster surfaces, blacklist ribbon) ---- */
   --portal-poster-bg: #0e1320; /* dark backdrop behind poster artwork */
+  --portal-poster-shade: rgb(0, 0, 0, 0.85); /* veil under the title written on a poster */
   --portal-color-neutral-dark: #374151; /* slate — distinct from error red */
   --portal-color-neutral-dark-rgb: 55, 65, 81;
 
@@ -99,4 +110,10 @@
   --portal-hero-btn-secondary-bg: rgb(109, 109, 110, 0.7); /* trailer, info, pending */
   --portal-hero-dot-bg: rgb(255, 255, 255, 0.3); /* slide picker dots */
   --portal-hero-dot-active-bg: #fff;
+
+  /* Daily digest window ---------------------------------- */
+  --portal-digest-bg: #1a1c22; /* the window */
+  --portal-digest-bg-rgb: 26, 28, 34;
+  --portal-digest-backdrop: #121318; /* behind the window */
+  --portal-digest-ring-bg: #1d1f27; /* hole of the level ring */
 }

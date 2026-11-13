@@ -1,0 +1,174 @@
+/* Daily digest, full view: « Your progress » (DigestProgress.vue, DigestPodium.vue).
+ * The level in a ring, the next trophy, and the top 3 of the month with the codes of
+ * the ranking page: metal frames (leaderboard-metal.css), tier rings, the viewer's row. */
+
+.dd-prog,
+.dd-prog-left {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--portal-space-3);
+}
+.dd-prog > :only-child,
+.dd-prog-left > :only-child {
+  grid-column: 1 / -1;
+}
+.dd-lvl,
+.dd-ach {
+  display: flex;
+  align-items: center;
+  gap: var(--portal-space-4);
+  padding: var(--portal-space-4) 18px;
+  border-radius: var(--portal-radius-xl);
+}
+.dd-lvl {
+  border: var(--portal-border-width) solid rgb(var(--portal-accent-500-rgb), 0.26);
+  background: linear-gradient(
+    135deg,
+    rgb(var(--portal-accent-500-rgb), 0.16),
+    rgb(var(--portal-accent-500-rgb), 0.03) 70%
+  );
+}
+.dd-ach {
+  border: var(--portal-border-width) solid rgb(var(--portal-color-warning-rgb), 0.22);
+  background: linear-gradient(
+    135deg,
+    rgb(var(--portal-color-warning-rgb), 0.1),
+    var(--portal-surface-1) 60%
+  );
+}
+.dd-lvl .dd-grow,
+.dd-ach .dd-grow {
+  width: 100%;
+}
+.dd-ring {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 76px;
+  height: 76px;
+  border-radius: var(--portal-radius-circle);
+  background: conic-gradient(
+    var(--portal-accent-400) 0 var(--dd-ring-pct),
+    var(--portal-surface-4) 0
+  );
+}
+.dd-ring-in {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 62px;
+  height: 62px;
+  border-radius: var(--portal-radius-circle);
+  background: var(--portal-digest-ring-bg);
+  line-height: var(--portal-lh-tight);
+}
+.dd-ring-in b {
+  font-family: var(--portal-font-display);
+  font-size: var(--portal-text-xl);
+  font-weight: var(--portal-font-extrabold);
+}
+.dd-ring-in small {
+  margin-top: 3px;
+  font-size: var(--portal-text-4xs);
+  font-weight: var(--portal-font-bold);
+  letter-spacing: 0.12em;
+  color: var(--portal-accent-light);
+}
+.dd-ach-ic {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 60px;
+  height: 60px;
+  border-radius: var(--portal-radius-lg);
+  color: var(--portal-color-warning);
+  background: linear-gradient(
+    145deg,
+    rgb(var(--portal-color-warning-rgb), 0.28),
+    rgb(var(--portal-color-warning-rgb), 0.08)
+  );
+}
+.dd-eyebrow--level {
+  color: var(--portal-accent-light);
+}
+.dd-eyebrow--ach {
+  color: var(--portal-color-warning);
+}
+.dd-ttl {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--portal-space-1-5) var(--portal-space-2);
+  margin: 0 0 10px;
+  font-size: var(--portal-text-lg);
+  font-weight: var(--portal-font-extrabold);
+}
+.dd-ttl-text {
+  font-family: var(--portal-font-display);
+}
+.dd-xpchip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--portal-space-1);
+  padding: 3px 9px;
+  border-radius: var(--portal-radius-pill);
+  font-size: var(--portal-text-xs);
+  font-weight: var(--portal-font-bold);
+  color: var(--portal-color-success-light);
+  background: rgb(var(--portal-color-success-light-rgb), 0.12);
+}
+.dd-lvl .dd-bar-fill--level {
+  box-shadow: 0 0 12px rgb(var(--portal-accent-500-rgb), 0.5);
+}
+.dd-desc {
+  margin: calc(-1 * var(--portal-space-1)) 0 10px;
+  font-size: var(--portal-text-sm);
+  line-height: 1.45;
+  color: var(--portal-text-secondary-solid);
+}
+.dd-meta {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--portal-space-1) 10px;
+  margin-top: var(--portal-space-2);
+  font-size: var(--portal-text-xs);
+  color: var(--portal-text-muted-solid);
+  font-variant-numeric: tabular-nums;
+}
+.dd-meta-level {
+  font-weight: var(--portal-font-medium);
+  color: var(--portal-accent-light);
+}
+.dd-meta-ach {
+  font-weight: var(--portal-font-bold);
+  color: var(--portal-color-warning);
+}
+
+@container dd (min-width: 480px) {
+  .dd-prog-left {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .dd-lvl,
+  .dd-ach {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+@container dd (min-width: 820px) {
+  .dd-prog {
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+    align-items: stretch;
+  }
+  .dd-prog-left {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .dd-lvl,
+  .dd-ach {
+    flex-direction: row;
+    align-items: center;
+  }
+}

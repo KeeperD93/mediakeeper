@@ -1,0 +1,178 @@
+/* Daily digest window (PortalDailyDigestOverlay.vue): overlay, frame, view switch,
+ * close button and loading states; what both views share is in daily-digest-common.css.
+ * The window answers to its own width (container dd), not the screen's: the same
+ * layout serves phone, tablet and desktop. Classes start with dd- or ddc-, prefixes
+ * nothing else uses. */
+
+.dd-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: var(--portal-z-overlay);
+  overflow: hidden auto;
+  overscroll-behavior: contain;
+  padding: env(safe-area-inset-top, 0) env(safe-area-inset-right, 0) env(safe-area-inset-bottom, 0)
+    env(safe-area-inset-left, 0);
+  background: var(--portal-digest-backdrop);
+  -webkit-tap-highlight-color: transparent;
+}
+/* Indigo and pink light behind the window, still while it scrolls. */
+.dd-glow {
+  position: fixed;
+  inset: -10%;
+  pointer-events: none;
+  filter: blur(40px);
+  background:
+    radial-gradient(circle at 15% 20%, rgb(var(--portal-accent-500-rgb), 0.26), transparent 45%),
+    radial-gradient(circle at 85% 65%, rgb(var(--portal-accent-500-rgb), 0.18), transparent 50%),
+    radial-gradient(
+      circle at 45% 100%,
+      rgb(var(--portal-color-accent-hot-rgb), 0.14),
+      transparent 55%
+    );
+}
+
+/* Phone: the window is the screen. From a tablet on, a framed window on the backdrop. */
+.dd-panel {
+  position: relative;
+  container: dd / inline-size;
+  width: 100%;
+  min-height: 100%;
+  box-sizing: border-box;
+  background: var(--portal-digest-bg);
+  color: var(--portal-text-primary-solid);
+  -webkit-font-smoothing: antialiased;
+  outline: none;
+}
+@media (min-width: 640px) {
+  .dd-overlay {
+    padding: var(--portal-space-6);
+  }
+  .dd-panel {
+    max-width: 880px;
+    min-height: 0;
+    margin: 0 auto;
+    border: var(--portal-border-width) solid var(--portal-border-default);
+    border-radius: var(--portal-radius-2xl);
+    box-shadow: var(--portal-shadow-panel);
+  }
+}
+@media (min-width: 1024px) {
+  .dd-overlay {
+    padding-block: 56px;
+  }
+}
+
+.dd-fade-enter-active,
+.dd-fade-leave-active {
+  transition: opacity var(--portal-dur-base) var(--portal-ease-out);
+}
+.dd-fade-enter-from,
+.dd-fade-leave-to {
+  opacity: 0;
+}
+
+.dd-close {
+  position: absolute;
+  top: var(--portal-space-3);
+  right: var(--portal-space-3);
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--portal-touch-target);
+  height: var(--portal-touch-target);
+  padding: 0;
+  border: var(--portal-border-width) solid var(--portal-border-default);
+  border-radius: var(--portal-radius-circle);
+  background: var(--portal-surface-2);
+  color: var(--portal-text-muted-solid);
+  cursor: pointer;
+}
+
+/* « Compact view », left of the cross: the account keeps the choice. */
+.dd-switch {
+  position: absolute;
+  top: var(--portal-space-3);
+  right: 62px;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--portal-space-2);
+  min-height: var(--portal-touch-target);
+  padding: 0 var(--portal-space-1);
+  border: none;
+  background: none;
+  color: var(--portal-text-muted-solid);
+  font: inherit;
+  font-size: var(--portal-text-xs);
+  font-weight: var(--portal-font-medium);
+  cursor: pointer;
+}
+.dd-switch-track {
+  position: relative;
+  flex: none;
+  width: 36px;
+  height: 20px;
+  border-radius: var(--portal-radius-pill);
+  background: var(--portal-surface-5);
+  transition: background var(--portal-dur-base) var(--portal-ease-default);
+}
+.dd-switch-knob {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 16px;
+  height: 16px;
+  border-radius: var(--portal-radius-circle);
+  background: var(--portal-text-primary-solid);
+  transition: transform var(--portal-dur-base) var(--portal-ease-default);
+}
+.dd-switch[aria-checked='true'] .dd-switch-track {
+  background: var(--portal-accent-500);
+}
+.dd-switch[aria-checked='true'] .dd-switch-knob {
+  transform: translateX(16px);
+}
+.dd-panel--compact .dd-close {
+  top: 10px;
+  right: 10px;
+}
+.dd-panel--compact .dd-switch {
+  top: var(--portal-space-2);
+  right: 58px;
+}
+@container dd (min-width: 640px) {
+  .dd-panel--full .dd-close {
+    top: 18px;
+    right: 18px;
+  }
+  .dd-panel--full .dd-switch {
+    top: 18px;
+    right: 70px;
+  }
+}
+
+.dd-panel :is(a, button):focus-visible {
+  outline: var(--portal-focus-ring);
+  outline-offset: var(--portal-focus-ring-offset);
+}
+
+.dd-state {
+  margin: 0;
+  padding: 120px var(--portal-space-6) 72px;
+  text-align: center;
+  font-size: var(--portal-text-base);
+  color: var(--portal-text-muted-solid);
+}
+.dd-state--error {
+  color: var(--portal-color-error-light);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dd-fade-enter-active,
+  .dd-fade-leave-active,
+  .dd-switch-track,
+  .dd-switch-knob {
+    transition: none;
+  }
+}

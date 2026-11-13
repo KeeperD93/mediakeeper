@@ -78,8 +78,14 @@ describe('PortalLayout.vue, overlays that open by themselves', () => {
     const wrapper = await visit(player())
 
     expect(autoFlags(wrapper)).toEqual([true, true])
-    expect(wrapper.findComponent(NewsPopup).exists()).toBe(true)
     expect(wrapper.findComponent(ForceUsernameModal).exists()).toBe(false)
+  })
+
+  it('leaves the news to the daily digest: the separate news window never opens by itself', async () => {
+    const wrapper = await visit(player())
+
+    expect(fetchUnread).not.toHaveBeenCalled()
+    expect(wrapper.findComponent(NewsPopup).exists()).toBe(false)
   })
 
   it('shows only the picker while a username is owed', async () => {
@@ -88,7 +94,6 @@ describe('PortalLayout.vue, overlays that open by themselves', () => {
     expect(wrapper.findComponent(ForceUsernameModal).exists()).toBe(true)
     expect(wrapper.findComponent(PortalWhatsNewModal).exists()).toBe(false)
     expect(wrapper.findComponent(PortalDailyDigestOverlay).exists()).toBe(false)
-    expect(wrapper.findComponent(NewsPopup).exists()).toBe(false)
   })
 
   it('opens nothing by itself once the username is saved', async () => {
@@ -98,7 +103,6 @@ describe('PortalLayout.vue, overlays that open by themselves', () => {
 
     expect(wrapper.findComponent(ForceUsernameModal).exists()).toBe(false)
     expect(autoFlags(wrapper)).toEqual([false, false])
-    expect(wrapper.findComponent(NewsPopup).exists()).toBe(false)
   })
 
   it('keeps the avatar menu working after the picker', async () => {
@@ -121,18 +125,16 @@ describe('PortalLayout.vue, overlays that open by themselves', () => {
     const next = await visit(player())
 
     expect(autoFlags(next)).toEqual([true, true])
-    expect(next.findComponent(NewsPopup).exists()).toBe(true)
   })
 
   it('applies to a name reset during the visit', async () => {
     const wrapper = await visit(player())
-    expect(wrapper.findComponent(NewsPopup).exists()).toBe(true)
+    expect(autoFlags(wrapper)).toEqual([true, true])
 
     await setMustPick(true)
     await setMustPick(false)
 
     expect(autoFlags(wrapper)).toEqual([false, false])
-    expect(wrapper.findComponent(NewsPopup).exists()).toBe(false)
   })
 
   it('does not hold them back for an admin', async () => {
@@ -140,7 +142,6 @@ describe('PortalLayout.vue, overlays that open by themselves', () => {
 
     expect(wrapper.findComponent(ForceUsernameModal).exists()).toBe(false)
     expect(autoFlags(wrapper)).toEqual([true, true])
-    expect(wrapper.findComponent(NewsPopup).exists()).toBe(true)
   })
 })
 

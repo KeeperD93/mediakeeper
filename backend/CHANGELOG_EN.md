@@ -14,6 +14,7 @@ This section intentionally has no date so it is not shown to users.
 - Dashboard — leaderboard widget matches the Leaderboard page.
 - Statistics — day streak from 5 min watched; music and audiobooks left out.
 - Portal — secret trophies: name and icon shown, description and progress hidden until unlocked.
+- Portal — "Today's digest" redesigned: news first, compact view, expiry notice, "For you".
 
 ### Fixed
 - XP bar — same percentage in today's digest and the profile.

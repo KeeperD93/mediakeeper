@@ -14,6 +14,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Tableau de bord — widget du classement aligné sur la page Classement.
 - Statistiques — série de jours dès 5 min regardées ; musique et livres audio exclus.
 - Portail — trophées secrets : nom et icône visibles, description et progression cachées jusqu'au déblocage.
+- Portail — « Quoi de neuf aujourd'hui ? » refondu : actualités en tête, vue compacte, alerte d'expiration, « Pour vous ».
 
 ### Fixed
 - Barre d'XP — même pourcentage dans le résumé du jour et le profil.

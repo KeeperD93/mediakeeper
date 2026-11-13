@@ -13,9 +13,10 @@ import { ref, onMounted, onUnmounted, nextTick, watch } from 'vue'
  * motion: smooth, or a jump under reduced motion.
  *
  * Pass a reactive `itemsRef` so the flags update when the underlying
- * list changes (new items appended, filter applied, …).
+ * list changes (new items appended, filter applied, …). `perClick` moves
+ * by that many cards instead of a page.
  */
-export function useCarouselArrows(itemsRef = null) {
+export function useCarouselArrows(itemsRef = null, { perClick = 0 } = {}) {
   const trackRef = ref(null)
   const canScrollLeft = ref(false)
   const canScrollRight = ref(false)
@@ -49,8 +50,8 @@ export function useCarouselArrows(itemsRef = null) {
     const step = cardRect.width + gap
     if (step <= 0) return
 
-    const visible = Math.max(1, Math.floor(trackRect.width / step))
-    const amount = visible * step
+    const cardsPerMove = perClick || Math.max(1, Math.floor(trackRect.width / step))
+    const amount = cardsPerMove * step
     el.scrollBy({ left: dir * amount })
   }
 

@@ -3,10 +3,8 @@
  * Article cards + reader prose live in help-overlay-content.css to stay
  * under the 300-line file-size cap.
  *
- * Visual contract: aligned with ``.ddd-overlay`` / ``.ddd-panel``
- * (Daily Digest) so every full-screen takeover in the portal shares the
- * same backdrop dimming, the same opaque panel surface, the same
- * close-button affordance and the same mobile fullscreen behaviour.
+ * Visual contract: a full-screen takeover with a dimmed backdrop, an opaque
+ * panel surface, a round close button and a fullscreen panel on mobile.
  *
  * Selectors prefixed by .pt-help-* to simulate Vue scoped CSS, since the
  * file is JS-imported outside Vue's scoped style boundary.
@@ -48,9 +46,8 @@
   }
 }
 
-/* Layered mesh gradient backdrop — same idea as ddd-backdrop-fx but
-   scoped to the help overlay so the colour balance can drift with the
-   help-specific accent (premium / info) without affecting other surfaces. */
+/* Layered mesh gradient backdrop, in the help-specific accent (premium /
+   info) so its colour balance does not affect other surfaces. */
 .pt-help-backdrop-fx {
   position: absolute;
   inset: -20%;
