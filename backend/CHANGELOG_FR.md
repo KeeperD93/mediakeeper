@@ -36,6 +36,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Portail — Crédits : le point suit directement le lien.
 - Signalement — compteur de la description sur sa vraie limite (1 500), envoi bloqué avant toute coupure.
 - Utilisateurs — historique XP : retraits en « -20 XP », aucune ligne si l'XP ne bouge pas.
+- Portail — « Demandé par » affiche le pseudo, plus le nom de connexion.
 
 ## [1.0.0-rc.10] - 2026-11-11
 

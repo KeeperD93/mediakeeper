@@ -3,17 +3,17 @@ from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, R
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from api.portal.deps import require_admin, require_permission
 from core.database import get_db
 from core.i18n import get_request_locale
 from core.rate_limit import limiter, portal_user_or_ip_key
-from models.user import User
 from models.portal.profile import UserProfile
-from api.portal.deps import require_admin, require_permission
+from models.user import User
 from services.portal import requests as req_svc
 from services.portal.achievements import safe_check_all_achievements_in_new_session
 from services.portal.admin import get_portal_flag
-from services.portal.image_urls import safe_image_url
 from services.portal.admin_users_constants import ROLE_ADMIN
+from services.portal.image_urls import safe_image_url
 
 router = APIRouter(prefix="/requests", tags=["portal-requests"])
 
@@ -124,6 +124,7 @@ def _dedupe_keep_order(ids: list[int]) -> list[int]:
 async def batch_status(
     data: BatchStatusQuery,
     request: Request,
+    locale: str = Depends(get_request_locale),
     up: tuple[User, UserProfile] = Depends(require_permission("can_portal")),
     db: AsyncSession = Depends(get_db),
 ):
@@ -138,10 +139,14 @@ async def batch_status(
     legitimately repeats ids in the same payload still works as long as
     the deduplicated count stays under ``BATCH_STATUS_MAX_IDS``.
 
+    ``requested_by`` is the requester's public name (pseudo, generated
+    pseudo or admin label, in the viewer's language), never their sign-in
+    name: the admin request queue keeps that one to moderate.
+
     When the admin has enabled ``anonymize_requests`` in the Portal
     settings, the ``requested_by`` field is stripped from the response
     for non-admin users so nobody can tell who filed a given request.
-    Admins keep access to the username so they can moderate.
+    Admins keep it so they can moderate.
 
     Response: { "<tmdb_id>": { "status": "pending"|"approved"|"rejected"|"available",
                                "requested_at": "...", "requested_by"?: "pseudo" } }
@@ -161,7 +166,7 @@ async def batch_status(
         anonymize = await get_portal_flag(db, "portal.anonymize_requests")
 
     return {"results": await req_svc.get_batch_status(
-        db, unique_ids, anonymize=anonymize,
+        db, unique_ids, anonymize=anonymize, lang=locale,
     )}
 
 
