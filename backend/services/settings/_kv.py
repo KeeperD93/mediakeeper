@@ -148,11 +148,27 @@ async def get_user_preferences(
     stmt = select(UserPreference).where(UserPreference.user_id == user_id)
     if lock_row:
         # FOR UPDATE serializes a read-merge-write of the JSON columns against a
-        # concurrent save so neither write is lost. Ignored on SQLite.
+        # concurrent save so neither write is lost. Ignored on SQLite. A missing
+        # row cannot be locked, so it is created first.
+        await _ensure_preferences_row(db, user_id)
         bind = db.get_bind()
         if bind is not None and bind.dialect.name != "sqlite":
             stmt = stmt.with_for_update()
     return (await db.execute(stmt)).scalar_one_or_none()
+
+
+async def _ensure_preferences_row(db: AsyncSession, user_id: int) -> None:
+    exists = (await db.execute(
+        select(UserPreference.id).where(UserPreference.user_id == user_id)
+    )).first()
+    if exists:
+        return
+    try:
+        async with db.begin_nested():
+            db.add(UserPreference(user_id=user_id))
+            await db.flush()
+    except IntegrityError:  # noqa: S110 -- a concurrent first save created it: lock that one
+        pass
 
 
 async def get_portal_default_language(db: AsyncSession, default: str | None = None) -> str:

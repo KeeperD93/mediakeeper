@@ -67,7 +67,10 @@ async def test_the_picked_view_is_remembered(client, db_session, quiet_sources):
 
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize("body", [{"compact": True, "extra": 1}, {}, {"compact": "maybe"}])
+@pytest.mark.parametrize("body", [
+    {"compact": True, "extra": 1}, {}, {"compact": "maybe"},
+    {"compact": "yes"}, {"compact": "true"}, {"compact": 1},
+])
 async def test_the_view_body_is_strict(client, db_session, body):
     await _sign_in(client, db_session)
     assert (await client.put(VIEW_URL, json=body)).status_code == 422
@@ -158,3 +161,15 @@ async def test_the_new_blocks_count_as_content(db_session, quiet_sources, seed, 
     digest = await dd_svc.build_digest(db_session, user, use_cache=False)
 
     assert digest["empty"] is empty
+
+
+@pytest.mark.asyncio
+async def test_a_locked_read_creates_the_missing_preferences_row(db_session):
+    # Nothing can be locked before the first save: the row is created first, so two
+    # first writes (view and dismissal) queue on it instead of overwriting each other.
+    user, _ = await make_portal_user(db_session, username="alice")
+    assert await get_user_preferences(db_session, user.id) is None
+
+    row = await get_user_preferences(db_session, user.id, lock_row=True)
+
+    assert row is not None and row.user_id == user.id

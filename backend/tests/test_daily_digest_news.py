@@ -129,3 +129,12 @@ async def test_reading_never_brings_back_a_dismissed_news(db_session):
         select(NewsRead.dismissed).where(NewsRead.news_id == news.id)
     )).scalars().all()
     assert rows == [True]
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("news_id", [0, 2_147_483_648])
+async def test_reading_an_out_of_range_news_id_is_refused(client, db_session, news_id):
+    alice, _ = await make_portal_user(db_session, username="alice")
+    client.cookies.set(PORTAL_COOKIE, portal_token(alice.username))
+
+    assert (await client.post(f"/api/portal/news/read/{news_id}")).status_code == 422

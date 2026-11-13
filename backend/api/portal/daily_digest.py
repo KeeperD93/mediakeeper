@@ -5,7 +5,7 @@ endpoint so the frontend can skip the overlay for the rest of the calendar
 day, and the compact or full view the viewer picked for it.
 """
 from fastapi import APIRouter, Depends, Query, Request
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, StrictBool
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.database import get_db
@@ -22,7 +22,7 @@ router = APIRouter(prefix="/daily-digest", tags=["portal-daily-digest"])
 class DigestView(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    compact: bool
+    compact: StrictBool
 
 
 @router.get("")

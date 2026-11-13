@@ -3,7 +3,7 @@ import logging
 from datetime import datetime
 from urllib.parse import urlsplit
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Path, Query
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 from typing import Optional
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -99,7 +99,8 @@ async def get_unread(
 
 @router.post("/read/{news_id}")
 async def mark_read(
-    news_id: int,
+    # PostgreSQL INTEGER range: a larger id would fail in the query instead of a 404.
+    news_id: int = Path(ge=1, le=2_147_483_647),
     dismissed: bool = Query(False),
     up: tuple[User, UserProfile] = Depends(get_current_profile),
     db: AsyncSession = Depends(get_db),
