@@ -2802,6 +2802,7 @@
         "tooltipAnonymous": "Déjà demandé le {date}"
       },
       "tooltipRequestedBy": "Demandé par {user} le {date}",
+      "tooltipRequestedByYou": "Demandé par vous le {date}",
       "tooltipApprovedOn": "Approuvé le {date}",
       "tooltipRejectedOn": "Rejeté le {date}",
       "tooltipWatchedOn": "Vu le {date}",

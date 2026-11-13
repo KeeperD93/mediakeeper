@@ -3,7 +3,7 @@ import { useMediaCardState } from '@/composables/portal/useMediaCardState'
 
 // Mock i18n + collaborators
 vi.mock('vue-i18n', () => ({
-  useI18n: () => ({ t: key => key }),
+  useI18n: () => ({ t: key => key, locale: { value: 'fr' } }),
 }))
 
 const mockAvailability = { value: null }
@@ -13,9 +13,10 @@ vi.mock('@/composables/portal/useAvailability', () => ({
   }),
 }))
 
+const mockStatus = { value: null }
 vi.mock('@/composables/portal/useRequestStatus', () => ({
   useRequestStatus: () => ({
-    getStatus: vi.fn(() => null),
+    getStatus: vi.fn(() => mockStatus.value),
   }),
 }))
 
@@ -59,5 +60,31 @@ describe('useMediaCardState — availData fallback chain', () => {
     const { availData } = useMediaCardState({ item })
     expect(availData.value.availability).toBe('full')
     expect(availData.value.emby_url).toBe('/inline')
+  })
+})
+
+describe('useMediaCardState — "requested by" tooltip', () => {
+  beforeEach(() => {
+    mockStatus.value = null
+  })
+
+  it('says "you" for a request the viewer just filed', () => {
+    mockStatus.value = {
+      status: 'pending',
+      requested_at: '2026-11-13T10:00:00Z',
+      requested_by_self: true,
+    }
+    const { postitTooltip } = useMediaCardState({ item: { tmdb_id: 12345 } })
+    expect(postitTooltip.value).toBe('portal.card.tooltipRequestedByYou')
+  })
+
+  it("names the requester from the server's public name otherwise", () => {
+    mockStatus.value = {
+      status: 'pending',
+      requested_at: '2026-11-13T10:00:00Z',
+      requested_by: 'Alice',
+    }
+    const { postitTooltip } = useMediaCardState({ item: { tmdb_id: 12345 } })
+    expect(postitTooltip.value).toBe('portal.card.tooltipRequestedBy')
   })
 })
