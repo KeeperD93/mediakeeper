@@ -136,6 +136,10 @@
   background: var(--portal-surface-2);
   text-align: center;
 }
+/* Rank and quota cards can be missing: a lone last card fills its row, no hole. */
+.ddc-stat:last-child:nth-child(odd) {
+  grid-column: 1 / -1;
+}
 .ddc-stat-icon {
   display: block;
   margin: 0 auto var(--portal-space-1);
@@ -184,8 +188,14 @@
 }
 
 @container dd (min-width: 360px) {
+  /* One row of equal cards, however many there are. */
   .ddc-stats {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: none;
+    grid-auto-columns: minmax(0, 1fr);
+    grid-auto-flow: column;
+  }
+  .ddc-stat:last-child:nth-child(odd) {
+    grid-column: auto;
   }
   .ddc-foot {
     flex-direction: row;

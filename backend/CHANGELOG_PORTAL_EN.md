@@ -24,6 +24,7 @@ This section intentionally has no date so it is not shown to users.
 - Notifications — bar lasts as long as the message, full message on small phones.
 - Issues — ticket dates: colons placed right in English and French.
 - Today's digest — Top 3 of the month matches the leaderboard ("YOU" label).
+- Today's digest — streak and open tickets shown even at 0, no gap.
 - Carousels, scrolling and counters — instant with "Reduce motion".
 - Pinned badges — two pins in quick succession no longer overwrite each other.
 - My profile — weekdays and durations in the app's language.
