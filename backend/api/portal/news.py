@@ -105,7 +105,10 @@ async def mark_read(
     db: AsyncSession = Depends(get_db),
 ):
     user, _ = up
-    return await news_svc.mark_news_read(db, news_id, user.id, dismissed)
+    result = await news_svc.mark_news_read(db, news_id, user.id, dismissed)
+    if "error" in result:
+        raise HTTPException(status_code=404, detail=result["error"])
+    return result
 
 
 @router.post("")

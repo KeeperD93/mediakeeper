@@ -1,10 +1,12 @@
 """Daily digest orchestrator for the Portal viewer.
 
-Once-per-day overlay payload aggregating eight blocks (library additions,
-upcoming events, monthly ranking, level progress, request quota, open
-tickets, closest achievement, play-day streak). Leaf aggregators live
-in :mod:`daily_digest_sources` so this file stays focused on caching,
-dismissal and composition.
+Once-per-day overlay payload aggregating the viewer's blocks (who is greeted,
+account expiry, news, library additions, "for you" items, upcoming events,
+monthly ranking, level progress, request quota, open tickets, closest
+achievement, play-day streak). Leaf aggregators live in
+:mod:`daily_digest_sources`, :mod:`daily_digest_account` and
+:mod:`daily_digest_for_you` so this file stays focused on caching, the
+viewer's preferences (dismissal, compact view) and composition.
 
 The payload is cached in-memory for ~1h per (user_id, date, lang) triple so a
 user re-opening the overlay — or navigating pages that remount the
@@ -29,8 +31,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from models.user import User
 from services.instance_time import get_instance_zone, to_local
 from services.settings import get_user_preferences, upsert_user_preferences
-from services.portal.profile_serializers import _resolve_avatar_url
 from services.portal.profiles import get_or_create_profile
+from services.portal import daily_digest_account as account
+from services.portal import daily_digest_for_you as for_you
 from services.portal import daily_digest_sources as sources
 
 logger = logging.getLogger("mediakeeper.portal.daily_digest")
@@ -38,6 +41,7 @@ logger = logging.getLogger("mediakeeper.portal.daily_digest")
 _PREF_KEY_DISMISSED_DATE = "portal_daily_digest_dismissed_date"
 _PREF_KEY_DISMISSED_AT = "portal_daily_digest_dismissed_at"
 _PREF_KEY_SEEN_AT = "portal_daily_digest_recent_seen_at"
+_PREF_KEY_COMPACT = "portal_daily_digest_compact"
 _CACHE_TTL_SEC = 3600
 _GRACE_HOURS = 24
 _MAX_LOOKBACK_DAYS = 30
@@ -78,8 +82,8 @@ def invalidate_cache(user_id: int) -> None:
             _digest_cache.pop(key, None)
 
 
-async def _load_prefs(db: AsyncSession, user_id: int) -> dict:
-    row = await get_user_preferences(db, user_id)
+async def _load_prefs(db: AsyncSession, user_id: int, *, lock_row: bool = False) -> dict:
+    row = await get_user_preferences(db, user_id, lock_row=lock_row)
     if not row or not row.preferences:
         return {}
     try:
@@ -91,6 +95,20 @@ async def _load_prefs(db: AsyncSession, user_id: int) -> dict:
 async def is_dismissed_today(db: AsyncSession, user_id: int) -> bool:
     prefs = await _load_prefs(db, user_id)
     return prefs.get(_PREF_KEY_DISMISSED_DATE) == await _today_iso(db)
+
+
+async def is_compact(db: AsyncSession, user_id: int) -> bool:
+    """The view the viewer picked for the overlay; the full one until they choose."""
+    return (await _load_prefs(db, user_id)).get(_PREF_KEY_COMPACT) is True
+
+
+async def set_compact(db: AsyncSession, user_id: int, compact: bool) -> bool:
+    """Save the picked view, under a row lock so a concurrent locked write to the
+    same preferences JSON (a dismissal) is not lost."""
+    prefs = await _load_prefs(db, user_id, lock_row=True)
+    prefs[_PREF_KEY_COMPACT] = compact
+    await upsert_user_preferences(db, user_id, preferences=json.dumps(prefs))
+    return compact
 
 
 def _parse_dt(raw: str | None) -> datetime | None:
@@ -133,9 +151,10 @@ async def mark_dismissed(db: AsyncSession, user_id: int) -> str:
     dismiss whose grace has already elapsed is promoted into the seen
     watermark so the catch-up window doesn't reset back to the 30-day
     floor. This is the only place the watermark is persisted, keeping the
-    GET read path side-effect free.
+    GET read path side-effect free. Read under a row lock, like the compact
+    view write, so neither loses the other.
     """
-    prefs = await _load_prefs(db, user_id)
+    prefs = await _load_prefs(db, user_id, lock_row=True)
     now = datetime.now(timezone.utc)
     prev = _parse_dt(prefs.get(_PREF_KEY_DISMISSED_AT))
     if prev and now - prev >= timedelta(hours=_GRACE_HOURS):
@@ -150,14 +169,23 @@ async def mark_dismissed(db: AsyncSession, user_id: int) -> str:
 
 
 async def build_digest(
-    db: AsyncSession, user: User, *, use_cache: bool = True, lang: str = "fr",
+    db: AsyncSession,
+    user: User,
+    *,
+    use_cache: bool = True,
+    lang: str = "fr",
+    name_lang: str = "fr",
 ) -> dict[str, Any]:
     """Aggregate every digest block into a single payload.
 
-    ``use_cache`` lets the manual-open flow (avatar menu) bypass the
-    1h cache when the user explicitly asks for a fresh view.
+    ``lang`` is the viewer's locale (media titles, cache key); ``name_lang`` is
+    it reduced to the two languages the server writes names in. ``use_cache``
+    lets the manual-open flow (avatar menu) bypass the 1h cache when the user
+    explicitly asks for a fresh view.
     """
-    date_iso = await _today_iso(db)
+    now = datetime.now(timezone.utc)
+    zone = await get_instance_zone(db)
+    date_iso = to_local(now, zone).date().isoformat()
     if use_cache:
         cached = _cache_get(user.id, date_iso, lang)
         if cached is not None:
@@ -166,26 +194,36 @@ async def build_digest(
     profile = await get_or_create_profile(db, user)
 
     prefs = await _load_prefs(db, user.id)
-    cutoff = _recent_cutoff(prefs, datetime.now(timezone.utc))
+    cutoff = _recent_cutoff(prefs, now)
     recent_adds = await sources.recent_adds(db, since=cutoff, lang=lang)
     events = await sources.upcoming_events(db, user.id)
-    ranking = await sources.ranking_snapshot(db, user, lang=lang)
+    ranking = await sources.ranking_snapshot(db, user, lang=name_lang)
     quota = await sources.quota_snapshot(db, user.id)
     tickets_open = await sources.open_tickets_count(db, user.id)
     streak = await sources.current_streak(db, user, profile)
     next_ach = await sources.closest_achievement(db, user.id)
-    level = sources.level_info(profile)
+    news = await sources.latest_news(db, user.id)
+    for_you_items = await for_you.recent(db, user.id, since=cutoff)
+    expiry = account.expiry(profile, now=now, zone=zone)
+    level = {
+        **sources.level_info(profile),
+        "xp_yesterday": await account.xp_yesterday(db, user.id, now=now, zone=zone),
+    }
 
+    # Already read news alone are not worth opening the overlay for.
     has_content = bool(
         recent_adds or events or next_ach or streak
         or ranking["position"] or quota["used"] or tickets_open or level["xp"]
+        or expiry or for_you_items or any(item["is_new"] for item in news)
     )
 
     payload = {
         "date": date_iso,
         "empty": not has_content,
-        "display_name": profile.display_name or user.username,
-        "avatar_url": _resolve_avatar_url(profile),
+        "me": account.me(profile, name_lang),
+        "expiry": expiry,
+        "news": news,
+        "for_you": for_you_items,
         "level": level,
         "recent_adds": recent_adds,
         "events": events,
@@ -199,4 +237,11 @@ async def build_digest(
     return payload
 
 
-__all__ = ["build_digest", "is_dismissed_today", "mark_dismissed", "invalidate_cache"]
+__all__ = [
+    "build_digest",
+    "invalidate_cache",
+    "is_compact",
+    "is_dismissed_today",
+    "mark_dismissed",
+    "set_compact",
+]
