@@ -3,7 +3,7 @@ from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, R
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from api.portal.deps import require_admin, require_permission
+from api.portal.deps import get_request_lang, require_admin, require_permission
 from core.database import get_db
 from core.i18n import get_request_locale
 from core.rate_limit import limiter, portal_user_or_ip_key
@@ -124,7 +124,7 @@ def _dedupe_keep_order(ids: list[int]) -> list[int]:
 async def batch_status(
     data: BatchStatusQuery,
     request: Request,
-    locale: str = Depends(get_request_locale),
+    lang: str = Depends(get_request_lang),
     up: tuple[User, UserProfile] = Depends(require_permission("can_portal")),
     db: AsyncSession = Depends(get_db),
 ):
@@ -166,7 +166,7 @@ async def batch_status(
         anonymize = await get_portal_flag(db, "portal.anonymize_requests")
 
     return {"results": await req_svc.get_batch_status(
-        db, unique_ids, anonymize=anonymize, lang=locale,
+        db, unique_ids, anonymize=anonymize, lang=lang,
     )}
 
 

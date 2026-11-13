@@ -98,6 +98,18 @@ async def test_admin_requester_shows_the_admin_label(client, db_session, locale,
 
 
 @pytest.mark.asyncio
+@pytest.mark.parametrize("locale", ["eng", "de"])
+async def test_other_locales_get_the_french_name_like_the_chat(client, db_session, locale):
+    # The server writes its own names in French or English only: anything but
+    # "en" falls back to French, as in the chat.
+    requester = await _user(db_session, "erin_login", display="erin_login", must_set=True)
+    viewer = await _user(db_session, "bob_login", display="Bob", must_set=False)
+    await _request(db_session, requester, 12350)
+
+    assert await _requested_by(client, viewer, 12350, locale) == generate_pseudo(requester.id, "fr")
+
+
+@pytest.mark.asyncio
 async def test_requester_without_profile_shows_the_generated_pseudo(client, db_session):
     requester = await _user(db_session, "dave_login", with_profile=False)
     viewer = await _user(db_session, "bob_login", display="Bob", must_set=False)
