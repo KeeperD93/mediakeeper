@@ -18,7 +18,11 @@ from services.settings import set_setting
 from tests._portal_profile_helpers import PORTAL_COOKIE, portal_token
 from tests._signin_media_server_helpers import ACCEPTED, add_member, media_server, sign_in
 
-PROFILE_LEFT_OUT = {"admin_notes", "tags", "deleted_at", "deleted_by_user_id"}
+# The name's comparison forms only restate the exported display name.
+PROFILE_LEFT_OUT = {
+    "admin_notes", "tags", "deleted_at", "deleted_by_user_id",
+    "display_name_key", "display_name_skeleton",
+}
 TABLES_EXPORTED = {
     "user_profiles", "user_preferences", "user_lists", "user_list_items", "user_ratings",
     "user_achievements", "release_reminders", "chat_messages", "media_requests", "watch_party_participants",

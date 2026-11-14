@@ -2354,6 +2354,7 @@
         "already_deleted": "Ce compte est déjà supprimé.",
         "not_deleted": "Ce compte n'est pas supprimé.",
         "display_name_empty": "Le pseudo ne peut pas être vide.",
+        "display_name_taken": "Ce pseudo, ou un pseudo qui lui ressemble, est déjà utilisé par un autre membre.",
         "invalid_role": "Rôle invalide.",
         "invalid_months": "Nombre de mois invalide (1 à 60).",
         "no_target": "Aucune cible sélectionnée.",

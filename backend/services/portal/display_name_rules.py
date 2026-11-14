@@ -7,13 +7,13 @@ import re
 import unicodedata
 from datetime import UTC, datetime
 
-from sqlalchemy import func, select
+from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from constants import display_name as dn
 from models.portal.profile import UserProfile
 from services.portal import strip_tags_and_trim
-from services.portal._pseudo_words import generate_pseudo
+from services.portal._pseudo_words import generate_pseudo, pseudo_word_pairs
 from services.portal.admin_users_constants import ROLE_ADMIN
 from services.portal.display_name_text import (
     display_name_key,
@@ -37,6 +37,7 @@ _RESERVED_SKELETONS = frozenset(display_name_skeleton(n) for n in RESERVED_DISPL
 # so « Groot » and « Rootkit » stay free.
 _ADMIN = display_name_skeleton("admin")
 _DIGITS = "0123456789"
+_PROVISIONAL_PAIRS = frozenset(display_name_skeleton(pair) for pair in pseudo_word_pairs())
 
 
 def _kind(ch: str) -> str:
@@ -102,6 +103,18 @@ def is_reserved_display_name(name: str) -> bool:
     return False
 
 
+def looks_provisional(name: str) -> bool:
+    """Shaped like a provisional pseudo: one of its word pairs, in either language,
+    then a number from 1 to 99, whatever the separators (« renard bleu 7 »)."""
+    folded = display_name_key(name).strip()
+    stem = folded.rstrip(_DIGITS)
+    number = folded[len(stem):]
+    return (
+        0 < len(number) <= 2 and int(number) > 0
+        and display_name_skeleton(stem) in _PROVISIONAL_PAIRS
+    )
+
+
 _EDGES = re.compile(r"^[\s﻿]+|[\s﻿]+$")
 
 
@@ -129,25 +142,45 @@ def stored_name_refused(profile: UserProfile) -> bool:
     stored = profile.display_name or ""
     if profile.role == ROLE_ADMIN:
         return False
-    return not stored or hides_text(stored) or not has_ink(stored) or is_reserved_display_name(stored)
+    return (
+        not stored or hides_text(stored) or not has_ink(stored)
+        or is_reserved_display_name(stored) or looks_provisional(stored)
+    )
 
 
 async def is_display_name_taken(
     db: AsyncSession, candidate: str, *, exclude_user_id: int | None = None,
 ) -> bool:
-    """Case-insensitive existence check, optionally ignoring one user.
-
-    Unlocked read: callers tolerate the check-then-insert race — uniqueness
-    is best-effort (see ``resolve_unique_display_name``).
-    """
-    if not candidate:
+    """Another member shows this name, or one that reads the same: the same key,
+    or the same non-empty skeleton. Admins and members who still owe a name hold
+    none. An unlocked read: the unique key refuses the second of two saves."""
+    key = display_name_key(candidate)
+    if not key:
         return False
-    stmt = select(UserProfile.user_id).where(
-        func.lower(UserProfile.display_name) == candidate.lower()
-    )
+    skeleton = display_name_skeleton(candidate)
+    same = UserProfile.display_name_key == key
+    if skeleton:
+        same = or_(same, UserProfile.display_name_skeleton == skeleton)
+    stmt = select(UserProfile.user_id).where(same).limit(1)
     if exclude_user_id is not None:
         stmt = stmt.where(UserProfile.user_id != exclude_user_id)
-    return (await db.execute(stmt)).scalar_one_or_none() is not None
+    return (await db.execute(stmt)).first() is not None
+
+
+def _refused_even_if_stored(profile: UserProfile, name: str, *, must_set: bool, is_admin: bool) -> str | None:
+    """The refusals that hold before « same as now »: a name still owed cannot be
+    the placeholder or the name an admin reset, nor look like them; a reserved
+    name or anyone's provisional pseudo cannot be kept from an older path."""
+    if must_set:
+        if _same_name(name, profile.display_name or ""):
+            return dn.PREVIOUS if profile.display_name_changed_at else dn.GENERATED
+        if any(_same_name(name, generate_pseudo(profile.user_id, lang)) for lang in ("fr", "en")):
+            return dn.GENERATED
+    if not is_admin and is_reserved_display_name(name):
+        return dn.RESERVED
+    if looks_provisional(name):
+        return dn.GENERATED
+    return None
 
 
 async def judge_display_name(
@@ -159,26 +192,16 @@ async def judge_display_name(
 ) -> str:
     """Verdict on ``name`` (as ``clean_display_name`` returns it) for ``profile``:
     ``current`` or ``free`` when it may be kept or taken, else the refusal.
-
-    A member who still owes a name (first login, or reset by an admin) cannot
-    confirm the stored one, nor anything that looks like it: it is the random
-    placeholder or the name the admin reset. The reserved check runs before
-    « same as now », so a reserved name stored by an older path cannot be kept.
-    """
+    The refusals of ``_refused_even_if_stored`` run before « same as now »."""
     if not name or hides_text(name) or not has_ink(name):
         return dn.INVALID
     is_admin = profile.role == ROLE_ADMIN
     # An admin never owes a public name: the flag is masked for them everywhere.
     must_set = bool(profile.display_name_must_set) and not is_admin
-    stored = profile.display_name or ""
-    if must_set:
-        if _same_name(name, stored):
-            return dn.PREVIOUS if profile.display_name_changed_at else dn.GENERATED
-        if any(_same_name(name, generate_pseudo(profile.user_id, lang)) for lang in ("fr", "en")):
-            return dn.GENERATED
-    if not is_admin and is_reserved_display_name(name):
-        return dn.RESERVED
-    if name.lower() == stored.lower():
+    refusal = _refused_even_if_stored(profile, name, must_set=must_set, is_admin=is_admin)
+    if refusal:
+        return refusal
+    if display_name_key(name) == display_name_key(profile.display_name or ""):
         return dn.CURRENT
     if visible_length(name) < min_length(name):
         return dn.TOO_SHORT

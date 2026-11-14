@@ -6,16 +6,24 @@ from sqlalchemy import (
     Column,
     DateTime,
     ForeignKey,
+    Index,
     Integer,
     String,
     Text,
+    event,
 )
 
 from models.base import Base
+from services.portal.admin_users_constants import ROLE_ADMIN
+from services.portal.display_name_text import display_name_key, display_name_skeleton
 
 
 class UserProfile(Base):
     __tablename__ = "user_profiles"
+    __table_args__ = (
+        Index("uq_user_profiles_display_name_key", "display_name_key", unique=True),
+        Index("ix_user_profiles_display_name_skeleton", "display_name_skeleton"),
+    )
 
     id              = Column(Integer, primary_key=True, index=True)
     user_id         = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"),
@@ -26,6 +34,11 @@ class UserProfile(Base):
     bio             = Column(Text, nullable=True)
     display_name_must_set = Column(Boolean, server_default="true", nullable=False)
     display_name_changed_at = Column(DateTime(timezone=True), nullable=True)
+    # What a chosen name reads as, for « taken » (migration 072): its key is unique.
+    # Filled by ``_fill_display_name_columns``, empty for admins and members who
+    # still owe a name.
+    display_name_key = Column(Text, nullable=True)
+    display_name_skeleton = Column(Text, nullable=True)
     # Empty until the first-login wizard is finished (migration 070).
     onboarding_completed_at = Column(DateTime(timezone=True), nullable=True)
     favorite_genres = Column(JSON, nullable=True)
@@ -73,3 +86,14 @@ class UserProfile(Base):
     updated_at      = Column(DateTime(timezone=True),
                              default=lambda: datetime.now(timezone.utc),
                              onupdate=lambda: datetime.now(timezone.utc))
+
+
+@event.listens_for(UserProfile, "before_insert")
+@event.listens_for(UserProfile, "before_update")
+def _fill_display_name_columns(_mapper, _connection, profile: UserProfile) -> None:
+    """Keep the comparison columns in step with the name, the flag and the role, in
+    every process that writes a profile. An unset flag is the server default: true."""
+    chosen = profile.display_name_must_set is False and profile.role != ROLE_ADMIN
+    name = (profile.display_name or "") if chosen else ""
+    profile.display_name_key = display_name_key(name) or None
+    profile.display_name_skeleton = display_name_skeleton(name) or None

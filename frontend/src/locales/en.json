@@ -2354,6 +2354,7 @@
         "already_deleted": "This account is already deleted.",
         "not_deleted": "This account is not deleted.",
         "display_name_empty": "Display name cannot be empty.",
+        "display_name_taken": "This display name, or one that looks like it, is already used by another member.",
         "invalid_role": "Invalid role.",
         "invalid_months": "Invalid month count (1 to 60).",
         "no_target": "No target selected.",

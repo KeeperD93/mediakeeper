@@ -23,7 +23,7 @@ utilisateurs.
 - Jours d'affilée et Régulier — dès 5 min regardées ; musique et livres audio exclus.
 - Trophées secrets — nom et icône visibles, description et progression cachées jusqu'au déblocage.
 - Quoi de neuf aujourd'hui ? — refondu : actualités en tête, vue compacte, alerte d'expiration, « Pour vous », nouvelle version.
-- Pseudos — mots réservés et imitations refusés, 3 caractères (2 en chinois ou coréen).
+- Pseudos — mots réservés, imitations et formes de pseudo provisoire refusés, 3 caractères (2 en chinois ou coréen).
 
 ### Fixed
 - Aide — six guides réécrits : demandes, quotas, pseudo, XP, classement, événements.
@@ -51,6 +51,8 @@ utilisateurs.
 - Événements — plus d'erreur en répondant à l'invitation d'un organisateur supprimé.
 - Pseudos — un pseudo devenu refusé se change aussitôt, sans attendre six mois.
 - Quoi de neuf aujourd'hui ? — nouveau pseudo, avatar, titre ou profil privé pris en compte aussitôt.
+- Pseudos — « déjà pris » repère accents, majuscules et sosies ; un doublon existant est à rechoisir.
+- Pseudos — tester un pseudo ne révèle plus le nom de connexion d'un administrateur.
 
 ### Removed
 - Fenêtre « Nouveautés » après une mise à jour — remplacée par « Quoi de neuf aujourd'hui ? ».

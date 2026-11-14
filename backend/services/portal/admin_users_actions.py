@@ -13,6 +13,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from models.user import User
 from models.portal.profile import UserProfile
 from services.emby.users import set_emby_user_enabled
+from services.portal.display_name_rules import is_display_name_taken, stored_name_refused
 
 from .admin_users_constants import (
     ACTION_USER_ACCESS_EXTENDED,
@@ -25,11 +26,24 @@ from .admin_users_constants import (
     ACTION_USER_ROLE_CHANGED,
     ERR_SELF_ACTION_FORBIDDEN,
     PERMISSION_KEYS,
+    ROLE_ADMIN,
     ROLE_PRESETS,
     ROLES,
 )
 from .admin_users_audit import record_audit
 from .admin_users_serialize import _aware, now_utc
+
+
+async def _owe_a_name_if_no_member_may_wear_it(db: AsyncSession, profile: UserProfile) -> None:
+    """A former admin keeps their name only if a member may wear it: an admin may
+    show a reserved name, or one another member shows, which the unique name key
+    would refuse at the save. Otherwise they pick a new one at the next visit."""
+    with db.no_autoflush:  # the role change must not reach the key before the check
+        taken = await is_display_name_taken(
+            db, profile.display_name or "", exclude_user_id=profile.user_id,
+        )
+    if taken or stored_name_refused(profile):
+        profile.display_name_must_set = True
 
 
 def _apply_role_preset(profile: UserProfile, role: str) -> None:
@@ -54,6 +68,8 @@ async def update_role(
         return {"error": "invalid_role"}
     previous = profile.role
     _apply_role_preset(profile, role)
+    if previous == ROLE_ADMIN and role != ROLE_ADMIN:
+        await _owe_a_name_if_no_member_may_wear_it(db, profile)
     db.add(profile)
     await record_audit(
         db,

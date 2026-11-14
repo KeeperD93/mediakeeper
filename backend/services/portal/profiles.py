@@ -2,12 +2,15 @@ import logging
 from datetime import datetime, timezone
 
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from constants import display_name as dn
+from core.security import is_backoffice_admin
 from models.portal.profile import UserProfile
 from models.user import User
 from services.portal import strip_tags_and_trim
+from services.portal._pseudo_words import generate_pseudo
 from services.portal._rank_tiers import tier_for_level
 from services.portal.admin_users_constants import ROLE_ADMIN, ROLE_VIEWER
 from services.portal.avatars import resolve_avatar_url
@@ -77,21 +80,19 @@ async def get_or_create_profile(
     if profile:
         return profile
 
-    base = user.username
-    is_admin = user.username == "admin"
-    unique_name = await resolve_unique_display_name(db, base, exclude_user_id=user.id)
+    is_admin = is_backoffice_admin(user.username)
     profile = UserProfile(
         user_id=user.id,
-        display_name=unique_name,
+        # A member never stores the sign-in name: a provisional pseudo until they
+        # pick one. The admin account shows as « Administrateur » and never picks.
+        display_name=user.username if is_admin else generate_pseudo(user.id, "fr"),
         role=ROLE_ADMIN if is_admin else ROLE_VIEWER,
-        # The admin account never needs to pick a public username — it is
-        # invisible in the leaderboard and not consultable as a profile.
         display_name_must_set=not is_admin,
     )
     db.add(profile)
     await db.commit()
     await db.refresh(profile)
-    logger.info("[PROFILE] Created profile for user=%s name=%s", user.username, unique_name)
+    logger.info("[PROFILE] Created profile for user_id=%s", user.id)
     return profile
 
 
@@ -199,7 +200,15 @@ async def update_profile(
         setattr(profile, key, value)
 
     db.add(profile)
-    await db.commit()
+    try:
+        await db.commit()
+    except IntegrityError as exc:
+        # Another member saved the same name between the check and this save:
+        # the unique name key keeps it to the first.
+        await db.rollback()
+        raise HTTPException(
+            status_code=dn.REFUSAL_STATUS[dn.TAKEN], detail=f"display_name_{dn.TAKEN}",
+        ) from exc
     await db.refresh(profile)
     return profile
 
