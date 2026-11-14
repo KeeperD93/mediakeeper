@@ -120,8 +120,9 @@ def _is_edge(ch: str) -> bool:
 
 
 def _trim_edges(text: str) -> str:
-    """``text`` without the spaces and byte-order marks at its ends, in one scan from
-    each end: a pattern for the end run is quadratic on a long run inside the text."""
+    """``text`` without the spaces and byte-order marks at its ends: one scan from
+    each end stays linear, where a pattern anchored to the end can backtrack
+    quadratically on a long run of spaces inside the text."""
     start, end = 0, len(text)
     while start < end and _is_edge(text[start]):
         start += 1
@@ -132,7 +133,7 @@ def _trim_edges(text: str) -> str:
 
 def clean_display_name(raw: str | None) -> str:
     """A submitted name as it is judged and stored: tags stripped, clipped, and
-    trimmed of spaces and byte-order marks, as the browser trims it."""
+    trimmed of spaces and byte-order marks at both ends."""
     return _trim_edges(strip_tags_and_trim(raw, max_len=dn.MAX_LENGTH))
 
 

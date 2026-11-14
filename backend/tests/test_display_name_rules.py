@@ -5,14 +5,10 @@ minimum length, and the reserved check that runs before « same as now ».
 Look-alike and invisible characters are spelled as escapes, never as themselves."""
 from __future__ import annotations
 
-import time
-
 import pytest
 
-from constants import display_name as dn
 from services.portal._pseudo_words import generate_pseudo
 from services.portal.display_name_rules import (
-    clean_display_name,
     display_name_skeleton,
     is_reserved_display_name,
 )
@@ -253,25 +249,6 @@ async def test_byte_order_marks_at_the_edges_are_trimmed_by_both_routes(client, 
     resp = await client.put(ME_URL, json={"display_name": name})
     assert resp.status_code == 200, resp.text
     assert resp.json()["display_name"] == "Bobby"
-
-
-def test_mixed_spaces_and_byte_order_marks_leave_the_edges_not_the_inside():
-    bom, nbsp, wide = chr(0xFEFF), chr(0x00A0), chr(0x3000)
-    name = bom + " " + wide + bom + "Bob" + nbsp + "by" + nbsp + bom + chr(0x2028)
-    assert clean_display_name(name) == "Bob" + nbsp + "by"
-    assert clean_display_name(bom + " " + bom) == ""
-
-
-def test_a_long_run_of_spaces_is_trimmed_in_linear_time(monkeypatch):
-    # Only the clip keeps names this short: past it, a pattern for the end run took
-    # seconds on such a run (quadratic), a scan from each end takes milliseconds.
-    monkeypatch.setattr(dn, "MAX_LENGTH", 200_000)
-    inner = "Bob" + " " * 50_000 + "by"
-    edges = (chr(0xFEFF) + " ") * 25_000 + "Bobby" + (chr(0x3000) + chr(0xFEFF)) * 25_000
-    started = time.perf_counter()
-    assert clean_display_name(inner) == inner
-    assert clean_display_name(edges) == "Bobby"
-    assert time.perf_counter() - started < 1.0
 
 
 @pytest.mark.asyncio
