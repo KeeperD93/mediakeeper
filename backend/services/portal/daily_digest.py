@@ -54,6 +54,12 @@ _MAX_LOOKBACK_DAYS = 30
 # of the key because the payload re-resolves media titles/synopsis per viewer
 # locale; a lang-agnostic key would serve the first-cached language to all.
 _digest_cache: dict[tuple[int, str, str], tuple[float, dict]] = {}
+# Moved by every drop: a payload built across a drop holds the old data, it is not cached.
+_cache_generation = 0
+# What a member's podium row shows the other readers: a change drops every payload.
+PODIUM_FIELDS = (
+    "display_name", "is_public", "avatar_url", "avatar_custom_path", "avatar_effect", "selected_title",
+)
 
 
 async def _today_iso(db: AsyncSession) -> str:
@@ -81,9 +87,20 @@ def _cache_set(user_id: int, date_iso: str, lang: str, payload: dict) -> None:
 def invalidate_cache(user_id: int) -> None:
     """Drop cached payload for a user (used on dismiss so reopens don't
     keep serving stale content)."""
+    global _cache_generation
+    _cache_generation += 1
     for key in list(_digest_cache.keys()):
         if key[0] == user_id:
             _digest_cache.pop(key, None)
+
+
+def clear_cache() -> None:
+    """Drop every cached payload: something a member shows the others changed
+    (name, visibility, avatar, avatar effect, title), and any reader's podium
+    may show them."""
+    global _cache_generation
+    _cache_generation += 1
+    _digest_cache.clear()
 
 
 async def _load_prefs(db: AsyncSession, user_id: int, *, lock_row: bool = False) -> dict:
@@ -212,6 +229,7 @@ async def build_digest(
     explicitly asks for a fresh view. ``release`` is the current Portal version
     as its changelog describes it, read by the caller.
     """
+    generation = _cache_generation
     now = datetime.now(timezone.utc)
     zone = await get_instance_zone(db)
     date_iso = to_local(now, zone).date().isoformat()
@@ -265,7 +283,8 @@ async def build_digest(
         "streak": streak,
         "next_achievement": next_ach,
     }
-    _cache_set(user.id, date_iso, lang, payload)
+    if generation == _cache_generation:
+        _cache_set(user.id, date_iso, lang, payload)
     return payload
 
 

@@ -14,13 +14,18 @@ This section intentionally has no date so it is not shown to users.
 
 ## [Unreleased]
 
+### Added
+- Help — starter articles also in English.
+
 ### Changed
 - Branding — new logo and banner, app icons redone.
 - Days in a row and Regular — from 5 min watched; music and audiobooks left out.
 - Secret trophies — name and icon shown, description and progress hidden until unlocked.
 - Today's digest — redesigned: news first, compact view, expiry notice, "For you", new version.
+- Usernames — reserved words, look-alikes and provisional-pseudo shapes refused, 3 characters (2 in Chinese or Korean).
 
 ### Fixed
+- Help — six guides rewritten: requests, quotas, username, XP, leaderboard, events.
 - XP bar — same percentage in today's digest and the profile.
 - Notifications — bar lasts as long as the message, full message on small phones.
 - Issues — ticket dates: colons placed right in English and French.
@@ -45,6 +50,10 @@ This section intentionally has no date so it is not shown to users.
 - Requests — "Requested by" shows the display name, no longer the sign-in name ("you" for your own requests).
 - Events — the display name replaces the sign-in name (guests, host, notifications).
 - Events — replying to an invitation from a deleted host no longer fails.
+- Usernames — a username the rules now refuse can be changed at once, without the six-month wait.
+- Today's digest — a new username, avatar, title or a private profile shows at once.
+- Usernames — "taken" spots accents, capitals and look-alikes; an existing duplicate or refused username is chosen again.
+- Usernames — trying a username no longer reveals an administrator's sign-in name.
 
 ### Removed
 - "What's new" window after an update — replaced by today's digest.

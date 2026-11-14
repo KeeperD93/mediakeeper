@@ -78,38 +78,50 @@ describe('ForceUsernameModal — focus trap integration', () => {
     w.unmount()
   })
 
-  it('opens empty when no initial pseudo is provided (back-compat)', async () => {
+  it('opens empty: the stored name can no longer be confirmed', async () => {
     const w = buildModal()
     await flushPromises()
     expect(w.get('#pt-force-uname-input').element.value).toBe('')
+    expect(apiGet).not.toHaveBeenCalled()
     w.unmount()
   })
 
-  it('pre-fills the generated pseudo (silent account never shows an Emby login)', async () => {
-    const w = buildModal({ initial: 'Renard-Bleu-42' })
-    await flushPromises()
-    expect(w.get('#pt-force-uname-input').element.value).toBe('Renard-Bleu-42')
-    w.unmount()
-  })
-
-  it('pre-filled pseudo is savable (reason=current) and confirm keeps it', async () => {
-    apiGet.mockResolvedValue({ available: true, reason: 'current' })
-    updateProfile.mockResolvedValue({})
-
-    const w = buildModal({ initial: 'Renard-Bleu-42' })
-    await flushPromises()
-    // Wait out the 300ms check-username debounce that arm() armed.
+  async function typeAndCheck(w, value) {
+    await w.get('#pt-force-uname-input').setValue(value)
+    // Wait out the 300ms check-username debounce.
     await new Promise(resolve => setTimeout(resolve, 350))
     await flushPromises()
-    expect(apiGet).toHaveBeenCalledWith(expect.stringContaining('Renard-Bleu-42'))
+  }
 
-    const btn = w.get('.pt-settings-btn--primary')
-    expect(btn.attributes('disabled')).toBeUndefined()
-
-    await btn.trigger('click')
+  it('says why a name is refused and keeps the button off', async () => {
+    apiGet.mockResolvedValue({ available: false, reason: 'generated', suggestions: [] })
+    const w = buildModal()
     await flushPromises()
-    expect(updateProfile).toHaveBeenCalledWith({ display_name: 'Renard-Bleu-42' })
-    expect(w.emitted('done')).toBeTruthy()
+
+    await typeAndCheck(w, 'Test Owl 42')
+
+    const flag = w.get('.pt-settings-uname-flag')
+    expect(flag.text()).toBe('portal.settings.identity.usernameGenerated')
+    expect(flag.classes()).toContain('pt-settings-uname-flag--err')
+    expect(w.get('.pt-settings-btn--primary').attributes('disabled')).toBeDefined()
+    w.unmount()
+  })
+
+  it('saves a free name, and shows the reason when the save refuses it', async () => {
+    apiGet.mockResolvedValue({ available: true, reason: 'free', suggestions: [] })
+    updateProfile.mockRejectedValueOnce(new Error('display_name_reserved'))
+    const w = buildModal()
+    await flushPromises()
+
+    await typeAndCheck(w, 'Alice')
+    await w.get('.pt-settings-btn--primary').trigger('click')
+    await flushPromises()
+
+    expect(updateProfile).toHaveBeenCalledWith({ display_name: 'Alice' })
+    expect(w.get('.pt-settings-uname-flag').text()).toBe(
+      'portal.settings.identity.usernameReserved',
+    )
+    expect(w.emitted('done')).toBeFalsy()
     w.unmount()
   })
 })

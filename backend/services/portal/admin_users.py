@@ -17,16 +17,20 @@ from datetime import timedelta
 from typing import Any
 
 from sqlalchemy import select, func, or_, and_
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from models.user import User
 from models.portal.profile import UserProfile
 
+from services.portal import daily_digest as dd_svc
+from services.portal.display_name_rules import is_display_name_taken
 from services.portal.requests_quota import get_user_quota
 from .admin_users_audit import record_audit
 from .admin_users_constants import (
     ACCESS_EXPIRY_WARNING_DAYS,
     ACTION_USER_UPDATED_IDENTITY,
+    ROLE_ADMIN,
 )
 from .admin_users_serialize import (
     now_utc,
@@ -237,7 +241,9 @@ async def update_user_identity(
     """Admin-only update of the editable identity fields.
 
     Display name skips the 6-month rename cooldown enforced on the
-    user-facing endpoint — admins can rename anyone at any time.
+    user-facing endpoint — admins can rename anyone at any time — but not
+    the one-name-per-member rule: a name another member shows, or one that
+    reads the same, is refused (``display_name_taken``).
 
     Returns the freshly persisted user detail so the caller can rehydrate
     its local state without waiting for a follow-up GET round-trip.
@@ -248,6 +254,10 @@ async def update_user_identity(
         if not new_name:
             return {"error": "display_name_empty"}
         if new_name != (profile.display_name or ''):
+            if profile.role != ROLE_ADMIN and await is_display_name_taken(
+                db, new_name, exclude_user_id=profile.user_id,
+            ):
+                return {"error": "display_name_taken"}
             changed["display_name"] = new_name
             profile.display_name = new_name
             profile.display_name_must_set = False
@@ -279,8 +289,15 @@ async def update_user_identity(
             user_agent=user_agent,
             commit=False,
         )
-        await db.commit()
+        try:
+            await db.commit()
+        except IntegrityError:
+            # A member saved the same name after the check: the unique key keeps it.
+            await db.rollback()
+            return {"error": "display_name_taken"}
         await db.refresh(profile)
+        if "display_name" in changed:
+            dd_svc.clear_cache()  # the digest podiums show the name
     return {
         "ok": True,
         "changed": changed,

@@ -49,6 +49,7 @@ def _profile_to_dict(profile: UserProfile) -> dict[str, Any]:
         "display_name": profile.display_name,
         "display_name_must_set": profile.display_name_must_set,
         "display_name_changed_at": _iso(profile.display_name_changed_at),
+        "onboarding_completed_at": _iso(profile.onboarding_completed_at),
         "avatar_url": profile.avatar_url,
         "avatar_custom_path": profile.avatar_custom_path,
         "bio": profile.bio,

@@ -87,16 +87,21 @@ HELP_MISC: list[dict] = [
         "fr": {
             "title": "Le calendrier et la création d'événements",
             "body_html": """
-<p>Le bouton <strong>Calendrier</strong> dans la barre du haut ouvre le panneau des <strong>événements</strong> — soirées de visionnage, marathons saisonniers, watch parties.</p>
-<p><strong>Ce que tu peux y faire :</strong></p>
-<ul>
-  <li><strong>Voir</strong> les événements à venir auxquels tu es invité.</li>
-  <li><strong>Rejoindre</strong> un événement public en un clic.</li>
-  <li><strong>Créer</strong> ton propre événement : choisis un titre, une date/heure, le contenu (film ou série), invite des participants, ajoute une description.</li>
-  <li><strong>Discuter</strong> dans le chat dédié à chaque événement (avant, pendant et après le visionnage).</li>
-</ul>
-<p><strong>Bonus XP :</strong> participer à un événement te donne <strong>+15 XP</strong>, et certains trophées récompensent l'organisation ou la participation à plusieurs événements dans le mois.</p>
-<p>Tu peux annuler un événement que tu as créé tant qu'il n'a pas commencé. Une notification est alors envoyée à tous les participants.</p>
+<p>Les <strong>événements</strong> sont des séances de visionnage entre membres : un film, une série ou plusieurs titres à la suite (un marathon), à une date et une heure fixées.</p>
+<p><strong>Trouver le calendrier :</strong> touche l'icône de calendrier dans la barre du haut. Sur téléphone, ouvre le menu de ton avatar puis <strong>« Calendrier »</strong>. La liste <strong>« Prochains événements »</strong> montre ceux où tu es invité, ceux que tu as créés et tous les événements publics.</p>
+<p><strong>Répondre :</strong> touche un événement pour l'ouvrir, puis <strong>« Accepter »</strong> ou <strong>« Refuser »</strong>. Une fois inscrit, tu peux <strong>« Se désinscrire »</strong>. Un événement public plein affiche <em>« Complet »</em>.</p>
+<p><strong>Créer un événement :</strong></p>
+<ol>
+  <li>Touche le bouton rond <strong>« + »</strong> en bas à droite, puis l'icône <strong>« Créer un événement »</strong>.</li>
+  <li>Choisis <strong>Privé</strong> (sur invitation) ou <strong>Public</strong> (ouvert à tous).</li>
+  <li>Donne un <strong>titre</strong>, cherche un ou plusieurs <strong>films ou séries</strong> déjà disponibles, puis choisis la <strong>date</strong> et l'<strong>heure</strong>.</li>
+  <li>Pour un événement privé, ajoute tes <strong>invités</strong> : seuls les membres au profil public peuvent l'être. Pour un événement public, choisis le <strong>nombre de places</strong>. Tu peux ajouter un <strong>commentaire</strong>.</li>
+  <li>Touche <strong>« Créer »</strong>.</li>
+</ol>
+<p><strong>Le moment venu :</strong> 15 minutes avant le début, le bouton <strong>« Entrer dans la salle »</strong> apparaît pour les inscrits. La salle s'ouvre dans un nouvel onglet : tu y retrouves les autres participants, le bouton pour lancer le film et le <strong>« Chat de la salle »</strong>.</p>
+<p><strong>Annuler :</strong> si tu as créé l'événement, ouvre-le et touche <strong>« Annuler l'événement »</strong>.</p>
+<p><strong>Notifications</strong> (la cloche) : tu es prévenu quand on t'invite, quand un invité répond à ton événement, quand un événement auquel tu es inscrit est annulé, ou si l'organisateur te retire. Un événement public est annoncé à tous les membres.</p>
+<p>Participer ne rapporte pas d'XP en plus (le film regardé compte comme d'habitude). Créer des événements fait avancer les trophées <strong>« Organisateur »</strong>.</p>
 """.strip(),
         },
     },

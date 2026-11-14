@@ -257,7 +257,7 @@ async def lifespan(app: FastAPI):
 
     try:
         from core.database import AsyncSessionLocal
-        from services.portal.help import ensure_seed as ensure_help_seed
+        from services.portal.help_seed import ensure_seed as ensure_help_seed
         logger.info("[STARTUP] Seeding help articles...")
         async with AsyncSessionLocal() as seed_db:
             created = await ensure_help_seed(seed_db)

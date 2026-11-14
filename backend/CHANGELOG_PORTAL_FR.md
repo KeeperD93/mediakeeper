@@ -16,13 +16,18 @@ utilisateurs.
 
 ## [Unreleased]
 
+### Added
+- Aide — articles de départ aussi en anglais.
+
 ### Changed
 - Identité visuelle — nouveau logo et nouvelle bannière, icônes de l'application refaites.
 - Jours d'affilée et Régulier — dès 5 min regardées ; musique et livres audio exclus.
 - Trophées secrets — nom et icône visibles, description et progression cachées jusqu'au déblocage.
 - Quoi de neuf aujourd'hui ? — refondu : actualités en tête, vue compacte, alerte d'expiration, « Pour vous », nouvelle version.
+- Pseudos — mots réservés, imitations et formes de pseudo provisoire refusés, 3 caractères (2 en chinois ou coréen).
 
 ### Fixed
+- Aide — six guides réécrits : demandes, quotas, pseudo, XP, classement, événements.
 - Barre d'XP — même pourcentage dans le résumé du jour et le profil.
 - Notifications — barre à la bonne durée, message entier sur petits téléphones.
 - Problèmes — dates du ticket : deux-points à la bonne place en français et en anglais.
@@ -47,6 +52,10 @@ utilisateurs.
 - Demandes — « Demandé par » affiche le pseudo, plus le nom de connexion (« vous » pour vos demandes).
 - Événements — le pseudo remplace le nom de connexion (invités, créateur, notifications).
 - Événements — plus d'erreur en répondant à l'invitation d'un organisateur supprimé.
+- Pseudos — un pseudo devenu refusé se change aussitôt, sans attendre six mois.
+- Quoi de neuf aujourd'hui ? — nouveau pseudo, avatar, titre ou profil privé pris en compte aussitôt.
+- Pseudos — « déjà pris » repère accents, majuscules et sosies ; un doublon ou un pseudo refusé existant est à rechoisir.
+- Pseudos — tester un pseudo ne révèle plus le nom de connexion d'un administrateur.
 
 ### Removed
 - Fenêtre « Nouveautés » après une mise à jour — remplacée par « Quoi de neuf aujourd'hui ? ».

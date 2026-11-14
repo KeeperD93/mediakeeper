@@ -199,7 +199,8 @@ async def test_an_unlinked_account_goes_by_its_login_only(db_session):
     local, profile = await make_portal_user(
         db_session, username="Dana", display_name="Bob", emby_user_id=None,
     )
-    await make_portal_user(db_session, username="Bob", emby_user_id="emby-bob")
+    # Its own public name: « Bob » is Dana's, and a chosen name belongs to one member.
+    await make_portal_user(db_session, username="Bob", display_name="Robert", emby_user_id="emby-bob")
     _play(db_session, "emby-bob", "Bob", "bobs")
     _play(db_session, "emby-bob", "Dana", "bob-renamed-dana", CHRISTMAS + timedelta(days=1))
     _play(db_session, "emby-nobody", "Dana", "unlinked-account", CHRISTMAS + timedelta(days=2))

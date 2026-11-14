@@ -134,6 +134,7 @@ import { Trash2, Upload } from 'lucide-vue-next'
 import MkAvatar from '@/components/common/MkAvatar.vue'
 import AvatarFrame from '@/components/portal/common/AvatarFrame.vue'
 import { useToast } from '@/composables/useToast'
+import { DISPLAY_NAME_FLAGS } from '@/constants/displayName'
 import { TOAST_TYPE } from '@/constants/toast'
 
 const props = defineProps({
@@ -191,44 +192,13 @@ const unameFlag = computed(() => {
       text: t('portal.settings.forceUsername.checking'),
     }
   }
-  if (c.reason === 'current') {
-    return {
-      show: true,
-      cls: 'pt-settings-uname-flag--warn',
-      text: t('portal.settings.identity.usernameCurrent'),
-    }
+  const flag = DISPLAY_NAME_FLAGS[c.reason]
+  if (!flag) return { show: false }
+  return {
+    show: true,
+    cls: `pt-settings-uname-flag--${flag.tone}`,
+    text: t(flag.key, { days: props.usernameState?.lock_days || 180 }),
   }
-  if (c.reason === 'free') {
-    return {
-      show: true,
-      cls: 'pt-settings-uname-flag--ok',
-      text: t('portal.settings.identity.usernameAvailable'),
-    }
-  }
-  if (c.reason === 'taken') {
-    return {
-      show: true,
-      cls: 'pt-settings-uname-flag--err',
-      text: t('portal.settings.identity.usernameTaken'),
-    }
-  }
-  if (c.reason === 'reserved') {
-    return {
-      show: true,
-      cls: 'pt-settings-uname-flag--err',
-      text: t('portal.settings.identity.usernameReserved'),
-    }
-  }
-  if (c.reason === 'locked') {
-    return {
-      show: true,
-      cls: 'pt-settings-uname-flag--err',
-      text: t('portal.settings.identity.usernameLockedShort', {
-        days: props.usernameState?.lock_days || 180,
-      }),
-    }
-  }
-  return { show: false }
 })
 
 function updateField(key, value) {

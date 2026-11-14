@@ -2354,6 +2354,7 @@
         "already_deleted": "This account is already deleted.",
         "not_deleted": "This account is not deleted.",
         "display_name_empty": "Display name cannot be empty.",
+        "display_name_taken": "This display name, or one that looks like it, is already used by another member.",
         "invalid_role": "Invalid role.",
         "invalid_months": "Invalid month count (1 to 60).",
         "no_target": "No target selected.",
@@ -3904,6 +3905,9 @@
         "usernameLocked": "Editable on {date}",
         "usernameLockedShort": "Locked for {days} more day(s)",
         "usernameReserved": "Reserved username",
+        "usernameTooShort": "3 characters minimum",
+        "usernameGenerated": "Temporary username: choose your own",
+        "usernamePrevious": "Reset username: choose another one",
         "usernameTakenSuggestion": "Already taken. Suggestions:",
         "usernameImposedHint": "Provisional username. You can change it now without waiting.",
         "adminPreviewBanner": "Admin preview — your profile is not visible to other users.",
@@ -3962,10 +3966,7 @@
         "save": "Confirm",
         "saving": "Saving…",
         "tooShort": "3 characters minimum",
-        "tooLong": "50 characters max",
-        "checking": "Checking…",
-        "available": "Available",
-        "taken": "Already taken"
+        "checking": "Checking…"
       },
       "share": {
         "copy": "Copy link",

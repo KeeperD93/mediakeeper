@@ -7,9 +7,9 @@ from __future__ import annotations
 
 import pytest
 
+from services.portal.display_name_rules import is_display_name_locked
 from services.portal.profiles import (
     DISPLAY_NAME_LOCK_DAYS,
-    is_display_name_locked,
     resolve_unique_display_name,
 )
 from tests._portal_profile_helpers import (
@@ -112,23 +112,6 @@ async def test_put_me_rejects_collision_with_409(client, db_session):
     resp = await client.put("/api/portal/profiles/me", json={"display_name": "taken"})
     assert resp.status_code == 409
     assert resp.json()["detail"] == "display_name_taken"
-
-
-@pytest.mark.asyncio
-async def test_put_me_same_name_clears_must_set_on_first_login(client, db_session):
-    """A user who validates the modal with their current (auto-imported)
-    Emby username must have ``must_set`` cleared too — otherwise the
-    blocking modal reappears on the next login forever."""
-    user, _ = await make_portal_user(
-        db_session, username="alice", display_name="alice", must_set=True,
-    )
-    client.cookies.set(PORTAL_COOKIE, portal_token(user.username))
-
-    resp = await client.put("/api/portal/profiles/me", json={"display_name": "alice"})
-    assert resp.status_code == 200
-    body = resp.json()
-    assert body["display_name_must_set"] is False
-    assert body["display_name_changed_at"] is not None
 
 
 @pytest.mark.asyncio
