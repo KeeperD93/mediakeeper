@@ -23,6 +23,8 @@ export const DEFAULT_VIEWER_PROFILE = Object.freeze({
   chat_enabled: false,
   has_backoffice_access: false,
   display_name_must_set: false,
+  // The first-login wizard is done: the pages under test are not hidden behind it.
+  onboarding_pending: false,
   hide_adult: true,
   is_public: true,
   bio: '',

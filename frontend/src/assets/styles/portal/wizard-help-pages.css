@@ -1,0 +1,265 @@
+/* First-login wizard, « Aides » step: reduced portal pages (home banner, results,
+   posters) and the made-up artwork of the test titles. Prefix wzh-pv-, as in
+   wizard-help-screens.css. */
+
+/* Home banner */
+.wzh-pv-art {
+  position: absolute;
+  inset: 0;
+  background: var(--portal-demo-backdrop);
+}
+
+.wzh-pv-art::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--portal-demo-backdrop-veil);
+}
+
+.wzh-pv-hero {
+  position: absolute;
+  bottom: calc(var(--portal-space-6) + var(--portal-space-5));
+  left: var(--portal-space-6);
+  width: var(--portal-demo-dialog-w);
+}
+
+.wzh-pv-hero-t {
+  margin-bottom: var(--portal-space-2);
+  font-size: var(--portal-text-3xl);
+  font-weight: var(--portal-font-black);
+  line-height: var(--portal-lh-display);
+  text-shadow: var(--portal-demo-text-shadow);
+}
+
+.wzh-pv-rank {
+  display: flex;
+  align-items: center;
+  gap: var(--portal-space-1-5);
+  margin-bottom: var(--portal-space-2);
+  color: var(--portal-text-body);
+  font-size: var(--portal-text-sm);
+  font-weight: var(--portal-font-bold);
+}
+
+.wzh-pv-rank svg {
+  color: var(--portal-color-highlight);
+}
+
+.wzh-pv-ov {
+  margin-bottom: var(--portal-space-3-5);
+  color: var(--portal-text-body-muted);
+  font-size: var(--portal-text-sm);
+  line-height: var(--portal-lh-normal);
+}
+
+.wzh-pv-acts {
+  display: flex;
+  align-items: center;
+  gap: var(--portal-space-2);
+}
+
+.wzh-pv-hbtn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--portal-space-1-5);
+  padding: var(--portal-space-2) var(--portal-space-5);
+  border-radius: var(--portal-radius-xs);
+  background: var(--portal-hero-btn-secondary-bg);
+  color: var(--portal-text-primary);
+  font-size: var(--portal-text-md);
+  font-weight: var(--portal-font-bold);
+  white-space: nowrap;
+}
+
+.wzh-pv-hbtn--play {
+  background: var(--portal-hero-btn-primary-bg);
+  color: var(--portal-hero-btn-primary-text);
+}
+
+.wzh-pv-hbtn--icon {
+  padding: var(--portal-space-2);
+}
+
+.wzh-pv-dots {
+  position: absolute;
+  right: 0;
+  bottom: var(--portal-space-4);
+  left: 0;
+  display: flex;
+  justify-content: center;
+  gap: var(--portal-space-1-5);
+}
+
+.wzh-pv-dots i {
+  width: var(--portal-space-1-5);
+  height: var(--portal-space-1-5);
+  border-radius: var(--portal-radius-circle);
+  background: var(--portal-hero-dot-bg);
+}
+
+.wzh-pv-dots i.is-on {
+  background: var(--portal-hero-dot-active-bg);
+}
+
+/* Pages and posters */
+.wzh-pv-page {
+  position: relative;
+  padding: var(--portal-space-5) var(--portal-space-6);
+}
+
+.wzh-pv-rowt {
+  margin-bottom: var(--portal-space-2);
+  font-size: var(--portal-text-lg);
+  font-weight: var(--portal-font-extrabold);
+}
+
+.wzh-pv-h1 {
+  font-size: var(--portal-text-xl);
+  font-weight: var(--portal-font-extrabold);
+}
+
+.wzh-pv-h1--page {
+  font-size: var(--portal-text-2xl);
+}
+
+.wzh-pv-sub {
+  margin: var(--portal-space-1) 0 var(--portal-space-4);
+  color: var(--portal-text-muted-solid);
+  font-size: var(--portal-text-sm);
+}
+
+.wzh-pv-sub--head {
+  margin-bottom: 0;
+}
+
+.wzh-pv-posters {
+  display: flex;
+  gap: var(--portal-space-3-5);
+}
+
+/* The poster box carries the cursor; its artwork alone is clipped. */
+.wzh-pv-poster {
+  position: relative;
+  flex: none;
+  width: var(--portal-demo-poster-w);
+  aspect-ratio: var(--portal-aspect-poster);
+}
+
+.wzh-pv-pa {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: flex-end;
+  padding: var(--portal-space-2);
+  overflow: clip;
+  border-radius: var(--portal-radius-lg);
+  box-shadow: var(--portal-shadow-md);
+  font-size: var(--portal-text-sm);
+  font-weight: var(--portal-font-extrabold);
+  line-height: var(--portal-lh-display);
+  text-shadow: var(--portal-demo-text-shadow);
+}
+
+.wzh-pv-panel {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  padding: var(--portal-space-2);
+  background: var(--portal-demo-poster-panel-bg);
+  font-weight: var(--portal-font-regular);
+  text-shadow: none;
+}
+
+.wzh-pv-panel-t {
+  font-size: var(--portal-text-sm);
+  font-weight: var(--portal-font-bold);
+  letter-spacing: var(--portal-tracking-tight);
+}
+
+.wzh-pv-panel-m {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--portal-space-1);
+  margin-top: var(--portal-space-0-5);
+  color: var(--portal-text-secondary);
+  font-family: var(--portal-font-mono);
+  font-size: var(--portal-text-3xs);
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.wzh-pv-star {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--portal-space-0-5);
+  color: var(--portal-color-rating);
+}
+
+.wzh-pv-star svg {
+  fill: currentcolor;
+}
+
+.wzh-pv-panel-a {
+  display: flex;
+  gap: var(--portal-space-1-5);
+  margin-top: var(--portal-space-2);
+}
+
+.wzh-pv-mkbtn,
+.wzh-pv-mkic {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: var(--portal-demo-control-sm);
+  border: var(--portal-border-width) solid var(--portal-border-intense);
+  border-radius: var(--portal-radius-sm);
+  background: var(--portal-surface-3);
+}
+
+.wzh-pv-mkbtn {
+  flex: 1;
+  gap: var(--portal-space-1-5);
+  font-size: var(--portal-text-3xs);
+  font-weight: var(--portal-font-bold);
+  letter-spacing: var(--portal-tracking-caps);
+}
+
+.wzh-pv-mkic {
+  flex: none;
+  width: var(--portal-demo-control-sm);
+  color: var(--portal-text-body-muted);
+}
+
+/* Made-up artwork of the test titles. */
+.wzh-pv-tint-blue {
+  background: var(--portal-demo-poster-blue);
+}
+
+.wzh-pv-tint-teal {
+  background: var(--portal-demo-poster-teal);
+}
+
+.wzh-pv-tint-pink {
+  background: var(--portal-demo-poster-pink);
+}
+
+.wzh-pv-tint-orange {
+  background: var(--portal-demo-poster-orange);
+}
+
+.wzh-pv-tint-violet {
+  background: var(--portal-demo-poster-violet);
+}
+
+.wzh-pv-tint-slate {
+  background: var(--portal-demo-poster-slate);
+}
+
+.wzh-pv-tint-amber {
+  background: var(--portal-demo-poster-amber);
+}

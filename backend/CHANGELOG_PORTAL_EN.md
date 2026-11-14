@@ -16,6 +16,7 @@ This section intentionally has no date so it is not shown to users.
 
 ### Added
 - Help — starter articles also in English.
+- First sign-in — step-by-step guide (username, profile, notifications, animated help).
 
 ### Changed
 - Branding — new logo and banner, app icons redone.

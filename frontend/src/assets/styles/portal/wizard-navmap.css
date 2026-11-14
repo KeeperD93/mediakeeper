@@ -1,0 +1,235 @@
+/* First-login wizard, features step (WizardNavMap.vue): where things are. From 640 px of
+ * window, the portal's top bar drawn at its real size then scaled down (--wz-s); below,
+ * a phone with its top bar, « + » button and bottom tabs. Classes start with wz-. */
+
+.wz-map {
+  padding: var(--portal-space-3-5) var(--portal-space-4) var(--portal-space-4);
+}
+.wz-map-desk {
+  display: none;
+}
+
+/* Top bar, desktop: same pieces as PortalNav, scaled to the card */
+.wz-nm-box {
+  --wz-s: 0.66;
+  position: relative;
+  width: calc(var(--portal-wizard-nav-width) * var(--wz-s));
+  height: calc(var(--portal-wizard-nav-height) * var(--wz-s));
+  overflow: hidden;
+  border-radius: var(--portal-radius-md);
+}
+.wz-nm {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--portal-space-1-5);
+  width: var(--portal-wizard-nav-width);
+  height: var(--portal-wizard-nav-height);
+  padding: 0 var(--portal-space-4-5);
+  box-sizing: border-box;
+  border-bottom: var(--portal-border-width) solid var(--portal-border-default);
+  background: var(--portal-wizard-nav-bg);
+  box-shadow: var(--portal-shadow-wizard-nav);
+  color: var(--portal-text-primary);
+  font-size: var(--portal-text-base);
+  transform: scale(var(--wz-s));
+  transform-origin: 0 0;
+}
+.wz-nm-brand {
+  display: flex;
+  align-items: center;
+  gap: var(--portal-space-1-5);
+  margin-right: var(--portal-space-2);
+  font-weight: var(--portal-font-extrabold);
+  white-space: nowrap;
+}
+.wz-nm-brand img {
+  width: var(--portal-wizard-nav-logo);
+  height: var(--portal-wizard-nav-logo);
+  object-fit: contain;
+}
+.wz-nm-tab {
+  padding: var(--portal-space-1-5) var(--portal-space-2-5);
+  border-radius: var(--portal-radius-pill);
+  font-size: var(--portal-text-xs);
+  font-weight: var(--portal-font-medium);
+  white-space: nowrap;
+  color: var(--portal-text-body-muted);
+}
+.wz-nm-tab.is-on {
+  background: linear-gradient(
+    135deg,
+    rgb(var(--portal-accent-500-rgb), 0.26),
+    var(--portal-surface-4)
+  );
+  box-shadow: inset 0 0 0 var(--portal-border-width) var(--portal-border-default);
+  color: var(--portal-text-primary);
+}
+.wz-nm-search {
+  display: flex;
+  align-items: center;
+  gap: var(--portal-space-2);
+  width: var(--portal-wizard-nav-search-width);
+  height: var(--portal-wizard-nav-search-height);
+  margin-right: var(--portal-space-1);
+  padding: 0 var(--portal-space-1) 0 var(--portal-space-3);
+  box-sizing: border-box;
+  border: var(--portal-border-width) solid var(--portal-border-default);
+  border-radius: var(--portal-radius-pill);
+  background: var(--portal-surface-3);
+  font-size: var(--portal-text-sm);
+  color: var(--portal-text-secondary);
+}
+.wz-nm-ph {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  color: var(--portal-text-muted);
+}
+.wz-nm-go {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--portal-wizard-nav-go);
+  height: var(--portal-wizard-nav-go);
+  border-radius: var(--portal-radius-pill);
+  background: linear-gradient(
+    135deg,
+    rgb(var(--portal-accent-500-rgb), 0.9),
+    rgb(var(--portal-accent-500-rgb), 0.68)
+  );
+  color: var(--portal-text-primary);
+  opacity: var(--portal-opacity-disabled);
+}
+.wz-nm-ic {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--portal-wizard-nav-icon);
+  height: var(--portal-wizard-nav-icon);
+  box-sizing: border-box;
+  border: var(--portal-border-width) solid var(--portal-border-default);
+  border-radius: var(--portal-radius-lg);
+  background: var(--portal-surface-3);
+  color: var(--portal-text-body-muted);
+}
+.wz-nm-ic--round {
+  border-radius: var(--portal-radius-circle);
+}
+.wz-nm-av {
+  display: flex;
+  align-items: center;
+  gap: var(--portal-space-0-5);
+  margin-left: var(--portal-space-0-5);
+  color: var(--portal-text-secondary);
+}
+
+/* Phone: top bar, « + », bottom tabs */
+.wz-mphone {
+  display: flex;
+  flex-direction: column;
+  gap: var(--portal-space-2);
+}
+.wz-mbar,
+.wz-mbottom {
+  border: var(--portal-border-width) solid var(--portal-border-default);
+  border-radius: var(--portal-radius-lg);
+  background: var(--portal-wizard-page-bg);
+}
+.wz-mbar {
+  display: flex;
+  align-items: center;
+  gap: var(--portal-space-1-5);
+  padding: var(--portal-space-2) var(--portal-space-2-5);
+}
+.wz-mbrand {
+  display: flex;
+  align-items: center;
+  gap: var(--portal-space-1-5);
+  margin-right: var(--portal-space-1-5);
+  font-family: var(--portal-font-display);
+  font-size: var(--portal-text-xs);
+  font-weight: var(--portal-font-extrabold);
+}
+.wz-mbrand img {
+  width: var(--portal-wizard-phone-logo);
+  height: var(--portal-wizard-phone-logo);
+  object-fit: contain;
+}
+.wz-mic {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--portal-wizard-phone-icon);
+  height: var(--portal-wizard-phone-icon);
+  border-radius: var(--portal-radius-md);
+  background: var(--portal-surface-2);
+  color: var(--portal-text-secondary-solid);
+}
+.wz-mphone .wz-av--md {
+  --wz-av-size: var(--portal-wizard-phone-avatar);
+}
+.wz-mfab {
+  align-self: flex-end;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--portal-wizard-phone-fab);
+  height: var(--portal-wizard-phone-fab);
+  border-radius: var(--portal-radius-circle);
+  background: linear-gradient(135deg, var(--portal-accent-500), var(--portal-accent));
+  box-shadow: var(--portal-shadow-accent);
+  color: var(--portal-text-primary-solid);
+}
+.wz-mbottom {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--portal-space-1);
+  padding: var(--portal-space-2) var(--portal-space-1-5);
+}
+.wz-mbt {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--portal-space-1);
+  font-size: var(--portal-text-3xs);
+  font-weight: var(--portal-font-medium);
+  text-align: center;
+  color: var(--portal-text-muted-solid);
+}
+.wz-mbt.is-on {
+  color: var(--portal-accent-200);
+}
+
+.wz-mlegend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--portal-space-1-5) var(--portal-space-3-5);
+  margin: var(--portal-space-2-5) 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--portal-text-xs);
+  color: var(--portal-text-muted-solid);
+}
+
+/* The scale keeps the drawn bar inside the card at the narrowest window of each step
+   (640 px: 534 px of card, 768 px: 638 px). */
+@container dd (min-width: 640px) {
+  .wz-map-desk {
+    display: block;
+  }
+  .wz-map-phone {
+    display: none;
+  }
+}
+@container dd (min-width: 768px) {
+  .wz-nm-box {
+    --wz-s: 0.79;
+  }
+}

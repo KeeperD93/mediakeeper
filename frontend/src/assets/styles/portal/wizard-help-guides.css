@@ -1,0 +1,125 @@
+/* First-login wizard, « Aides » step: « Autres guides », the Help Center articles
+   opened in place under their row. Prefix wzh-, as in wizard-help.css. */
+
+/* The two colours the Help Center's article body reads (links, quotes, code). */
+.wzh-guides {
+  --pt-help-c1: var(--portal-accent-500);
+  --pt-help-c2: var(--portal-accent-light);
+}
+
+.wzh-sh {
+  display: flex;
+  align-items: center;
+  margin: 0 0 var(--portal-space-3);
+}
+
+.wzh-st {
+  margin: 0;
+  color: var(--portal-text-muted-solid);
+  font-family: var(--portal-font-display);
+  font-size: var(--portal-text-xs);
+  font-weight: var(--portal-font-extrabold);
+  letter-spacing: var(--portal-tracking-eyebrow);
+  text-transform: uppercase;
+}
+
+.wzh-guides-card {
+  margin: 0;
+  padding: 0;
+  border: var(--portal-border-width) solid var(--portal-border-default);
+  border-radius: var(--portal-radius-xl);
+  background: var(--portal-surface-1);
+  list-style: none;
+}
+
+.wzh-guide + .wzh-guide {
+  border-top: var(--portal-border-width) solid var(--portal-border-subtle);
+}
+
+.wzh-guide-h {
+  margin: 0;
+  font: inherit;
+}
+
+.wzh-guide-btn {
+  display: flex;
+  align-items: center;
+  gap: var(--portal-space-3);
+  width: 100%;
+  min-height: calc(var(--portal-touch-target) + var(--portal-space-1));
+  padding: var(--portal-space-1-5) var(--portal-space-4);
+  border: none;
+  border-radius: var(--portal-radius-xl);
+  background: transparent;
+  color: var(--portal-text-secondary-solid);
+  font: inherit;
+  font-size: var(--portal-text-base);
+  text-align: left;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+@media (hover: hover) {
+  .wzh-guide-btn:hover {
+    color: var(--portal-text-primary-solid);
+  }
+}
+
+.wzh-guide-btn:focus-visible,
+.wzh-guide-retry:focus-visible {
+  outline: var(--portal-focus-ring);
+  outline-offset: var(--portal-focus-ring-offset);
+}
+
+.wzh-guide-ic {
+  flex: none;
+  color: var(--portal-accent-light);
+}
+
+.wzh-guide-label {
+  flex: 1;
+  min-width: 0;
+}
+
+.wzh-guide-chev {
+  flex: none;
+  color: var(--portal-text-muted-solid);
+  transition: transform var(--portal-dur-base) var(--portal-ease-default);
+}
+
+.wzh-guide.is-open .wzh-guide-chev {
+  transform: rotate(180deg);
+}
+
+.wzh-guide-panel {
+  padding: 0 var(--portal-space-4) var(--portal-space-4);
+}
+
+.wzh-guide-body > :last-child {
+  margin-bottom: 0;
+}
+
+.wzh-guide-state {
+  margin: 0;
+  color: var(--portal-text-muted-solid);
+  font-size: var(--portal-text-sm);
+}
+
+.wzh-guide-retry {
+  min-height: var(--portal-touch-target);
+  padding: 0 var(--portal-space-2);
+  border: none;
+  border-radius: var(--portal-radius-btn);
+  background: transparent;
+  color: var(--portal-accent-light);
+  font: inherit;
+  font-weight: var(--portal-font-medium);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wzh-guide-chev {
+    transition: none;
+  }
+}

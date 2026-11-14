@@ -207,4 +207,17 @@ describe('PortalDailyDigestOverlay.vue', () => {
 
     expect(postedUrls()).toEqual([DISMISS])
   })
+
+  it('opens at once, even with nothing new, and only the window rises in', async () => {
+    await open({ digest: digest({ empty: true }) }, { open: true, auto: false, chained: true })
+
+    expect(apiGet).toHaveBeenCalledWith('/api/portal/daily-digest?force=true')
+    expect(wrapper.find('.dd-panel').classes()).toContain('dd-panel--chained')
+    expect(wrapper.find('.dd-state').text()).toBe('portal.dailyDigest.empty')
+    expect(document.body.style.overflow).toBe('hidden')
+
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }))
+    await flushPromises()
+    expect(document.body.style.overflow).toBe('')
+  })
 })

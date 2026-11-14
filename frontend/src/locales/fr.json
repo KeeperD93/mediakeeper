@@ -3133,6 +3133,322 @@
         "when": "{date} · {time}"
       }
     },
+    "wizard": {
+      "dialogLabel": "Assistant de première connexion",
+      "dialogLabelReset": "Choisir un nouveau pseudo",
+      "bannerAlt": "MediaKeeper",
+      "progress": {
+        "label": "Progression de l’assistant",
+        "text": "Étape {n} sur {total}"
+      },
+      "actions": {
+        "back": "Retour",
+        "next": "Suivant",
+        "start": "Commencer",
+        "last": "Terminer",
+        "finish": "Voir quoi de neuf aujourd’hui",
+        "confirm": "Confirmer",
+        "confirmReset": "Confirmer et continuer",
+        "keep": "Garder ce pseudo",
+        "saving": "Enregistrement…"
+      },
+      "footHint": {
+        "welcome": "Environ 2 minutes",
+        "required": "Étape obligatoire"
+      },
+      "saveFailed": "L’enregistrement n’a pas abouti. Vérifiez votre connexion, puis réessayez.",
+      "paths": {
+        "preferences": "Paramètres › Préférences",
+        "visibility": "Paramètres › Visibilité",
+        "identity": "Paramètres › Identité"
+      },
+      "where": {
+        "later": "À changer plus tard : {path}.",
+        "anytime": "À changer à tout moment : {path}."
+      },
+      "steps": {
+        "welcome": {
+          "eyebrowNew": "Première connexion",
+          "eyebrow": "Visite guidée",
+          "title": "Bienvenue sur MediaKeeper",
+          "subNew": "Le portail des demandes, et bien plus encore : listes, trophées, classement, soirées ciné… On vous guide pas à pas.",
+          "sub": "Le portail s’enrichit. Une petite visite, une seule fois : vérifiez vos réglages et découvrez tout ce qui est disponible."
+        },
+        "name": {
+          "eyebrow": "Votre pseudo",
+          "title": "Comment devons-nous vous appeler ?",
+          "subNew": "C’est le nom que verront les autres membres. En attendant, ils voient un pseudo provisoire tiré au hasard : choisissez le vôtre.",
+          "subExisting": "Voici votre pseudo actuel. Gardez-le d’un clic, ou profitez-en pour en changer.",
+          "subLocked": "Voici votre pseudo actuel. Il a été changé il y a moins de 6 mois."
+        },
+        "reset": {
+          "eyebrow": "Pseudo réinitialisé",
+          "title": "Choisissez un nouveau pseudo",
+          "sub": "Un administrateur a réinitialisé votre pseudo « {name} ». Choisissez-en un autre pour continuer : votre niveau, vos trophées, vos listes et vos demandes ne changent pas."
+        },
+        "language": {
+          "eyebrow": "Langue",
+          "title": "Dans quelle langue préférez-vous le portail ?",
+          "sub": "Elle s’applique au portail, aux recommandations et aux bandes-annonces."
+        },
+        "visibility": {
+          "eyebrow": "Visibilité du profil",
+          "title": "Qui peut voir votre profil ?",
+          "sub": "Votre profil montre votre niveau, vos trophées et vos genres préférés."
+        },
+        "features": {
+          "eyebrow": "Le portail",
+          "title": "Ce que vous pouvez faire ici",
+          "sub": "Bien plus que des demandes : voici l’essentiel, en un coup d’œil."
+        },
+        "help": {
+          "eyebrow": "Aides",
+          "title": "Besoin d’un coup de main ?",
+          "sub": "Des guides courts, en images. Ils vous attendent dans le menu de votre avatar, rubrique Aide."
+        },
+        "expiry": {
+          "eyebrow": "Votre accès",
+          "title": "Jusqu’à quand votre compte est-il ouvert ?",
+          "sub": "L’administrateur peut fixer une date de fin à votre accès. Elle se retrouve toujours au même endroit."
+        },
+        "notifications": {
+          "eyebrow": "Facultatif",
+          "title": "Voulez-vous être prévenu ?",
+          "sub": "Le portail peut vous prévenir sur cet appareil dès qu’il se passe quelque chose pour vous."
+        },
+        "genres": {
+          "eyebrow": "Facultatif",
+          "title": "Qu’aimez-vous regarder ?",
+          "sub": "Choisissez quelques genres : vos recommandations en tiennent compte dès aujourd’hui."
+        },
+        "avatar": {
+          "eyebrow": "Facultatif",
+          "title": "Une image pour votre profil ?",
+          "sub": "Elle accompagne votre pseudo dans le classement, le chat et votre profil."
+        },
+        "done": {
+          "eyebrow": "Tout est prêt",
+          "title": "C’est parti, {name} !",
+          "sub": "Vérifiez vos choix : ils sont enregistrés quand vous continuez. Tout se change plus tard dans Paramètres."
+        }
+      },
+      "welcome": {
+        "planLabel": "Les étapes du guide",
+        "plan": {
+          "name": "Votre pseudo",
+          "language": "La langue du portail",
+          "visibility": "Profil public ou privé",
+          "features": "Ce que vous pouvez faire ici",
+          "help": "Les aides, en images",
+          "expiry": "La date de fin de votre accès",
+          "notifications": "Les notifications (facultatif)",
+          "genres": "Vos genres préférés (facultatif)",
+          "avatar": "Votre avatar (facultatif)"
+        },
+        "note": "Seul le pseudo est obligatoire ; tout le reste se change plus tard dans Paramètres."
+      },
+      "name": {
+        "resetInfo": "En attendant, les autres membres voient un pseudo provisoire tiré au hasard.",
+        "warning": "Choisissez-le avec soin : ce pseudo apparaît auprès de tous les membres (classement général, salle ciné, commentaires). Après l’avoir confirmé, vous ne pourrez plus en changer pendant 6 mois.",
+        "label": "Pseudo",
+        "placeholderNew": "Votre pseudo",
+        "placeholderReset": "Votre nouveau pseudo",
+        "rules": "3 à 50 caractères (2 suffisent en chinois ou en coréen). Un pseudo ne sert qu’à une personne : « Alice » et « alice » comptent pareil.",
+        "prompt": "Tapez votre pseudo.",
+        "empty": "Choisissez un pseudo pour continuer.",
+        "checking": "Vérification…",
+        "checkFailed": "La vérification n’a pas abouti.",
+        "retry": "Réessayer",
+        "suggestions": "Ces pseudos sont libres :",
+        "lockedAccount": "Vous avez changé de pseudo il y a moins de 6 mois : vous pourrez le modifier à partir du {date}.",
+        "reason": {
+          "too_short": "3 caractères minimum",
+          "previous": "C’est votre ancien pseudo : il a été réinitialisé par un administrateur, choisissez-en un nouveau.",
+          "generated": "C’est le pseudo provisoire tiré au hasard : choisissez le vôtre.",
+          "current": "C’est votre pseudo actuel : vous pouvez le garder.",
+          "reserved": "Ce pseudo est réservé.",
+          "taken": "Déjà utilisé par un autre membre.",
+          "free": "Disponible",
+          "invalid": "Ce pseudo n’a aucune lettre visible, ou contient des caractères cachés : choisissez-en un autre.",
+          "locked": "Vous avez changé de pseudo il y a moins de 6 mois : vous pourrez en choisir un autre dès aujourd’hui. | Vous avez changé de pseudo il y a moins de 6 mois : vous pourrez en choisir un autre demain. | Vous avez changé de pseudo il y a moins de 6 mois : vous pourrez en choisir un autre dans {n} jours."
+        }
+      },
+      "language": {
+        "defaultHint": "Suit la langue choisie par l’administrateur, aujourd’hui {lang}.",
+        "defaultHintUnknown": "Suit la langue choisie par l’administrateur.",
+        "ownHint": "Le portail reste en français, même si l’administrateur change la langue par défaut.",
+        "now": {
+          "fr": "le français",
+          "en": "l’anglais"
+        },
+        "plain": {
+          "fr": "français",
+          "en": "anglais"
+        },
+        "switchNote": "Le portail passe dans cette langue dès que vous continuez."
+      },
+      "visibility": {
+        "public": "Public",
+        "publicHint": "Les autres membres peuvent ouvrir votre profil, et vous apparaissez dans le classement.",
+        "recommended": "Par défaut",
+        "private": "Privé",
+        "privateHint": "Vous seul voyez votre profil. Vous n’apparaissez dans aucun classement, et personne ne peut vous inviter à un événement.",
+        "privateXp": "Vos points d’expérience continuent de compter : si vous repassez en public, vous retrouvez votre place dans le classement.",
+        "privateChat": "Votre pseudo reste visible là où vous écrivez, par exemple dans le chat."
+      },
+      "features": {
+        "items": {
+          "request": {
+            "title": "Demander un film ou une série",
+            "text": "Cherchez-le avec la recherche, en haut, ou repérez-le sur la page d’accueil, puis « Demander ». Vous êtes prévenu dès qu’il arrive.",
+            "where": "Recherche ou Accueil"
+          },
+          "profile": {
+            "title": "Mon profil",
+            "text": "Votre niveau, vos trophées, vos demandes en cours et des idées à regarder selon vos goûts.",
+            "where": "Mon profil"
+          },
+          "ranking": {
+            "title": "Classement du mois",
+            "text": "Regarder, noter, participer rapporte de l’XP. Seuls les profils publics y figurent.",
+            "where": "Mon profil"
+          },
+          "lists": {
+            "title": "Listes",
+            "text": "Créez des listes privées, publiques ou à plusieurs, et parcourez celles des autres.",
+            "where": "Listes"
+          },
+          "issues": {
+            "title": "Problèmes",
+            "text": "Son décalé, sous-titres manquants ? Signalez-le et suivez la réponse.",
+            "where": "Problèmes"
+          },
+          "calendar": {
+            "title": "Calendrier et soirées ciné",
+            "text": "Les événements à venir. Créez une soirée et regardez ensemble dans la salle cinéma.",
+            "where": "Calendrier"
+          },
+          "fab": {
+            "title": "Le bouton « + »",
+            "text": "Il ouvre le chat, la Surprise (un titre tiré au sort pour vous) et la création d’un événement.",
+            "where": "En bas à droite"
+          },
+          "notifications": {
+            "title": "Notifications",
+            "text": "Demande disponible, réponse à un problème, invitation : la cloche vous prévient.",
+            "where": "Cloche, en haut"
+          }
+        },
+        "mapTitle": "Où les trouver",
+        "desk": {
+          "tabs": "Onglets : Accueil, Mon profil, Problèmes",
+          "search": "Champ « Rechercher » : pour trouver un titre et le demander",
+          "icons": "Icônes : listes, calendrier, notifications",
+          "avatar": "Votre avatar : Paramètres, Aide, Quoi de neuf aujourd’hui ?",
+          "fab": "Bouton « + » : en bas à droite"
+        },
+        "phone": {
+          "tabs": "Onglets en bas : Accueil, Mon profil, Listes, Problèmes",
+          "top": "En haut : la loupe (recherche), les notifications, votre avatar",
+          "calendar": "Calendrier : dans le menu de votre avatar"
+        }
+      },
+      "expiry": {
+        "pathLabel": "Chemin",
+        "crumbAvatar": "Votre avatar, en haut à droite",
+        "crumbAccount": "Compte",
+        "cardTitle": "Informations",
+        "memberSince": "Membre depuis",
+        "expiresOn": "Expiration du compte",
+        "level": "Niveau actuel",
+        "noLimit": "Aucune limite",
+        "levelValue": "{level} · {xp} XP",
+        "reminder": "Un mois avant la fin, ce rappel s’affiche aussi en haut de « Quoi de neuf aujourd’hui ? ».",
+        "none": "Votre accès n’a pas de date de fin pour l’instant. Si l’administrateur en fixe une, elle apparaîtra ici, et un rappel s’affichera un mois avant dans « Quoi de neuf aujourd’hui ? »."
+      },
+      "notifications": {
+        "usesTitle": "À quoi elles servent",
+        "uses": {
+          "requests": "Un titre que vous avez demandé est disponible",
+          "issues": "Une réponse arrive sur un problème que vous avez signalé",
+          "invitations": "On vous invite à une soirée ciné ou à un événement",
+          "news": "Les actualités d’Emby et de MediaKeeper"
+        },
+        "enable": "Activer les notifications",
+        "enabled": "Notifications activées sur cet appareil.",
+        "denied": "Votre navigateur bloque les notifications de ce site. Vous pourrez les autoriser plus tard dans ses réglages.",
+        "insecure": "Les notifications demandent une adresse sécurisée (https) : elles ne sont pas possibles avec l’adresse actuelle du portail.",
+        "unsupported": "Ce navigateur ne propose pas les notifications ici. Sur iPhone ou iPad, ajoutez d’abord le portail à l’écran d’accueil (Partager, puis « Sur l’écran d’accueil »), puis ouvrez-le depuis son icône.",
+        "confirmTitle": "Êtes-vous sûr ?",
+        "confirmText": "Vous ne recevrez pas les informations sur Emby, MediaKeeper, vos demandes et vos invitations.",
+        "continueWithout": "Continuer sans",
+        "retry": "Réessayer"
+      },
+      "genres": {
+        "count": "Aucun genre choisi | 1 genre choisi | {n} genres choisis",
+        "visible": "Visibles sur votre profil s’il est public."
+      },
+      "avatar": {
+        "state": {
+          "emby": "Image synchronisée depuis votre compte Emby.",
+          "custom": "Votre image actuelle, choisie dans Paramètres.",
+          "picked": "Votre nouvelle image. Elle est envoyée à la fin de l’assistant."
+        },
+        "keep": {
+          "emby": "Garder l’image d’Emby",
+          "custom": "Garder mon image actuelle"
+        },
+        "keepHint": {
+          "emby": "Celle de votre compte Emby, mise à jour automatiquement.",
+          "custom": "Celle que vous avez choisie dans Paramètres › Identité."
+        },
+        "own": "Choisir mon image",
+        "ownHint": {
+          "emby": "Elle remplace celle d’Emby. JPG, PNG, WebP ou GIF, 5 Mo maximum.",
+          "custom": "Elle remplace votre image actuelle. JPG, PNG, WebP ou GIF, 5 Mo maximum."
+        },
+        "pick": "Choisir une image",
+        "replace": "Remplacer",
+        "problem": {
+          "type": "Ce fichier n’est pas une image JPG, PNG, WebP ou GIF.",
+          "size": "Cette image dépasse 5 Mo : choisissez-en une plus légère."
+        },
+        "uploadFailed": "Votre image n’a pas pu être envoyée. Recommencez dans Paramètres › Identité."
+      },
+      "done": {
+        "rows": {
+          "name": "Pseudo",
+          "language": "Langue",
+          "visibility": "Profil",
+          "notifications": "Notifications",
+          "genres": "Genres préférés",
+          "avatar": "Avatar"
+        },
+        "edit": {
+          "name": "Modifier le pseudo",
+          "language": "Modifier la langue",
+          "visibility": "Modifier la visibilité du profil",
+          "notifications": "Modifier les notifications",
+          "genres": "Modifier les genres préférés",
+          "avatar": "Modifier l’avatar"
+        },
+        "editText": "Modifier",
+        "values": {
+          "languageDefault": "Par défaut ({lang})",
+          "public": "Public",
+          "private": "Privé",
+          "notifyOn": "Activées",
+          "notifyOff": "Désactivées",
+          "notifyUnavailable": "Non disponibles sur cet appareil",
+          "genres": "Aucun pour l’instant | 1 genre choisi | {n} genres choisis",
+          "avatarEmby": "Image de votre compte Emby",
+          "avatarCustom": "Votre image actuelle",
+          "avatarOwn": "Votre image"
+        },
+        "nextTitle": "Et maintenant : « Quoi de neuf aujourd’hui ? »",
+        "nextText": "Les actualités, votre progression et les nouveautés de la bibliothèque. Ce résumé s’ouvre tout de suite, puis chaque jour où il y a du nouveau."
+      }
+    },
     "lists": {
       "title": "Mes listes",
       "subtitle": "Créez vos propres listes de lecture et partagez-les",
@@ -3540,6 +3856,68 @@
         "link": "Insérer un lien",
         "quote": "Citation",
         "table": "Insérer un tableau"
+      }
+    },
+    "wizardHelp": {
+      "demosLabel": "Choisir une démonstration",
+      "demos": {
+        "request": "Faire une demande",
+        "ticket": "Signaler un problème",
+        "list": "Créer une liste"
+      },
+      "pause": "Pause",
+      "play": "Lecture",
+      "prevView": "Vue précédente",
+      "nextView": "Vue suivante",
+      "viewCount": "Vue {n} sur {total}",
+      "captionsLabel": {
+        "request": "Faire une demande, étape par étape",
+        "ticket": "Signaler un problème, étape par étape",
+        "list": "Créer une liste, étape par étape"
+      },
+      "captions": {
+        "request": {
+          "s1": "Page d’accueil : un titre mis en avant se demande directement avec « Demander ».",
+          "s2": "Sinon, tapez son nom dans « Rechercher », en haut, et choisissez une suggestion.",
+          "s3": "Dans les résultats, ouvrez sa fiche (à la souris, « Demander » apparaît aussi sur l’affiche).",
+          "s4": "Sur la fiche, touchez « Demander ».",
+          "s5": "Dans « Faire une demande », validez. Pour une série, cochez d’abord les saisons voulues.",
+          "s6": "C’est envoyé : le titre passe à « Demandé », et la cloche vous prévient quand il est disponible."
+        },
+        "ticket": {
+          "s1": "Onglet Problèmes, puis « Signaler un problème ».",
+          "s2": "Choisissez le titre dans votre bibliothèque, le type de problème, décrivez-le, puis « Enregistrer ».",
+          "s3": "Le ticket apparaît dans la liste avec son état ; l’équipe vous y répond."
+        },
+        "list": {
+          "s1": "Dans Listes, touchez « Nouvelle liste ».",
+          "s2": "Donnez-lui un nom, choisissez qui peut la voir, puis « Enregistrer ».",
+          "s3": "Sur la fiche d’un titre, le signet « Ajouter à une liste » le range dans votre liste."
+        }
+      },
+      "screens": {
+        "movie": "Test Movie",
+        "sequel": "Test Movie 2",
+        "extras": "Test Movie : les coulisses",
+        "lighthouse": "Le Phare du Nord",
+        "gardens": "Les Jardins d’Hiver",
+        "lisbon": "Minuit à Lisbonne",
+        "orbit": "Orbite 9",
+        "overview": "Une équipe de tournage se perd dans une ville qui n’existe sur aucune carte.",
+        "runtime": "1 h 52",
+        "language": "Anglais",
+        "issue": "Le son est décalé d’environ 2 secondes.",
+        "listName": "Week-end ciné"
+      },
+      "guides": {
+        "title": "Autres guides",
+        "quotas": "Les quotas de demandes",
+        "xp": "Comment gagner de l’XP ?",
+        "leaderboard": "Le classement mensuel",
+        "calendar": "Le calendrier et la création d’événements",
+        "error": "Le guide n’a pas pu être chargé.",
+        "retry": "Réessayer",
+        "missing": "Ce guide n’est plus disponible. Retrouvez tous les guides dans le menu de votre avatar, rubrique Aide."
       }
     },
     "news": {
@@ -3959,13 +4337,6 @@
         "currentLevel": "Niveau actuel"
       },
       "forceUsername": {
-        "title": "Choisissez votre pseudo",
-        "subtitle": "Bienvenue ! Choisissez le pseudo qui vous représentera. Vous pourrez en changer dans 6 mois.",
-        "publicNotice": "Choisissez-le avec soin : ce pseudo apparaîtra publiquement auprès de tous les membres (classement général, salle ciné, commentaires).",
-        "fieldLabel": "Pseudo",
-        "save": "Confirmer",
-        "saving": "Enregistrement…",
-        "tooShort": "3 caractères minimum",
         "checking": "Vérification…"
       },
       "share": {

@@ -7,7 +7,10 @@
       <div
         ref="panelRef"
         class="dd-panel"
-        :class="compact ? 'dd-panel--compact' : 'dd-panel--full'"
+        :class="[
+          compact ? 'dd-panel--compact' : 'dd-panel--full',
+          { 'dd-panel--chained': chained },
+        ]"
         role="dialog"
         aria-modal="true"
         :aria-labelledby="titleId"
@@ -52,7 +55,8 @@
 // Loaded before the views, whose sheets refine these shared rules.
 import '@/assets/styles/portal/daily-digest-shell.css'
 import '@/assets/styles/portal/daily-digest-common.css'
-import { ref, watch, onBeforeUnmount, useId } from 'vue'
+import { ref, watch, useId } from 'vue'
+import { useBodyScrollLock } from '@/composables/useBodyScrollLock'
 import { useFocusTrap } from '@/composables/useFocusTrap'
 import { useDailyDigest } from '@/composables/portal/useDailyDigest'
 import DigestCompact from '@/components/portal/daily-digest/DigestCompact.vue'
@@ -61,6 +65,9 @@ import DigestFull from '@/components/portal/daily-digest/DigestFull.vue'
 const props = defineProps({
   open: { type: Boolean, default: false },
   auto: { type: Boolean, default: true },
+  // Opened right after the first-login wizard, which wore the same window: the
+  // backdrop is already there, only the window rises into place.
+  chained: { type: Boolean, default: false },
 })
 const emit = defineEmits(['close'])
 
@@ -102,24 +109,15 @@ function dismissToday() {
 }
 
 // Lock the page behind: a gesture on the backdrop must not scroll it.
-let previousBodyOverflow = ''
-watch(visible, open => {
-  if (open) {
-    previousBodyOverflow = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
-  } else {
-    document.body.style.overflow = previousBodyOverflow
-  }
-})
-onBeforeUnmount(() => {
-  if (visible.value) document.body.style.overflow = previousBodyOverflow
-})
+useBodyScrollLock(visible)
 
+// Mounted already asked (after the wizard) or asked later (avatar menu): open at once.
 watch(
   () => props.open,
   isOpen => {
     if (isOpen) openManual()
   },
+  { immediate: true },
 )
 
 // The focus starts on the window itself: the only button to close it sits at its foot.

@@ -1,0 +1,207 @@
+/* First-login wizard: the pieces of the first steps. Welcome list, features and their
+ * tints, account path and « Information » card. The small drawings of the portal's bars
+ * are in wizard-navmap.css; the image, notifications and recap in wizard-profile.css. */
+
+/* Welcome: the numbered list of the steps, optional ones in amber */
+.wz-plan {
+  width: 100%;
+  max-width: var(--portal-wizard-banner-width);
+  padding: var(--portal-space-1-5) 0;
+  text-align: left;
+}
+.wz-plan ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: wz-plan;
+}
+.wz-plan li {
+  display: flex;
+  align-items: center;
+  gap: var(--portal-space-3);
+  min-height: var(--portal-touch-target);
+  padding: var(--portal-space-1-5) var(--portal-space-4);
+  border-top: var(--portal-border-width) solid var(--portal-border-subtle);
+  font-size: var(--portal-text-base);
+  color: var(--portal-text-secondary-solid);
+  counter-increment: wz-plan;
+}
+.wz-plan li:first-child {
+  border-top: none;
+}
+.wz-plan li::before {
+  content: counter(wz-plan);
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--portal-wizard-counter-size);
+  height: var(--portal-wizard-counter-size);
+  border-radius: var(--portal-radius-circle);
+  background: rgb(var(--portal-accent-500-rgb), 0.22);
+  color: var(--portal-accent-200);
+  font-family: var(--portal-font-display);
+  font-size: var(--portal-text-xs);
+  font-weight: var(--portal-font-extrabold);
+}
+.wz-plan li.is-opt::before {
+  background: rgb(var(--portal-color-warning-rgb), 0.14);
+  color: var(--portal-color-warning-soft);
+}
+
+/* Features */
+.wz-feats {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--portal-space-2-5);
+}
+.wz-feat {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--portal-space-3-5);
+  padding: var(--portal-space-3-5) var(--portal-space-4);
+  border: var(--portal-border-width) solid var(--portal-border-default);
+  border-radius: var(--portal-radius-xl);
+  background: var(--portal-gradient-glass);
+}
+.wz-ic {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--portal-wizard-icon-tile);
+  height: var(--portal-wizard-icon-tile);
+  border-radius: var(--portal-radius-md);
+}
+.wz-ic--sm {
+  width: var(--portal-wizard-phone-icon);
+  height: var(--portal-wizard-phone-icon);
+}
+.wz-tone--accent {
+  color: var(--portal-accent-light);
+  background: rgb(var(--portal-accent-500-rgb), 0.2);
+}
+.wz-tone--gold {
+  color: var(--portal-color-warning);
+  background: rgb(var(--portal-color-warning-rgb), 0.16);
+}
+.wz-tone--green {
+  color: var(--portal-color-success-light);
+  background: rgb(var(--portal-color-success-light-rgb), 0.14);
+}
+.wz-tone--blue {
+  color: var(--portal-color-info-light);
+  background: rgb(var(--portal-color-info-light-rgb), 0.15);
+}
+.wz-tone--purple {
+  color: var(--portal-color-premium-light);
+  background: rgb(var(--portal-color-premium-rgb), 0.2);
+}
+.wz-tone--pink {
+  color: var(--portal-color-accent-hot-light);
+  background: rgb(var(--portal-color-accent-hot-rgb), 0.18);
+}
+.wz-tone--cyan {
+  color: var(--portal-color-cinema-soft);
+  background: rgb(var(--portal-color-cinema-rgb), 0.16);
+}
+.wz-tone--rose {
+  color: var(--portal-color-rose-light);
+  background: rgb(var(--portal-color-rose-light-rgb), 0.15);
+}
+.wz-ft {
+  margin: 0 0 var(--portal-space-1);
+  font-size: var(--portal-text-base);
+  font-weight: var(--portal-font-bold);
+  line-height: var(--portal-lh-compact);
+}
+.wz-fd {
+  margin: 0;
+  font-size: var(--portal-text-sm);
+  line-height: var(--portal-lh-normal);
+  color: var(--portal-text-secondary-solid);
+}
+.wz-fw {
+  margin-top: var(--portal-space-2);
+}
+
+/* Account expiry: the path to the settings, then the « Information » card */
+.wz-path {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--portal-space-1-5);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.wz-path li {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--portal-space-1-5);
+}
+.wz-crumb {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--portal-space-1-5);
+  min-height: var(--portal-wizard-crumb-height);
+  padding: var(--portal-space-1) var(--portal-space-3);
+  box-sizing: border-box;
+  border: var(--portal-border-width) solid var(--portal-border-default);
+  border-radius: var(--portal-radius-pill);
+  background: var(--portal-surface-3);
+  font-size: var(--portal-text-sm);
+  font-weight: var(--portal-font-medium);
+}
+.wz-crumb.is-last {
+  border-color: rgb(var(--portal-accent-500-rgb), 0.5);
+  background: rgb(var(--portal-accent-500-rgb), 0.18);
+}
+.wz-chev {
+  color: var(--portal-text-muted-solid);
+}
+.wz-set {
+  padding: var(--portal-space-4) var(--portal-space-4-5) var(--portal-space-2-5);
+}
+.wz-set-title {
+  margin: 0 0 var(--portal-space-2);
+  font-size: var(--portal-text-base);
+  font-weight: var(--portal-font-bold);
+}
+.wz-set dl {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+}
+.wz-set dl > div {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+  gap: var(--portal-space-3);
+  padding: var(--portal-space-2-5) var(--portal-space-2);
+  border-bottom: var(--portal-border-width) solid var(--portal-border-faint);
+  font-size: var(--portal-text-sm);
+}
+.wz-set dl > div:last-child {
+  border-bottom: none;
+}
+.wz-set dt {
+  color: var(--portal-text-muted-solid);
+}
+.wz-set dd {
+  margin: 0;
+  font-weight: var(--portal-font-medium);
+}
+.wz-set dl > .is-hl {
+  border: var(--portal-border-width) dashed rgb(var(--portal-color-warning-rgb), 0.6);
+  border-radius: var(--portal-radius-md);
+  background: rgb(var(--portal-color-warning-rgb), 0.1);
+}
+.wz-set .is-hl dd {
+  color: var(--portal-color-warning-soft);
+}
+
+@container dd (min-width: 640px) {
+  .wz-feats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

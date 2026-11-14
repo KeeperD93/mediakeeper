@@ -30,4 +30,8 @@
   --portal-ease-emphasis: cubic-bezier(0.22, 1, 0.36, 1);
   --portal-ease-swift: cubic-bezier(0.2, 0.8, 0.2, 1);
   --portal-ease-dramatic: cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* First-login wizard */
+  --portal-wizard-step-enter: 0.35s; /* a step rises into place */
+  --portal-wizard-chain-enter: 0.45s; /* « What's new today? » takes the wizard's place */
 }
