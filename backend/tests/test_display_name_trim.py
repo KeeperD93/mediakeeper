@@ -2,7 +2,7 @@
 both edges, other invisible characters stay for the rules to refuse, and a long run
 of spaces does not stall it.
 
-Spaces and invisible characters are spelled as code points, never as themselves."""
+Invisible characters, and spaces other than the plain one, are spelled as code points."""
 import time
 
 import pytest
@@ -18,17 +18,21 @@ EDGE_CODE_POINTS = (
 )
 
 
-@pytest.mark.parametrize("code_point", EDGE_CODE_POINTS)
+@pytest.mark.parametrize("code_point", EDGE_CODE_POINTS, ids=lambda cp: f"U+{cp:04X}")
 def test_every_space_and_the_byte_order_mark_leave_both_edges(code_point):
     # The marks outside keep the clip's own strip() from doing the trim's work.
     edge = chr(code_point)
     assert clean_display_name(BOM + edge + "Bob" + edge + BOM) == "Bob"
 
 
-@pytest.mark.parametrize("code_point", [0x180E, 0x200B, 0x2060])
-def test_invisible_characters_that_are_not_spaces_stay_for_the_rules(code_point):
-    hidden = chr(code_point)
-    assert clean_display_name(hidden + "Bob" + hidden) == hidden + "Bob" + hidden
+def test_no_other_character_leaves_the_edges():
+    # Every space and the mark lie in the basic plane: sweeping it pins the set both
+    # ways, so invisible characters that are not spaces stay for the rules to refuse.
+    trimmed = {
+        cp for cp in range(0x10000)
+        if clean_display_name(BOM + chr(cp) + "Bob" + chr(cp) + BOM) == "Bob"
+    }
+    assert trimmed == set(EDGE_CODE_POINTS)
 
 
 def test_mixed_spaces_and_byte_order_marks_leave_the_edges_not_the_inside():
