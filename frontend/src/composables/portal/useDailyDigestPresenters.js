@@ -56,16 +56,15 @@ export function useDailyDigestPresenters(digest) {
         deltaDown: r.movement < 0,
       })
     }
-    if (d.streak > 0) {
-      out.push({
-        key: 'streak',
-        icon: Flame,
-        label: t(k('pills.streak')),
-        value: d.streak,
-        caption: t(k('pills.streakDays'), d.streak),
-        compactCaption: t(k('pills.streakCompact'), d.streak),
-      })
-    }
+    // Streak and tickets always show, 0 included: a missing card left a hole in the row.
+    out.push({
+      key: 'streak',
+      icon: Flame,
+      label: t(k('pills.streak')),
+      value: d.streak,
+      caption: t(k('pills.streakDays'), d.streak),
+      compactCaption: t(k('pills.streakCompact'), d.streak),
+    })
     const q = d.quota
     if (q && !q.unlimited && q.max_allowed > 0) {
       out.push({
@@ -78,16 +77,14 @@ export function useDailyDigestPresenters(digest) {
         compactCaption: t(k('pills.quota')),
       })
     }
-    if (d.tickets_open > 0) {
-      out.push({
-        key: 'tickets',
-        icon: MessageCircle,
-        label: t(k('pills.tickets')),
-        value: d.tickets_open,
-        caption: t(k('pills.ticketsCaption')),
-        compactCaption: t(k('pills.ticketsCompact'), d.tickets_open),
-      })
-    }
+    out.push({
+      key: 'tickets',
+      icon: MessageCircle,
+      label: t(k('pills.tickets')),
+      value: d.tickets_open,
+      caption: t(k(d.tickets_open > 0 ? 'pills.ticketsCaption' : 'pills.ticketsCaptionNone')),
+      compactCaption: t(k('pills.ticketsCompact'), d.tickets_open),
+    })
     return out
   })
 

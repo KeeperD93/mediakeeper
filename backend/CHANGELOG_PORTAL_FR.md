@@ -20,6 +20,7 @@ utilisateurs.
 - Aide — articles de départ aussi en anglais.
 
 ### Changed
+- Identité visuelle — nouveau logo et nouvelle bannière, icônes de l'application refaites.
 - Jours d'affilée et Régulier — dès 5 min regardées ; musique et livres audio exclus.
 - Trophées secrets — nom et icône visibles, description et progression cachées jusqu'au déblocage.
 - Quoi de neuf aujourd'hui ? — refondu : actualités en tête, vue compacte, alerte d'expiration, « Pour vous », nouvelle version.
@@ -31,6 +32,8 @@ utilisateurs.
 - Notifications — barre à la bonne durée, message entier sur petits téléphones.
 - Problèmes — dates du ticket : deux-points à la bonne place en français et en anglais.
 - Quoi de neuf aujourd'hui — Top 3 du mois aligné sur le classement (étiquette « VOUS »).
+- Quoi de neuf aujourd'hui ? — Série et Tickets ouverts affichés même à 0, sans trou.
+- Quoi de neuf aujourd'hui ? — se ferme aussitôt, accueil flouté derrière, plus de croix.
 - Carrousels, défilements et compteurs — instantanés avec « Réduire les animations ».
 - Badges épinglés — deux épinglages rapprochés ne s'écrasent plus.
 - Mon profil — jours de la semaine et durées dans la langue de l'application.

@@ -3087,10 +3087,11 @@
         "quotaOf": "of {total}",
         "tickets": "Open tickets",
         "ticketsCaption": "to follow up",
-        "ticketsCompact": "Open ticket | Open tickets",
+        "ticketsCaptionNone": "none to follow up",
+        "ticketsCompact": "Open tickets | Open ticket | Open tickets",
         "streak": "Streak",
-        "streakDays": "day in a row | days in a row",
-        "streakCompact": "Day in a row | Days in a row"
+        "streakDays": "days in a row | day in a row | days in a row",
+        "streakCompact": "Days in a row | Day in a row | Days in a row"
       },
       "level": {
         "eyebrow": "Your level",

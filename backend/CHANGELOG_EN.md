@@ -11,6 +11,7 @@ This section intentionally has no date so it is not shown to users.
 ## [Unreleased]
 
 ### Changed
+- Branding — new logo and banner, app icons redone.
 - Dashboard — leaderboard widget matches the Leaderboard page.
 - Statistics — day streak from 5 min watched; music and audiobooks left out.
 - Portal — secret trophies: name and icon shown, description and progress hidden until unlocked.

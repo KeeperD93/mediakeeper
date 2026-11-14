@@ -1,5 +1,8 @@
 <p align="center">
-  <img src="frontend/public/assets/icons/mediakeeper_banner.png" width="640" alt="MediaKeeper">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="branding/mk_banner_clair-1280.png">
+    <img src="branding/mk_banner_sombre-1280.png" width="640" alt="MediaKeeper">
+  </picture>
 </p>
 
 <p align="center">
