@@ -29,13 +29,18 @@
           <span class="dd-switch-track"><span class="dd-switch-knob" /></span>
         </button>
 
-        <p v-if="loading" class="dd-state">{{ $t('common.loading') }}</p>
-        <p v-else-if="error" class="dd-state dd-state--error">
-          {{ $t('portal.dailyDigest.errorLoad') }}
-        </p>
-        <p v-else-if="!digest || digest.empty" class="dd-state">
-          {{ $t('portal.dailyDigest.empty') }}
-        </p>
+        <!-- Loading, failed or nothing new: the message, then the way out. On a phone the
+             window is the whole screen, and nothing else closes it there. -->
+        <div v-if="!ready" class="dd-state-box">
+          <p v-if="loading" class="dd-state">{{ $t('common.loading') }}</p>
+          <p v-else-if="error" class="dd-state dd-state--error">
+            {{ $t('portal.dailyDigest.errorLoad') }}
+          </p>
+          <p v-else class="dd-state">{{ $t('portal.dailyDigest.empty') }}</p>
+          <button type="button" class="dd-cta" @click="dismissToday">
+            {{ $t('common.close') }}
+          </button>
+        </div>
         <component
           :is="compact ? DigestCompact : DigestFull"
           v-else
@@ -55,7 +60,7 @@
 // Loaded before the views, whose sheets refine these shared rules.
 import '@/assets/styles/portal/daily-digest-shell.css'
 import '@/assets/styles/portal/daily-digest-common.css'
-import { ref, watch, useId } from 'vue'
+import { computed, ref, watch, useId } from 'vue'
 import { useBodyScrollLock } from '@/composables/useBodyScrollLock'
 import { useFocusTrap } from '@/composables/useFocusTrap'
 import { useDailyDigest } from '@/composables/portal/useDailyDigest'
@@ -88,6 +93,10 @@ const {
 const titleId = useId()
 const visible = ref(false)
 const panelRef = ref(null)
+// Something to show: the view takes over, with its own way out at its foot.
+const ready = computed(
+  () => !loading.value && !error.value && !!digest.value && !digest.value.empty,
+)
 
 // By itself, the window opens only on a day it was not closed yet, with something to show.
 async function openAuto() {

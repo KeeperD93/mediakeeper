@@ -149,9 +149,16 @@
   outline-offset: var(--portal-focus-ring-offset);
 }
 
+/* Loading, failed or nothing new: the message, then the button out under it. */
+.dd-state-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-bottom: 72px;
+}
 .dd-state {
   margin: 0;
-  padding: 120px var(--portal-space-6) 72px;
+  padding: 120px var(--portal-space-6) var(--portal-space-6);
   text-align: center;
   font-size: var(--portal-text-base);
   color: var(--portal-text-muted-solid);
