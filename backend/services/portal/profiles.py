@@ -125,16 +125,15 @@ async def get_public_profile(
 async def resolve_unique_display_name(
     db: AsyncSession, base: str, *, exclude_user_id: int | None = None,
 ) -> str:
-    """Return ``base`` if free, otherwise ``base2``, ``base3``... until free.
+    """Return ``base`` if no member chose it, nor a name that reads the same,
+    otherwise ``base2``, ``base3``... until free.
 
-    Best-effort only: the check-then-insert window is not serialized and
-    there is no DB-level uniqueness constraint on ``display_name`` (only
-    ``user_id`` is unique). Two concurrent provisionings of the same base
-    can both read "free" and store the same name. Tolerated by design — a
-    duplicate is cosmetic (``user_id`` stays the identity), and for
-    unconfirmed accounts the stored value is not even shown (the per-viewer
-    pseudo is regenerated live). The user-set path (``update_profile``)
-    additionally rejects an already-taken name with a 409.
+    The system picks these names: provisional pseudos for members who still
+    owe one, and the name of a new administrator. Neither holds a name key, so
+    two accounts may store the same one (``user_id`` stays the identity, and
+    the per-viewer pseudo is regenerated live for display). Only a name a
+    member chose is unique (``display_name_key``); ``update_profile`` refuses
+    a taken one with a 409.
     """
     candidate = (base or "").strip() or "user"
     if not await is_display_name_taken(db, candidate, exclude_user_id=exclude_user_id):

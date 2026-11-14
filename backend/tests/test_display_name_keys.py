@@ -9,6 +9,7 @@ from __future__ import annotations
 import pytest
 from sqlalchemy import select
 
+from core.security import create_access_token
 from models.portal.profile import UserProfile
 from models.user import User
 from services.portal import admin_users, admin_users_actions
@@ -135,6 +136,17 @@ async def test_an_admin_rename_to_a_name_in_use_is_refused(db_session):
     assert result == {"error": "display_name_taken"}
     await db_session.refresh(profile)
     assert profile.display_name == "Carol"
+
+
+@pytest.mark.asyncio
+async def test_the_admin_screen_answers_409_for_a_name_in_use(client, admin_user, db_session):
+    await make_portal_user(db_session, username="bob", display_name="Zed")
+    _, profile = await make_portal_user(db_session, username="carol", display_name="Carol")
+    client.cookies.set("mk_token", create_access_token({"sub": admin_user.username, "scope": "admin"}))
+
+    resp = await client.patch(f"/api/portal/admin/users/{profile.id}", json={"display_name": "ZED"})
+
+    assert (resp.status_code, resp.json()["detail"]) == (409, "display_name_taken")
 
 
 @pytest.mark.asyncio
