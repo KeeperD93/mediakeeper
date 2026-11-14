@@ -17,15 +17,17 @@ The PostgreSQL index on ``LOWER(display_name)`` (migration 031) goes: it held
 every stored name, provisional pseudos and admin sign-in names included, so two
 accounts could not share a provisional pseudo and an admin's sign-in name stayed
 guessable. The unique key replaces it, for chosen names only. Downgrade drops
-the two columns and puts that index back; the names sent back to « must
-choose » stay so.
+the two columns and puts that index back, which stops while two stored names
+match once lowercased (two members may now share a provisional pseudo); the
+names sent back to « must choose » stay so. Offline (``--sql``), only the schema
+steps render: sorting the names needs the rows.
 
 Revision ID: 072_display_name_keys
 Revises: 071_help_seed_rewrite
 Create Date: 2026-11-13
 """
 import sqlalchemy as sa
-from alembic import op
+from alembic import context, op
 
 revision = "072_display_name_keys"
 down_revision = "071_help_seed_rewrite"
@@ -97,11 +99,11 @@ def upgrade() -> None:
     for column in (_KEY, _SKELETON):
         if column not in columns:
             op.add_column(_TABLE, sa.Column(column, sa.Text(), nullable=True))
-    if LOWER_INDEX in _indexes():
-        op.drop_index(LOWER_INDEX, table_name=_TABLE)
-
     bind = op.get_bind()
-    rows = bind.execute(sa.text(
+    if bind.dialect.name == "postgresql":
+        op.drop_index(LOWER_INDEX, table_name=_TABLE, if_exists=True)
+
+    rows = [] if context.is_offline_mode() else bind.execute(sa.text(
         "SELECT id, user_id, display_name, display_name_must_set, role, display_name_changed_at "
         "FROM user_profiles ORDER BY id"
     )).fetchall()
@@ -145,6 +147,6 @@ def downgrade() -> None:
     for column in (_KEY, _SKELETON):
         if column in columns:
             op.drop_column(_TABLE, column)
-    # As 031 made it; stops the downgrade if two stored names now differ only by case.
+    # As 031 made it; stops the downgrade while two stored names match once lowercased.
     if op.get_bind().dialect.name == "postgresql" and LOWER_INDEX not in indexes:
         op.create_index(LOWER_INDEX, _TABLE, [sa.text("LOWER(display_name)")], unique=True)

@@ -8,9 +8,10 @@ article), so this rewrites the French text of each of the six articles that
 still holds its original title and text, whatever its slug became: same words,
 tags, links and pictures, spacing and entity spelling aside. An article the admin retouched, even by one picture, or
 put in the trash, is left alone.
-``sanitize_html`` is imported only when one of the two articles exists, so a
-fresh install never couples to app code. Irreversible on purpose: ``downgrade`` is a
-no-op, the new text being right for the older code too.
+``sanitize_html`` is imported only when one of the six articles exists, so a
+fresh install never couples to app code. Offline (``--sql``) it renders nothing:
+finding the untouched articles needs the rows. Irreversible on purpose:
+``downgrade`` is a no-op, the new text being right for the older code too.
 
 Revision ID: 071_help_seed_rewrite
 Revises: 070_profile_onboarding
@@ -19,7 +20,7 @@ Create Date: 2026-11-13
 import html
 
 import sqlalchemy as sa
-from alembic import op
+from alembic import context, op
 
 revision = "071_help_seed_rewrite"
 down_revision = "070_profile_onboarding"
@@ -216,6 +217,8 @@ def shape(body: str | None) -> str:
 
 
 def upgrade() -> None:
+    if context.is_offline_mode():
+        return
     bind = op.get_bind()
     # Found by its starter title, not its slug: an older editor save could move a
     # starter article's slug without touching a word of it.
