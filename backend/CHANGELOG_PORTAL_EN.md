@@ -49,7 +49,7 @@ This section intentionally has no date so it is not shown to users.
 - Events — replying to an invitation from a deleted host no longer fails.
 - Usernames — a username the rules now refuse can be changed at once, without the six-month wait.
 - Today's digest — a new username, avatar, title or a private profile shows at once.
-- Usernames — "taken" spots accents, capitals and look-alikes; an existing duplicate is chosen again.
+- Usernames — "taken" spots accents, capitals and look-alikes; an existing duplicate or refused username is chosen again.
 - Usernames — trying a username no longer reveals an administrator's sign-in name.
 
 ### Removed

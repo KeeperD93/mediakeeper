@@ -51,7 +51,7 @@ utilisateurs.
 - Événements — plus d'erreur en répondant à l'invitation d'un organisateur supprimé.
 - Pseudos — un pseudo devenu refusé se change aussitôt, sans attendre six mois.
 - Quoi de neuf aujourd'hui ? — nouveau pseudo, avatar, titre ou profil privé pris en compte aussitôt.
-- Pseudos — « déjà pris » repère accents, majuscules et sosies ; un doublon existant est à rechoisir.
+- Pseudos — « déjà pris » repère accents, majuscules et sosies ; un doublon ou un pseudo refusé existant est à rechoisir.
 - Pseudos — tester un pseudo ne révèle plus le nom de connexion d'un administrateur.
 
 ### Removed
