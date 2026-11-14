@@ -199,3 +199,40 @@ async def test_ensure_seed_does_not_overwrite_admin_edits(db_session):
     )).scalar_one()
     assert again.title == "ÉDITION ADMIN"
     assert "contenu admin" in again.body_html
+
+
+@pytest.mark.asyncio
+async def test_a_starter_article_whose_slug_moved_gets_english_and_no_copy(db_session):
+    await _older_install(db_session)
+    article = await _first_article(db_session)
+    article.slug = "moved-by-an-old-editor-save"  # untouched otherwise
+    await db_session.commit()
+
+    assert await help_seed.ensure_seed(db_session) == 0  # no copy under the starter slug
+    assert await _langs_of(db_session, article.id) == {"fr", "en"}
+
+
+@pytest.mark.asyncio
+async def test_rewriting_the_french_keeps_the_english_the_admin_wrote(db_session):
+    await help_seed.ensure_seed(db_session)
+    article = await _first_article(db_session)
+    await help_service.upsert_translation(
+        db_session, article, lang="en", title="Our title", body_html="<p>Our own words.</p>",
+    )
+    await help_service.upsert_translation(
+        db_session, article, lang="fr", title=HELP_SEED[0]["fr"]["title"], body_html="<p>Nos règles.</p>",
+    )
+    await db_session.commit()
+    assert await _langs_of(db_session, article.id) == {"fr", "en"}
+
+
+@pytest.mark.asyncio
+async def test_an_article_the_admin_changed_by_one_word_gets_no_english(db_session):
+    await _older_install(db_session)
+    article = await _first_article(db_session)
+    fr = _french(article)
+    fr.body_html = fr.body_html.replace("</p>", " vraiment</p>", 1)
+    await db_session.commit()
+
+    await help_seed.ensure_seed(db_session)
+    assert await _langs_of(db_session, article.id) == {"fr"}

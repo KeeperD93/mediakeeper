@@ -3,7 +3,7 @@ while untouched, and stripped of their starter translations once the admin
 rewrites the French text."""
 from __future__ import annotations
 
-from sqlalchemy import select
+from sqlalchemy import and_, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from constants.portal_content import HELP_LANGS, HELP_SOURCE_LANG
@@ -25,18 +25,32 @@ def _french(article: HelpArticle) -> HelpArticleTranslation | None:
     return next((t for t in article.translations if t.lang == HELP_SOURCE_LANG), None)
 
 
+async def _starter_copies(db: AsyncSession, entry: dict) -> list[HelpArticle]:
+    """The articles holding a starter entry: under its slug, or under another one
+    with its French title (an older editor save could move the slug)."""
+    rows = await db.execute(
+        select(HelpArticle).outerjoin(HelpArticle.translations).where(or_(
+            HelpArticle.slug == entry["slug"],
+            and_(
+                HelpArticleTranslation.lang == HELP_SOURCE_LANG,
+                HelpArticleTranslation.title == entry[HELP_SOURCE_LANG]["title"],
+            ),
+        ))
+    )
+    return list(rows.scalars().unique())
+
+
 async def ensure_seed(db: AsyncSession) -> int:
-    """Create the starter articles whose slug is missing, and give a starter
-    article the languages it lacks while its French text is untouched. Never
-    rewrites a translation: an article the admin edited, or put in the trash,
-    stays as it is. Returns the number of articles created."""
+    """Create the starter articles found under neither their slug nor their French
+    title, and give each copy of a starter article the languages it lacks while
+    its French text is untouched. Never rewrites a translation: an article the
+    admin edited, or put in the trash, stays as it is. Returns the number of
+    articles created."""
     created = 0
     changed = False
     for entry in HELP_SEED:
-        article = (await db.execute(
-            select(HelpArticle).where(HelpArticle.slug == entry["slug"])
-        )).scalar_one_or_none()
-        if article is None:
+        copies = await _starter_copies(db, entry)
+        if not copies:
             article = HelpArticle(
                 slug=entry["slug"],
                 category=entry["category"],
@@ -46,20 +60,23 @@ async def ensure_seed(db: AsyncSession) -> int:
             )
             db.add(article)
             created += 1
-        else:
+            copies = [article]
+        for article in copies:
             french = _french(article)
-            if article.deleted_at is not None or french is None or not _is_starter(french, entry):
+            if article.id is not None and (
+                article.deleted_at is not None or french is None or not _is_starter(french, entry)
+            ):
                 continue
-        present = {t.lang for t in article.translations}
-        for lang in HELP_LANGS:
-            if lang in present:
-                continue
-            article.translations.append(HelpArticleTranslation(
-                lang=lang,
-                title=entry[lang]["title"][:300],
-                body_html=sanitize_html(entry[lang]["body_html"]),
-            ))
-            changed = True
+            present = {t.lang for t in article.translations}
+            for lang in HELP_LANGS:
+                if lang in present:
+                    continue
+                article.translations.append(HelpArticleTranslation(
+                    lang=lang,
+                    title=entry[lang]["title"][:300],
+                    body_html=sanitize_html(entry[lang]["body_html"]),
+                ))
+                changed = True
     if changed:
         await db.commit()
     return created

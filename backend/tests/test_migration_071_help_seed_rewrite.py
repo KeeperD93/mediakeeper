@@ -123,7 +123,7 @@ def test_matches_the_original_text_whatever_its_spacing():
     assert migration.shape(squeezed) == migration.shape(request_old)
 
 
-@pytest.mark.parametrize("retouch", ["picture", "title"])
+@pytest.mark.parametrize("retouch", ["picture", "word", "title"])
 def test_leaves_an_article_the_admin_retouched_alone(alembic_db, retouch):
     cfg, engine = alembic_db
     request_old, _ = migration.REWRITES["comment-faire-une-demande"]
@@ -131,6 +131,8 @@ def test_leaves_an_article_the_admin_retouched_alone(alembic_db, retouch):
     title = None
     if retouch == "picture":  # same words, one more picture
         body += '<p><img src="https://example.com/a.png" alt=""></p>'
+    elif retouch == "word":  # one word more, nothing else
+        body = body.replace("</p>", " vraiment</p>", 1)
     else:
         title = "Faire une demande, pas à pas"
     with engine.begin() as conn:
@@ -145,3 +147,17 @@ def test_leaves_an_article_the_admin_retouched_alone(alembic_db, retouch):
 def test_the_rewrite_is_the_current_starter_text(slug):
     seeded = next(entry for entry in HELP_SEED if entry["slug"] == slug)
     assert migration.REWRITES[slug][1].strip() == seeded["fr"]["body_html"]
+
+
+def test_rewrites_an_untouched_article_whose_slug_moved(alembic_db):
+    # An older editor save moved the slug without touching a word.
+    cfg, engine = alembic_db
+    slug = "le-calendrier-et-les-evenements"
+    old, new = migration.REWRITES[slug]
+    with engine.begin() as conn:
+        _add_article(conn, 1, "le-calendrier-et-la-creation-d-evenements", sanitize_html(old.strip()),
+                     title=migration.TITLES[slug])
+
+    command.upgrade(cfg, REVISION)
+
+    assert _bodies(engine)[1] == sanitize_html(new.strip())

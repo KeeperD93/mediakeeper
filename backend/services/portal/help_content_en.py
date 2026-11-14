@@ -112,7 +112,7 @@ HELP_EN: dict[str, dict[str, str]] = {
     "le-classement-mensuel": {
         "title": "The monthly leaderboard",
         "body_html": """
-<p>The <strong>leaderboard</strong> compares the members' activity. On <strong>“My profile”</strong>, the <strong>“This month's ranking”</strong> block shows your place, and the <strong>“Leaderboard”</strong> card shows the current leaders. Tap the card's title to see the full leaderboard.</p>
+<p>The <strong>leaderboard</strong> compares the members' activity. On <strong>“My profile”</strong>, the <strong>“This month's ranking”</strong> block shows your place, and the <strong>“Ranking”</strong> card shows the current leaders. Tap the card's title to see the full leaderboard.</p>
 <p><strong>Four periods:</strong> <em>Today</em>, <em>Week</em>, <em>Month</em> and <em>All time</em>. The week starts on Monday and the month on the 1st: with each new period, everyone starts again from zero.</p>
 <p><strong>What counts:</strong> only the XP your activity earns during the period, that is movies and episodes watched, sign-ins and requests. Trophy XP raises your level, not your place on the leaderboard.</p>
 <ul>

@@ -5,8 +5,8 @@ admins see, « Choisir son pseudo » gave the old name rules, and the request
 quotas, XP, leaderboard and events articles described rules the portal never
 had. The starter text only reaches new installs (the seed never overwrites an
 article), so this rewrites the French text of each of the six articles that
-still holds its original title and text: same words, tags, links and pictures,
-spacing and entity spelling aside. An article the admin retouched, even by one picture, or
+still holds its original title and text, whatever its slug became: same words,
+tags, links and pictures, spacing and entity spelling aside. An article the admin retouched, even by one picture, or
 put in the trash, is left alone.
 ``sanitize_html`` is imported only when one of the two articles exists, so a
 fresh install never couples to app code. Irreversible on purpose: ``downgrade`` is a
@@ -217,13 +217,16 @@ def shape(body: str | None) -> str:
 
 def upgrade() -> None:
     bind = op.get_bind()
+    # Found by its starter title, not its slug: an older editor save could move a
+    # starter article's slug without touching a word of it.
+    by_title = {title: slug for slug, title in TITLES.items()}
     rows = bind.execute(
         sa.text(
-            "SELECT t.id, a.slug, t.title, t.body_html FROM help_article_translations t "
+            "SELECT t.id, t.title, t.body_html FROM help_article_translations t "
             "JOIN help_articles a ON a.id = t.article_id "
-            "WHERE t.lang = 'fr' AND a.deleted_at IS NULL AND a.slug IN :slugs"
-        ).bindparams(sa.bindparam("slugs", expanding=True)),
-        {"slugs": list(REWRITES)},
+            "WHERE t.lang = 'fr' AND a.deleted_at IS NULL AND t.title IN :titles"
+        ).bindparams(sa.bindparam("titles", expanding=True)),
+        {"titles": list(by_title)},
     ).fetchall()
     if not rows:
         return
@@ -231,8 +234,8 @@ def upgrade() -> None:
     from services.portal.help_sanitize import sanitize_html
 
     untouched = [
-        (row_id, slug) for row_id, slug, title, body in rows
-        if title == TITLES[slug] and shape(body) == shape(sanitize_html(REWRITES[slug][0].strip()))
+        (row_id, by_title[title]) for row_id, title, body in rows
+        if shape(body) == shape(sanitize_html(REWRITES[by_title[title]][0].strip()))
     ]
     for row_id, slug in untouched:
         bind.execute(
