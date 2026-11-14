@@ -41,6 +41,7 @@ This section intentionally has no date so it is not shown to users.
 - Portal — Events: the display name replaces the sign-in name (guests, host, notifications).
 - Portal — Events: replying to an invitation from a deleted host no longer fails.
 - Users — renaming a member to a username already in use is refused.
+- Users — an administrator turned member no longer shows their sign-in name.
 
 ## [1.0.0-rc.10] - 2026-11-11
 

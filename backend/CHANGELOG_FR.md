@@ -41,6 +41,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Portail — Événements : le pseudo remplace le nom de connexion (invités, créateur, notifications).
 - Portail — Événements : plus d'erreur en répondant à l'invitation d'un organisateur supprimé.
 - Utilisateurs — renommer un membre avec un pseudo déjà porté est refusé.
+- Utilisateurs — un administrateur repassé membre ne montre plus son nom de connexion.
 
 ## [1.0.0-rc.10] - 2026-11-11
 

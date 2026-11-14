@@ -13,7 +13,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from models.user import User
 from models.portal.profile import UserProfile
 from services.emby.users import set_emby_user_enabled
-from services.portal.display_name_rules import is_display_name_taken, stored_name_refused
+from services.portal.display_name_rules import (
+    is_display_name_taken,
+    same_name,
+    stored_name_refused,
+)
 
 from .admin_users_constants import (
     ACTION_USER_ACCESS_EXTENDED,
@@ -35,14 +39,17 @@ from .admin_users_serialize import _aware, now_utc
 
 
 async def _owe_a_name_if_no_member_may_wear_it(db: AsyncSession, profile: UserProfile) -> None:
-    """A former admin keeps their name only if a member may wear it: an admin may
-    show a reserved name, or one another member shows, which the unique name key
-    would refuse at the save. Otherwise they pick a new one at the next visit."""
+    """A former admin keeps their name only if a member may wear it. An admin's
+    stored name may be their sign-in name (only the admin label is shown), a
+    reserved name, or one another member shows (the unique name key would refuse
+    it at the save). Otherwise they pick a new one at the next visit."""
     with db.no_autoflush:  # the role change must not reach the key before the check
+        user = await db.get(User, profile.user_id)
         taken = await is_display_name_taken(
             db, profile.display_name or "", exclude_user_id=profile.user_id,
         )
-    if taken or stored_name_refused(profile):
+    shows_sign_in = same_name(profile.display_name or "", user.username)
+    if shows_sign_in or taken or stored_name_refused(profile):
         profile.display_name_must_set = True
 
 

@@ -186,7 +186,9 @@ async def test_a_missing_profile_takes_the_admin_role_from_the_configuration(
 @pytest.mark.parametrize(("admin_name", "owes_a_name"), [
     ("zed", True),  # a member shows it: the unique key would refuse it
     ("Administrateur", True),  # reserved for admins
-    ("Olivia", False),
+    ("Olivia", True),  # the sign-in name, as stored for an admin
+    ("0livia", True),  # reads as the sign-in name
+    ("Captain Nemo", False),
 ])
 async def test_a_former_admin_keeps_only_a_name_a_member_may_wear(db_session, admin_name, owes_a_name):
     await make_portal_user(db_session, username="bob", display_name="Zed")
@@ -197,7 +199,7 @@ async def test_a_former_admin_keeps_only_a_name_a_member_may_wear(db_session, ad
     assert result == {"ok": True, "role": "viewer"}
     await db_session.refresh(admin)
     assert admin.display_name_must_set is owes_a_name
-    assert admin.display_name_key == (None if owes_a_name else "olivia")
+    assert admin.display_name_key == (None if owes_a_name else "captain nemo")
 
 
 @pytest.mark.asyncio

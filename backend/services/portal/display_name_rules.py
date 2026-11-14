@@ -124,7 +124,7 @@ def clean_display_name(raw: str | None) -> str:
     return _EDGES.sub("", strip_tags_and_trim(raw, max_len=dn.MAX_LENGTH))
 
 
-def _same_name(a: str, b: str) -> bool:
+def same_name(a: str, b: str) -> bool:
     """The same name to the eye: equal once folded, or equal non-empty skeletons."""
     skeleton = display_name_skeleton(a)
     return display_name_key(a) == display_name_key(b) or (bool(skeleton) and skeleton == display_name_skeleton(b))
@@ -172,9 +172,9 @@ def _refused_even_if_stored(profile: UserProfile, name: str, *, must_set: bool, 
     the placeholder or the name an admin reset, nor look like them; a reserved
     name or anyone's provisional pseudo cannot be kept from an older path."""
     if must_set:
-        if _same_name(name, profile.display_name or ""):
+        if same_name(name, profile.display_name or ""):
             return dn.PREVIOUS if profile.display_name_changed_at else dn.GENERATED
-        if any(_same_name(name, generate_pseudo(profile.user_id, lang)) for lang in ("fr", "en")):
+        if any(same_name(name, generate_pseudo(profile.user_id, lang)) for lang in ("fr", "en")):
             return dn.GENERATED
     if not is_admin and is_reserved_display_name(name):
         return dn.RESERVED
