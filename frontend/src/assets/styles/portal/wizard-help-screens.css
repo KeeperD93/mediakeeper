@@ -1,13 +1,15 @@
 /* First-login wizard, « Aides » step: portal screens reduced to a desktop view
-   (--portal-demo-stage-w × --portal-demo-stage-h), here the top bar and its search.
-   Same tokens as the real components; wzh-pv- prefix, unique to this step. */
+   (--portal-demo-stage-w × --portal-demo-stage-h), here the top bar and its search,
+   also drawn in « where to find » (DemoTopBar). Same tokens as the real components;
+   wzh-pv- prefix, unique to these two places. */
 
 /* No weight, so the margins of the screens' own classes win. */
 :where(.wzh-canvas) p {
   margin: 0;
 }
 
-.wzh-canvas svg {
+.wzh-canvas svg,
+.wzh-pv-nav svg {
   display: block;
   flex: none;
 }
@@ -207,18 +209,4 @@
   gap: var(--portal-space-0-5);
   margin-left: var(--portal-space-0-5);
   color: var(--portal-text-secondary);
-}
-
-.wzh-pv-avt b {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: var(--portal-demo-control-sm);
-  height: var(--portal-demo-control-sm);
-  border: var(--portal-border-width-metal) solid var(--portal-color-medal-bronze);
-  border-radius: var(--portal-radius-circle);
-  background: var(--portal-demo-avatar-bg);
-  color: var(--portal-text-primary-solid);
-  font-size: var(--portal-text-xs);
-  font-weight: var(--portal-font-extrabold);
 }

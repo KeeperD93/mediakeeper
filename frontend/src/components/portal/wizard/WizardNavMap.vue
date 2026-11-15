@@ -2,30 +2,11 @@
   <div class="dd-box wz-map">
     <span class="dd-eyebrow dd-muted">{{ $t('portal.wizard.features.mapTitle') }}</span>
 
-    <!-- From a tablet on: the portal's top bar, drawn small. -->
+    <!-- From a tablet on: the portal's top bar of the help demos, scaled down. -->
     <div class="wz-map-desk">
       <div class="wz-nm-box" aria-hidden="true">
         <div class="wz-nm">
-          <span class="wz-nm-brand">
-            <img :src="LOGO_SRC" alt="" />
-            {{ $t('portal.nav.brand') }}
-          </span>
-          <span class="wz-nm-tab is-on">{{ $t('portal.tabs.home') }}</span>
-          <span class="wz-nm-tab">{{ $t('portal.tabs.profile') }}</span>
-          <span class="wz-nm-tab">{{ $t('portal.tabs.problems') }}</span>
-          <span class="dd-grow" />
-          <span class="wz-nm-search">
-            <Search :size="15" />
-            <span class="wz-nm-ph">{{ $t('portal.search.placeholder') }}</span>
-            <span class="wz-nm-go"><ArrowRight :size="15" :stroke-width="2.2" /></span>
-          </span>
-          <span class="wz-nm-ic"><Library :size="18" :stroke-width="1.8" /></span>
-          <span class="wz-nm-ic wz-nm-ic--round"><Calendar :size="18" /></span>
-          <span class="wz-nm-ic"><Bell :size="18" /></span>
-          <span class="wz-nm-av">
-            <WizardAvatar size="md" :initial="wz.initial" :tier="wz.me.tier" />
-            <ChevronDown :size="14" :stroke-width="2.2" />
-          </span>
+          <DemoTopBar :tab="DEMO_TAB.HOME" :initial="wz.initial" :tier="wz.me.tier" />
         </div>
       </div>
       <ul class="wz-mlegend">
@@ -40,7 +21,7 @@
       <div class="wz-mphone" aria-hidden="true">
         <div class="wz-mbar">
           <span class="wz-mbrand">
-            <img :src="LOGO_SRC" alt="" />
+            <img :src="BRAND_LOGO_SRC" alt="" />
             {{ $t('portal.nav.brand') }}
           </span>
           <span class="dd-grow" />
@@ -72,22 +53,13 @@
 
 <script setup>
 import { inject } from 'vue'
-import {
-  ArrowRight,
-  Bell,
-  Calendar,
-  ChevronDown,
-  House,
-  Library,
-  LifeBuoy,
-  Plus,
-  Search,
-  User,
-} from 'lucide-vue-next'
+import { Bell, House, Library, LifeBuoy, Plus, Search, User } from 'lucide-vue-next'
 import { ONBOARDING_WIZARD_KEY } from '@/composables/portal/useOnboardingWizard'
+import { BRAND_LOGO_SRC } from '@/constants/brand'
+import { DEMO_TAB } from '@/constants/portalWizardHelp'
+import DemoTopBar from './help/DemoTopBar.vue'
 import WizardAvatar from './WizardAvatar.vue'
 
-const LOGO_SRC = '/assets/icons/mk-logo-128.png'
 const DESK_LEGEND = ['tabs', 'search', 'icons', 'avatar', 'fab']
 const PHONE_LEGEND = ['tabs', 'top', 'calendar']
 // Same tabs as the bottom bar of a member (PortalBottomNav).

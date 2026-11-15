@@ -150,6 +150,7 @@
   --portal-wizard-input-height: 50px;
   --portal-wizard-progress-height: 6px;
   --portal-wizard-icon-tile: 40px; /* tinted square behind a feature icon */
+  --portal-wizard-icon-tile-sm: 30px; /* the same, small: uses of the notifications */
   --portal-wizard-counter-size: 26px; /* number of a step in the welcome list */
   --portal-wizard-radio-size: 18px;
   --portal-wizard-radio-ring: 2px;
@@ -161,14 +162,6 @@
   --portal-wizard-avatar-hero-lg: 64px;
   --portal-wizard-avatar-sm: 22px; /* avatar in the path to the account settings */
   --portal-wizard-crumb-height: 34px;
-  --portal-wizard-nav-height: 64px; /* the portal's top bar, drawn small */
-  --portal-wizard-nav-width: 800px;
-  --portal-wizard-nav-logo: 34px;
-  --portal-wizard-nav-search-width: 210px;
-  --portal-wizard-nav-search-height: 38px;
-  --portal-wizard-nav-icon: 36px;
-  --portal-wizard-nav-go: 30px;
-  --portal-wizard-nav-avatar: 30px;
   --portal-wizard-phone-icon: 30px; /* icons of the phone bars, drawn small */
   --portal-wizard-phone-avatar: 28px;
   --portal-wizard-phone-logo: 22px;
@@ -178,7 +171,12 @@
   --portal-shadow-wizard-segment: 0 0 10px rgb(var(--portal-accent-500-rgb), 0.55);
   --portal-shadow-wizard-avatar: 0 0 18px rgb(var(--portal-accent-500-rgb), 0.35);
   --portal-shadow-wizard-field: 0 0 0 3px rgb(var(--portal-accent-500-rgb), 0.32);
-  --portal-shadow-wizard-nav: 0 16px 44px rgb(0, 0, 0, 0.28);
+  /* The viewer's initial, without a picture (image step, recap, drawn top bars). */
+  --portal-wizard-avatar-bg: linear-gradient(
+    145deg,
+    var(--portal-accent-500),
+    var(--portal-color-premium)
+  );
 }
 
 /* First-login wizard: help demos — portal screens reduced to a desktop view. */
@@ -221,11 +219,6 @@
     135deg,
     rgb(var(--portal-accent-500-rgb), 0.9),
     rgb(var(--portal-accent-500-rgb), 0.68)
-  );
-  --portal-demo-avatar-bg: linear-gradient(
-    145deg,
-    var(--portal-accent-500),
-    var(--portal-color-premium)
   );
   --portal-demo-title-bar-bg: linear-gradient(
     180deg,

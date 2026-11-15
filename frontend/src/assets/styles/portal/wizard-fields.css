@@ -124,7 +124,7 @@
 }
 .wz-chip.is-on {
   border-color: var(--portal-accent-400);
-  background: rgb(var(--portal-accent-500-rgb), 0.22);
+  background: var(--portal-wizard-accent-tint);
 }
 .wz-tick {
   display: none;

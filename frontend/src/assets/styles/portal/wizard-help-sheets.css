@@ -158,7 +158,7 @@
 
 .wzh-pv-fpill.is-on {
   border-color: var(--portal-demo-chip-on-border);
-  background: var(--portal-demo-chip-on-bg);
+  background: var(--portal-wizard-accent-tint);
   color: var(--portal-text-primary-solid);
 }
 

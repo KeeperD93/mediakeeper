@@ -26,7 +26,7 @@
               v-if="banner"
               class="wz-banner"
               :class="{ 'wz-banner--sm': !wz.full }"
-              :src="BANNER_SRC"
+              :src="BRAND_BANNER_SRC"
               :alt="$t('portal.wizard.bannerAlt')"
             />
             <header class="wz-head">
@@ -79,6 +79,7 @@ import {
   ONBOARDING_WIZARD_KEY,
   useOnboardingWizard,
 } from '@/composables/portal/useOnboardingWizard'
+import { BRAND_BANNER_SRC } from '@/constants/brand'
 import { WIZARD_MODE, WIZARD_STEP } from '@/constants/portalOnboarding'
 import WizardAvatar from './WizardAvatar.vue'
 import WizardFoot from './WizardFoot.vue'
@@ -95,7 +96,6 @@ import WizardStepNotifications from './WizardStepNotifications.vue'
 import WizardStepVisibility from './WizardStepVisibility.vue'
 import WizardStepWelcome from './WizardStepWelcome.vue'
 
-const BANNER_SRC = '/assets/icons/mk-banner-700.png'
 const BODIES = {
   [WIZARD_STEP.WELCOME]: WizardStepWelcome,
   [WIZARD_STEP.NAME]: WizardStepName,

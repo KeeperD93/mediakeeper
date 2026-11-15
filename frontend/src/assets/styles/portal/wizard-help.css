@@ -30,48 +30,23 @@
   gap: var(--portal-space-2);
 }
 
-.wzh-chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--portal-space-2);
-}
-
-.wzh-chip,
+/* The demos are picked with the wizard's chips (.wz-chip, wizard-fields.css). */
 .wzh-ctrl {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: var(--portal-space-1-5);
   min-height: var(--portal-touch-target);
-  border: var(--portal-border-width) solid var(--portal-border-strong);
-  font: inherit;
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
-}
-
-.wzh-chip {
-  padding: 0 var(--portal-space-4);
-  border-radius: var(--portal-radius-pill);
-  background: var(--portal-surface-2);
-  color: var(--portal-text-primary-solid);
-  font-size: var(--portal-text-base);
-  transition:
-    border-color var(--portal-dur-base) var(--portal-ease-default),
-    background-color var(--portal-dur-base) var(--portal-ease-default);
-}
-
-.wzh-chip.is-on {
-  border-color: var(--portal-accent-400);
-  background: var(--portal-demo-chip-on-bg);
-}
-
-.wzh-ctrl {
   padding: 0 var(--portal-space-3-5);
+  border: var(--portal-border-width) solid var(--portal-border-strong);
   border-radius: var(--portal-radius-md);
   background: transparent;
   color: var(--portal-text-secondary-solid);
+  font: inherit;
   font-size: var(--portal-text-sm);
   font-weight: var(--portal-font-medium);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .wzh-ctrl--icon {
@@ -80,16 +55,11 @@
 }
 
 @media (hover: hover) {
-  .wzh-chip:hover {
-    border-color: var(--portal-border-intense);
-  }
-
   .wzh-ctrl:hover {
     background: var(--portal-surface-3);
   }
 }
 
-.wzh-chip:focus-visible,
 .wzh-ctrl:focus-visible {
   outline: var(--portal-focus-ring);
   outline-offset: var(--portal-focus-ring-offset);
@@ -186,7 +156,7 @@
   width: var(--portal-space-6);
   height: var(--portal-space-6);
   border-radius: var(--portal-radius-circle);
-  background: var(--portal-demo-chip-on-bg);
+  background: var(--portal-wizard-accent-tint);
   color: var(--portal-accent-200);
   font-size: var(--portal-text-2xs);
   font-weight: var(--portal-font-extrabold);
@@ -199,7 +169,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .wzh-chip,
   .wzh-cap {
     transition: none;
   }

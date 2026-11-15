@@ -1,7 +1,7 @@
 <template>
   <div class="wzh-pv-nav" :class="{ 'wzh-pv-nav--clear': clear }">
     <span class="wzh-pv-brand">
-      <img :src="DEMO_LOGO" alt="" class="wzh-pv-logo" />
+      <img :src="BRAND_LOGO_SRC" alt="" class="wzh-pv-logo" />
       {{ $t('portal.nav.brand') }}
     </span>
     <span
@@ -50,18 +50,23 @@
     <span class="wzh-pv-ic wzh-pv-ic--round"><Calendar :size="18" /></span>
     <span class="wzh-pv-ic"><Bell :size="18" /></span>
     <span class="wzh-pv-avt">
-      <b>{{ initial }}</b>
+      <WizardAvatar size="md" :initial="initial" :tier="tier" />
       <ChevronDown :size="14" :stroke-width="2.2" />
     </span>
   </div>
 </template>
 
 <script setup>
-// The portal's top bar, reduced, as a member sees it (no « Demandes » tab).
+// The portal's top bar, reduced, as a member sees it (no « Demandes » tab): in the help
+// demos, and in « where to find » scaled down.
+import '@/assets/styles/portal/wizard-help-screens.css'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { ArrowRight, Bell, Calendar, ChevronDown, Library, Search } from 'lucide-vue-next'
-import { DEMO_DATA, DEMO_LOGO, DEMO_SEARCH, DEMO_TAB } from '@/constants/portalWizardHelp'
+import { BRAND_LOGO_SRC } from '@/constants/brand'
+import { RANK_TIER } from '@/constants/portal'
+import { DEMO_DATA, DEMO_SEARCH, DEMO_TAB } from '@/constants/portalWizardHelp'
+import WizardAvatar from '../WizardAvatar.vue'
 
 defineProps({
   tab: { type: String, default: DEMO_TAB.NONE },
@@ -69,6 +74,8 @@ defineProps({
   search: { type: String, default: DEMO_SEARCH.IDLE },
   listsOn: { type: Boolean, default: false },
   initial: { type: String, default: '' },
+  // Rank tier of the avatar's ring: the demos show a bronze member.
+  tier: { type: String, default: RANK_TIER.BRONZE },
 })
 
 const TABS = [

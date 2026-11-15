@@ -5,8 +5,9 @@
 import { Calendar, Crown, Send, Trophy } from 'lucide-vue-next'
 import { TICKET_STATUS } from '@/constants/tickets'
 
-export const DEMO = Object.freeze({ REQUEST: 'request', TICKET: 'ticket', LIST: 'list' })
-export const DEMO_ORDER = Object.freeze([DEMO.REQUEST, DEMO.TICKET, DEMO.LIST])
+export const DEMO = Object.freeze({ REQUEST: 'request', TICKET: 'ticket', LIST: 'list' } as const)
+export type Demo = (typeof DEMO)[keyof typeof DEMO]
+export const DEMO_ORDER: readonly Demo[] = Object.freeze([DEMO.REQUEST, DEMO.TICKET, DEMO.LIST])
 
 // Views per demo and how long each one stays on screen (loops of 15 s and 9 s).
 export const DEMO_TIMING = Object.freeze({
@@ -16,7 +17,12 @@ export const DEMO_TIMING = Object.freeze({
 })
 
 // State of the search field drawn in the reduced top bar.
-export const DEMO_SEARCH = Object.freeze({ IDLE: 'idle', TYPING: 'typing', FILLED: 'filled' })
+export const DEMO_SEARCH = Object.freeze({
+  IDLE: 'idle',
+  TYPING: 'typing',
+  FILLED: 'filled',
+} as const)
+export type DemoSearch = (typeof DEMO_SEARCH)[keyof typeof DEMO_SEARCH]
 
 // Tab lit in the reduced top bar.
 export const DEMO_TAB = Object.freeze({
@@ -24,12 +30,12 @@ export const DEMO_TAB = Object.freeze({
   PROFILE: 'profile',
   PROBLEMS: 'problems',
   NONE: '',
-})
+} as const)
+export type DemoTab = (typeof DEMO_TAB)[keyof typeof DEMO_TAB]
 
 // Button pressed by the cursor on the reduced title page.
-export const DEMO_PRESS = Object.freeze({ REQUEST: 'request', LIST: 'list', NONE: '' })
-
-export const DEMO_LOGO = '/assets/icons/mk-logo-128.png'
+export const DEMO_PRESS = Object.freeze({ REQUEST: 'request', LIST: 'list', NONE: '' } as const)
+export type DemoPress = (typeof DEMO_PRESS)[keyof typeof DEMO_PRESS]
 
 // Figures of the test data shown in the screens (not words, so not translated).
 export const DEMO_DATA = Object.freeze({

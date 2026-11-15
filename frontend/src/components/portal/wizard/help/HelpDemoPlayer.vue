@@ -1,12 +1,12 @@
 <template>
   <div class="wzh-demo" :class="{ 'is-paused': paused, 'is-still': still }">
     <div class="wzh-demo-head">
-      <div class="wzh-chips" role="group" :aria-label="$t('portal.wizardHelp.demosLabel')">
+      <div class="wz-chips" role="group" :aria-label="$t('portal.wizardHelp.demosLabel')">
         <button
           v-for="id in DEMO_ORDER"
           :key="id"
           type="button"
-          class="wzh-chip"
+          class="wz-chip"
           :class="{ 'is-on': demo === id }"
           :aria-pressed="demo === id ? 'true' : 'false'"
           @click="pick(id)"

@@ -23,7 +23,7 @@ function mountStep(locale = 'fr') {
   return wrapper
 }
 
-const chips = () => wrapper.findAll('.wzh-chip')
+const chips = () => wrapper.findAll('.wz-chip')
 const captions = () => wrapper.findAll('.wzh-cap')
 const litCaption = () => captions().findIndex(cap => cap.classes().includes('is-on'))
 const shownViews = () => wrapper.findAll('.wzh-frame.is-shown')
@@ -52,7 +52,7 @@ describe('WizardStepHelp — demos', () => {
       'Créer une liste',
     ])
     expect(chips().map(chip => chip.attributes('aria-pressed'))).toEqual(['true', 'false', 'false'])
-    expect(wrapper.find('.wzh-chips').attributes('aria-label')).toBe('Choisir une démonstration')
+    expect(wrapper.find('.wz-chips').attributes('aria-label')).toBe('Choisir une démonstration')
     expect(wrapper.find('.wzh-caps').attributes('aria-label')).toBe(
       'Faire une demande, étape par étape',
     )
@@ -182,6 +182,7 @@ describe('WizardStepHelp — reduced screens', () => {
     ])
     expect(bar.find('.wzh-pv-tab.is-on').text()).toBe('Accueil')
     expect(bar.find('.wzh-pv-avt').text()).toBe('A')
+    expect(bar.find('.wz-av').classes()).toContain('wz-av--bronze')
     expect(bar.find('.wzh-pv-logo').attributes('src')).toBe('/assets/icons/mk-logo-128.png')
   })
 
