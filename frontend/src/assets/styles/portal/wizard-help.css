@@ -1,0 +1,175 @@
+/* First-login wizard, « Aides » step: demo card, its controls, scene and captions.
+   Classes carry the wzh- prefix, unique to this step (no scoping needed). */
+
+.wzh {
+  container: wzh-help / inline-size;
+  display: flex;
+  flex-direction: column;
+  gap: var(--portal-space-6);
+  width: 100%;
+  min-width: 0;
+}
+
+/* Demo card: same box as the daily digest's cards. */
+.wzh-demo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--portal-space-3);
+  min-width: 0;
+  padding: var(--portal-space-3-5);
+  border: var(--portal-border-width) solid var(--portal-border-default);
+  border-radius: var(--portal-radius-xl);
+  background: var(--portal-surface-1);
+}
+
+.wzh-demo-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--portal-space-2);
+}
+
+/* The demos are picked with the wizard's chips (.wz-chip, wizard-fields.css). */
+.wzh-ctrl {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--portal-space-1-5);
+  min-height: var(--portal-touch-target);
+  padding: 0 var(--portal-space-3-5);
+  border: var(--portal-border-width) solid var(--portal-border-strong);
+  border-radius: var(--portal-radius-md);
+  background: transparent;
+  color: var(--portal-text-secondary-solid);
+  font: inherit;
+  font-size: var(--portal-text-sm);
+  font-weight: var(--portal-font-medium);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.wzh-ctrl--icon {
+  width: var(--portal-touch-target);
+  padding: 0;
+}
+
+@media (hover: hover) {
+  .wzh-ctrl:hover {
+    background: var(--portal-surface-3);
+  }
+}
+
+.wzh-ctrl:focus-visible {
+  outline: var(--portal-focus-ring);
+  outline-offset: var(--portal-focus-ring-offset);
+}
+
+.wzh-stepper {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--portal-space-1-5);
+}
+
+.wzh-stepper-count {
+  color: var(--portal-text-secondary-solid);
+  font-size: var(--portal-text-sm);
+  font-weight: var(--portal-font-medium);
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+/* The scene: a desktop-sized screen scaled down to the card's width (--wzh-scale,
+   measured by the code); its frame is drawn on top so it never adds width. */
+.wzh-stage-box {
+  width: 100%;
+  min-width: 0;
+}
+
+.wzh-stage {
+  position: relative;
+  width: calc(var(--portal-demo-stage-w) * var(--wzh-scale));
+  height: calc(var(--portal-demo-stage-h) * var(--wzh-scale));
+  margin: 0 auto;
+  overflow: clip;
+  border-radius: var(--portal-radius-md);
+  background: var(--portal-bg-primary);
+  box-shadow: var(--portal-shadow-lg);
+}
+
+.wzh-stage::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border: var(--portal-border-width) solid var(--portal-border-strong);
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+.wzh-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: var(--portal-demo-stage-w);
+  height: var(--portal-demo-stage-h);
+  overflow: clip;
+  transform: scale(var(--wzh-scale));
+  transform-origin: top left;
+  color: var(--portal-text-primary);
+  font-size: var(--portal-text-base);
+  line-height: var(--portal-lh-compact);
+  text-align: left;
+}
+
+/* Captions: every step stays readable, the current one is lit. */
+.wzh-caps {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--portal-space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.wzh-cap {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--portal-space-2);
+  padding: var(--portal-space-2) var(--portal-space-3);
+  border-radius: var(--portal-radius-md);
+  color: var(--portal-text-secondary-solid);
+  font-size: var(--portal-text-sm);
+  line-height: var(--portal-lh-normal);
+  transition: background-color var(--portal-dur-fast) var(--portal-ease-linear);
+}
+
+.wzh-cap.is-on {
+  background: var(--portal-demo-caption-on-bg);
+}
+
+.wzh-cap-n {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: var(--portal-space-6);
+  height: var(--portal-space-6);
+  border-radius: var(--portal-radius-circle);
+  background: var(--portal-wizard-accent-tint);
+  color: var(--portal-accent-200);
+  font-size: var(--portal-text-2xs);
+  font-weight: var(--portal-font-extrabold);
+}
+
+@container wzh-help (min-width: 480px) {
+  .wzh-caps {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wzh-cap {
+    transition: none;
+  }
+}

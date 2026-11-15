@@ -1,0 +1,299 @@
+/* First-login wizard, « Aides » step: reduced portal windows (request, report, new
+   list) over their veil, and the confirmation toast. Prefix wzh-pv-, as in
+   wizard-help-screens.css. */
+
+.wzh-pv-ovl {
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--portal-overlay-modal);
+}
+
+.wzh-pv-dialog {
+  width: var(--portal-demo-dialog-w);
+  border: var(--portal-border-width) solid var(--portal-border-strong);
+  border-radius: var(--portal-radius-md);
+  background: var(--portal-demo-dialog-bg);
+}
+
+.wzh-pv-dialog--request {
+  background: var(--portal-demo-request-bg);
+}
+
+.wzh-pv-dialog--ticket {
+  border-color: var(--portal-border-default);
+}
+
+.wzh-pv-dialog--list {
+  border-width: var(--portal-border-width-thin);
+  border-color: var(--portal-border-default);
+  border-radius: var(--portal-radius-lg);
+  background: var(--portal-bg-primary);
+  box-shadow: var(--portal-shadow-popup);
+}
+
+.wzh-pv-mh {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--portal-space-3-5) var(--portal-space-4);
+  border-bottom: var(--portal-border-width) solid var(--portal-border-strong);
+  font-size: var(--portal-text-md);
+  font-weight: var(--portal-font-bold);
+}
+
+.wzh-pv-mh svg {
+  color: var(--portal-text-secondary);
+}
+
+.wzh-pv-dialog--ticket .wzh-pv-mh {
+  border-bottom-color: var(--portal-border-default);
+}
+
+.wzh-pv-dialog--list .wzh-pv-mh {
+  padding-bottom: var(--portal-space-2);
+  border-bottom: none;
+}
+
+.wzh-pv-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--portal-demo-control);
+  height: var(--portal-demo-control);
+  border-radius: var(--portal-radius-btn);
+  background: var(--portal-surface-2);
+}
+
+.wzh-pv-mf {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--portal-space-2);
+  padding: var(--portal-space-3-5) var(--portal-space-4);
+  border-top: var(--portal-border-width) solid var(--portal-border-strong);
+}
+
+.wzh-pv-dialog--ticket .wzh-pv-mf {
+  padding-block: var(--portal-space-3);
+  border-top-color: var(--portal-border-default);
+}
+
+.wzh-pv-dialog--list .wzh-pv-mf {
+  padding: var(--portal-space-3) var(--portal-space-5);
+  border-top: var(--portal-border-width-thin) solid var(--portal-border-faint);
+}
+
+/* « Faire une demande » */
+.wzh-pv-rm-m {
+  display: flex;
+  align-items: center;
+  gap: var(--portal-space-3);
+  padding: var(--portal-space-3-5) var(--portal-space-4);
+  border-bottom: var(--portal-border-width) solid var(--portal-border-faint);
+  color: var(--portal-text-secondary);
+  font-size: var(--portal-text-sm);
+}
+
+.wzh-pv-rm-m b {
+  display: block;
+  color: var(--portal-text-primary);
+  font-size: var(--portal-text-md);
+  font-weight: var(--portal-font-bold);
+}
+
+.wzh-pv-thumb {
+  flex: none;
+  width: var(--portal-demo-thumb-w);
+  aspect-ratio: var(--portal-aspect-poster);
+  border-radius: var(--portal-radius-xs);
+}
+
+.wzh-pv-rm-btn {
+  position: relative;
+  padding: var(--portal-space-2) var(--portal-space-6);
+  border-radius: var(--portal-radius-xs);
+  background: var(--portal-accent);
+  font-size: var(--portal-text-base);
+  font-weight: var(--portal-font-bold);
+}
+
+/* « Signaler un problème » */
+.wzh-pv-pp-b {
+  padding: var(--portal-space-3) var(--portal-space-4) var(--portal-space-3-5);
+}
+
+.wzh-pv-modes {
+  display: flex;
+  gap: var(--portal-space-1-5);
+  padding: var(--portal-space-1);
+  border-radius: var(--portal-radius-pill);
+  background: var(--portal-demo-field-bg);
+}
+
+.wzh-pv-mode {
+  flex: 1;
+  padding: var(--portal-space-2) var(--portal-space-3);
+  border-radius: var(--portal-radius-pill);
+  color: var(--portal-text-muted-solid);
+  font-size: var(--portal-text-xs);
+  font-weight: var(--portal-font-medium);
+  text-align: center;
+}
+
+.wzh-pv-mode.is-on {
+  background: var(--portal-gradient-accent);
+  color: var(--portal-text-primary);
+  font-weight: var(--portal-font-bold);
+}
+
+.wzh-pv-lbl {
+  display: block;
+  margin: var(--portal-space-2) 0 var(--portal-space-1);
+  color: var(--portal-text-muted-solid);
+  font-size: var(--portal-text-xs);
+}
+
+.wzh-pv-in {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--portal-space-2);
+  min-height: var(--portal-demo-control);
+  padding: var(--portal-space-1-5) var(--portal-space-3);
+  border: var(--portal-border-width) solid var(--portal-border-default);
+  border-radius: var(--portal-radius-xs);
+  background: var(--portal-demo-field-bg);
+  font-size: var(--portal-text-sm);
+}
+
+.wzh-pv-in small {
+  color: var(--portal-text-muted-solid);
+  font-size: var(--portal-text-2xs);
+}
+
+.wzh-pv-in--sel {
+  background: var(--portal-surface-3);
+}
+
+.wzh-pv-in--area {
+  align-items: flex-start;
+  min-height: calc(var(--portal-demo-control) + var(--portal-space-5));
+}
+
+.wzh-pv-pbtn {
+  position: relative;
+  padding: var(--portal-space-2) var(--portal-space-4);
+  border-radius: var(--portal-radius-btn);
+  background: var(--portal-gradient-accent);
+  font-size: var(--portal-text-sm);
+  font-weight: var(--portal-font-bold);
+}
+
+/* « Créer une liste » */
+.wzh-pv-lf-b {
+  padding: 0 var(--portal-space-5) var(--portal-space-3);
+}
+
+.wzh-pv-lfl {
+  display: block;
+  margin: var(--portal-space-2) 0 var(--portal-space-1-5);
+  color: var(--portal-text-secondary);
+  font-size: var(--portal-text-xs);
+  font-weight: var(--portal-font-bold);
+  letter-spacing: var(--portal-tracking-caps);
+  text-transform: uppercase;
+}
+
+.wzh-pv-lfi {
+  padding: var(--portal-space-2) var(--portal-space-3);
+  border: var(--portal-border-width) solid var(--portal-border-default);
+  border-radius: var(--portal-radius-xs);
+  background: var(--portal-surface-1);
+  font-size: var(--portal-text-sm);
+}
+
+.wzh-pv-lfp {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--portal-space-1-5);
+}
+
+.wzh-pv-lfp span,
+.wzh-pv-lfb {
+  display: inline-flex;
+  align-items: center;
+  border: var(--portal-border-width) solid var(--portal-border-default);
+  border-radius: var(--portal-radius-btn);
+  color: var(--portal-text-secondary-solid);
+  font-size: var(--portal-text-xs);
+  font-weight: var(--portal-font-medium);
+}
+
+.wzh-pv-lfp span {
+  min-height: var(--portal-demo-control-sm);
+  padding: 0 var(--portal-space-3);
+}
+
+.wzh-pv-lfp .is-on {
+  border-color: var(--portal-accent-500);
+  background: var(--portal-demo-caption-on-bg);
+  color: var(--portal-accent-light);
+}
+
+.wzh-pv-lfb {
+  position: relative;
+  min-height: var(--portal-demo-control);
+  padding: 0 var(--portal-space-4);
+  border-color: var(--portal-border-strong);
+  font-size: var(--portal-text-sm);
+}
+
+.wzh-pv-lfb--pri {
+  border-color: transparent;
+  background: var(--portal-accent-600);
+  color: var(--portal-text-primary);
+}
+
+/* Confirmation toast */
+.wzh-pv-toast {
+  position: absolute;
+  right: var(--portal-space-4);
+  bottom: var(--portal-space-4);
+  z-index: 7;
+  display: flex;
+  align-items: center;
+  width: var(--portal-demo-toast-w);
+  padding: var(--portal-space-2) var(--portal-space-3-5);
+  border: var(--portal-border-width) solid var(--portal-demo-success-tint);
+  border-radius: var(--portal-radius-md);
+  background: var(--portal-demo-toast-bg);
+  box-shadow: var(--portal-shadow-md);
+}
+
+.wzh-pv-toast-ic {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: var(--portal-demo-control-sm);
+  height: var(--portal-demo-control-sm);
+  border-radius: var(--portal-radius-sm);
+  background: var(--portal-demo-success-tint);
+  color: var(--portal-color-success);
+}
+
+.wzh-pv-toast-bar {
+  align-self: stretch;
+  width: var(--portal-space-0-5);
+  margin: 0 var(--portal-space-2);
+  background: var(--portal-demo-success-tint);
+}
+
+.wzh-pv-toast p {
+  color: var(--portal-text-primary);
+  font-size: var(--portal-text-xs);
+  font-weight: var(--portal-font-medium);
+}

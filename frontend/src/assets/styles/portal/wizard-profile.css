@@ -1,0 +1,184 @@
+/* First-login wizard: the viewer's avatar (image step, recap, small bars), the
+ * notifications step and the recap with what comes next. Classes start with wz-;
+ * the window's width (container dd) is in wizard.css. */
+
+/* The viewer's avatar: their picture, or their initial on the accent gradient */
+.wz-av {
+  --wz-av-size: var(--portal-wizard-avatar-sm);
+  --wz-av-ring: var(--portal-tier-silver-c2);
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--wz-av-size);
+  height: var(--wz-av-size);
+  box-sizing: border-box;
+  overflow: hidden;
+  border-radius: var(--portal-radius-circle);
+  background: var(--portal-wizard-avatar-bg);
+  color: var(--portal-text-primary-solid);
+  font-family: var(--portal-font-display);
+  font-size: calc(var(--wz-av-size) * 0.4);
+  font-weight: var(--portal-font-extrabold);
+  line-height: var(--portal-lh-tight);
+}
+.wz-av-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+/* In a drawn top bar: the help demos and « where to find » */
+.wz-av--md {
+  --wz-av-size: var(--portal-demo-control-sm);
+  border: var(--portal-border-width-metal) solid var(--wz-av-ring);
+}
+.wz-av--hero {
+  --wz-av-size: var(--portal-wizard-avatar-hero);
+}
+.wz-av--lg {
+  --wz-av-size: var(--portal-wizard-avatar-lg);
+  border: var(--portal-wizard-avatar-ring-lg) solid var(--wz-av-ring);
+  box-shadow: var(--portal-shadow-wizard-avatar);
+}
+.wz-av--bronze {
+  --wz-av-ring: var(--portal-tier-bronze-c1);
+}
+.wz-av--gold {
+  --wz-av-ring: var(--portal-tier-gold-c1);
+}
+.wz-av--platinum {
+  --wz-av-ring: var(--portal-tier-platinum-c1);
+}
+.wz-av--diamond {
+  --wz-av-ring: var(--portal-tier-diamond-c1);
+}
+.wz-av--master {
+  --wz-av-ring: var(--portal-tier-master-c1);
+}
+.wz-av--legendary {
+  --wz-av-ring: var(--portal-tier-legendary-c1);
+}
+.wz-avrow {
+  display: flex;
+  align-items: center;
+  gap: var(--portal-space-4);
+}
+.wz-upload {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--portal-space-2-5);
+}
+.wz-file {
+  display: none;
+}
+
+/* Notifications: what they bring, then the browser's question */
+.wz-uses {
+  padding: var(--portal-space-3-5) var(--portal-space-4);
+}
+.wz-uses ul {
+  display: flex;
+  flex-direction: column;
+  gap: var(--portal-space-2-5);
+  margin: var(--portal-space-2) 0 0;
+  padding: 0;
+  list-style: none;
+}
+.wz-uses li {
+  display: flex;
+  align-items: center;
+  gap: var(--portal-space-3);
+  font-size: var(--portal-text-base);
+  color: var(--portal-text-secondary-solid);
+}
+.wz-ask {
+  align-self: flex-start;
+}
+.wz-confirm-t {
+  font-weight: var(--portal-font-bold);
+  outline: none;
+}
+.wz-confirm-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--portal-space-2);
+  margin-top: var(--portal-space-2-5);
+}
+.wz-confirm .wz-ghost {
+  color: var(--portal-text-primary-solid);
+}
+
+/* Done: the recap, each choice with « Change », then what opens next */
+.wz-recap {
+  padding: var(--portal-space-1) 0;
+}
+.wz-rrow {
+  display: flex;
+  align-items: center;
+  gap: var(--portal-space-3);
+  min-height: var(--portal-touch-target);
+  padding: var(--portal-space-1-5) var(--portal-space-4);
+  border-top: var(--portal-border-width) solid var(--portal-border-subtle);
+}
+.wz-rrow:first-child {
+  border-top: none;
+}
+.wz-rl {
+  display: block;
+  font-size: var(--portal-text-3xs);
+  font-weight: var(--portal-font-bold);
+  letter-spacing: var(--portal-tracking-eyebrow);
+  text-transform: uppercase;
+  color: var(--portal-text-muted-solid);
+}
+.wz-rv {
+  display: block;
+  margin-top: var(--portal-space-0-5);
+  font-size: var(--portal-text-base);
+  font-weight: var(--portal-font-medium);
+  overflow-wrap: anywhere;
+}
+.wz-next-box {
+  display: flex;
+  align-items: center;
+  gap: var(--portal-space-3-5);
+  padding: var(--portal-space-3-5) var(--portal-space-4);
+  border: var(--portal-border-width) solid rgb(var(--portal-accent-500-rgb), 0.32);
+  border-radius: var(--portal-radius-xl);
+  background: linear-gradient(
+    135deg,
+    rgb(var(--portal-accent-500-rgb), 0.17),
+    rgb(var(--portal-accent-500-rgb), 0.04)
+  );
+}
+.wz-next-box p {
+  margin: 0;
+  font-size: var(--portal-text-sm);
+  line-height: var(--portal-lh-normal);
+  color: var(--portal-text-secondary-solid);
+}
+.wz-next-box b {
+  color: var(--portal-text-primary-solid);
+}
+.wz-next-ic {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--portal-touch-target);
+  height: var(--portal-touch-target);
+  border-radius: var(--portal-radius-lg);
+  background: linear-gradient(
+    145deg,
+    rgb(var(--portal-color-cinema-rgb), 0.3),
+    rgb(var(--portal-color-cinema-rgb), 0.08)
+  );
+  color: var(--portal-color-cinema-soft);
+}
+
+@container dd (min-width: 480px) {
+  .wz-av--hero {
+    --wz-av-size: var(--portal-wizard-avatar-hero-lg);
+  }
+}

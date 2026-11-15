@@ -162,6 +162,33 @@ describe('PortalDailyDigestOverlay.vue', () => {
     expect(wrapper.find('.dd-panel').exists()).toBe(false)
   })
 
+  // On a phone the window is the whole screen: without this button nothing closes it.
+  it.each([
+    [
+      'nothing new',
+      () => apiGet.mockResolvedValue({ dismissed: false, digest: digest({ empty: true }) }),
+      'portal.dailyDigest.empty',
+    ],
+    [
+      'a failed load',
+      () => apiGet.mockRejectedValue(new Error('http_500')),
+      'portal.dailyDigest.errorLoad',
+    ],
+    ['a load still running', () => apiGet.mockReturnValue(new Promise(() => {})), 'common.loading'],
+  ])('offers the button out with %s, and it closes for the day', async (_, answer, message) => {
+    answer()
+    wrapper = mount(PortalDailyDigestOverlay, { props: { open: true, auto: false } })
+    await flushPromises()
+    expect(wrapper.get('.dd-state').text()).toBe(message)
+
+    await wrapper.get('.dd-state-box .dd-cta').trigger('click')
+    await flushPromises()
+
+    expect(postedUrls()).toContain(DISMISS)
+    expect(wrapper.emitted('close')).toHaveLength(1)
+    expect(wrapper.find('.dd-panel').exists()).toBe(false)
+  })
+
   it('closes for the day when a link inside is followed', async () => {
     const event = {
       id: 3,
@@ -206,5 +233,18 @@ describe('PortalDailyDigestOverlay.vue', () => {
     await wrapper.find('.dd-cta').trigger('click')
 
     expect(postedUrls()).toEqual([DISMISS])
+  })
+
+  it('opens at once, even with nothing new, and only the window rises in', async () => {
+    await open({ digest: digest({ empty: true }) }, { open: true, auto: false, chained: true })
+
+    expect(apiGet).toHaveBeenCalledWith('/api/portal/daily-digest?force=true')
+    expect(wrapper.find('.dd-panel').classes()).toContain('dd-panel--chained')
+    expect(wrapper.find('.dd-state').text()).toBe('portal.dailyDigest.empty')
+    expect(document.body.style.overflow).toBe('hidden')
+
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }))
+    await flushPromises()
+    expect(document.body.style.overflow).toBe('')
   })
 })

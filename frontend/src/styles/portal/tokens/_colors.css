@@ -115,4 +115,29 @@
   --portal-digest-bg: #1a1c22; /* the window */
   --portal-digest-bg-rgb: 26, 28, 34;
   --portal-digest-ring-bg: #1d1f27; /* hole of the level ring */
+
+  /* First-login wizard */
+  --portal-color-accent-hot-light: #f9a8d4; /* text on a hot pink tint */
+  --portal-color-rose-light-rgb: 251, 113, 133;
+  --portal-wizard-page-bg: #121318; /* phone bars drawn small, outline of the demo cursor */
+  /* chosen chip (names, genres, demos, demo filters), step and caption numbers */
+  --portal-wizard-accent-tint: rgb(var(--portal-accent-500-rgb), 0.22);
+}
+
+/* First-login wizard: help demos — colours of the reduced portal screens. */
+:root {
+  --portal-demo-nav-bg: rgb(var(--portal-bg-primary-rgb), 0.84); /* the real top bar, solid */
+  --portal-demo-search-focus-border: rgb(var(--portal-accent-500-rgb), 0.42);
+  --portal-demo-chip-on-border: rgb(var(--portal-accent-500-rgb), 0.5);
+  --portal-demo-caption-on-bg: rgb(var(--portal-accent-500-rgb), 0.16); /* current caption */
+  --portal-demo-request-btn-bg: rgb(var(--portal-accent-rgb), 0.85); /* title page « Demander » */
+  --portal-demo-request-bg: #1a1a2e; /* « Faire une demande » window */
+  --portal-demo-dialog-bg: #24262b; /* report window, ticket card; mirrors admin --bg-secondary */
+  --portal-demo-field-bg: #2d3036; /* fields of the report window; mirrors admin --bg-tertiary */
+  --portal-demo-tooltip-bg: #0b0c10;
+  --portal-demo-toast-bg: rgb(20, 22, 28, 0.94);
+  --portal-demo-success-tint: rgb(var(--portal-color-success-rgb), 0.14); /* toast edge, icon */
+  --portal-demo-issue-pill-bg: rgb(var(--portal-color-premium-rgb), 0.18);
+  --portal-demo-open-pill-bg: rgb(var(--portal-color-warning-rgb), 0.18);
+  --portal-demo-resolved-pill-bg: rgb(var(--portal-color-success-rgb), 0.2);
 }

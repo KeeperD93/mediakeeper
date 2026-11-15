@@ -1,20 +1,23 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { flushPromises, shallowMount } from '@vue/test-utils'
-import { nextTick, ref } from 'vue'
+import { nextTick, reactive, ref } from 'vue'
 
 import PortalDailyDigestOverlay from '@/components/portal/PortalDailyDigestOverlay.vue'
 import PortalLayout from '@/components/portal/PortalLayout.vue'
 import PortalNav from '@/components/portal/PortalNav.vue'
-import ForceUsernameModal from '@/components/portal/settings/ForceUsernameModal.vue'
+import PortalOnboardingWizard from '@/components/portal/wizard/PortalOnboardingWizard.vue'
 import { USER_ROLE } from '@/constants/auth'
+import { WIZARD_MODE } from '@/constants/portalOnboarding'
 
 const profile = ref(null)
 const ui = ref({})
+// Reactive, as vue-router's: the page follows a move off the maintenance page.
+const route = reactive({ name: 'portal-home' })
 const checkPortalAuth = vi.fn().mockResolvedValue(true)
 const apiGet = vi.fn()
 
 vi.mock('vue-router', () => ({
-  useRoute: () => ({ name: 'portal-home' }),
+  useRoute: () => route,
   useRouter: () => ({ push: vi.fn(), replace: vi.fn() }),
 }))
 vi.mock('vue-i18n', async importOriginal => ({
@@ -42,13 +45,17 @@ function player(overrides = {}) {
     role: 'viewer',
     display_name: 'Alice',
     display_name_must_set: false,
+    onboarding_pending: false,
     ...overrides,
   }
 }
 
 // A layout left mounted reacts to the next test's profile: each one goes at the end of its test.
 const mounted = []
-afterEach(() => mounted.splice(0).forEach(wrapper => wrapper.unmount()))
+afterEach(() => {
+  mounted.splice(0).forEach(wrapper => wrapper.unmount())
+  route.name = 'portal-home'
+})
 
 async function visit(initial, stubs = {}) {
   profile.value = initial
@@ -60,73 +67,104 @@ async function visit(initial, stubs = {}) {
   return wrapper
 }
 
-async function setMustPick(value) {
-  profile.value = { ...profile.value, display_name_must_set: value }
+// The wizard's last save: the wizard hands over, then the saved profile (its flags
+// cleared) takes it away. The real save keeps this order (see the chain test).
+async function finishWizard(wrapper) {
+  wrapper.findComponent(PortalOnboardingWizard).vm.$emit('done')
+  profile.value = { ...profile.value, onboarding_pending: false, display_name_must_set: false }
   await nextTick()
 }
 
-const digestOpensByItself = wrapper => wrapper.findComponent(PortalDailyDigestOverlay).props('auto')
+const wizard = wrapper => wrapper.findComponent(PortalOnboardingWizard)
+const digest = wrapper => wrapper.findComponent(PortalDailyDigestOverlay)
 
-describe('PortalLayout.vue, the window that opens by itself', () => {
-  it('opens on a visit without the username picker', async () => {
-    const wrapper = await visit(player())
+describe('PortalLayout.vue, the first-login wizard', () => {
+  it('opens the whole tour while it is due, and nothing else', async () => {
+    const wrapper = await visit(player({ onboarding_pending: true }))
 
-    expect(digestOpensByItself(wrapper)).toBe(true)
-    expect(wrapper.findComponent(ForceUsernameModal).exists()).toBe(false)
+    expect(wizard(wrapper).props('mode')).toBe(WIZARD_MODE.FULL)
+    expect(digest(wrapper).exists()).toBe(false)
   })
 
-  it('shows only the picker while a username is owed', async () => {
+  it('opens the name alone after an admin reset it', async () => {
     const wrapper = await visit(player({ display_name_must_set: true }))
 
-    expect(wrapper.findComponent(ForceUsernameModal).exists()).toBe(true)
-    expect(wrapper.findComponent(PortalDailyDigestOverlay).exists()).toBe(false)
+    expect(wizard(wrapper).props('mode')).toBe(WIZARD_MODE.RESET)
+    expect(digest(wrapper).exists()).toBe(false)
   })
 
-  it('opens nothing by itself once the username is saved', async () => {
-    const wrapper = await visit(player({ display_name_must_set: true }))
+  it('shows the tour to an admin once, but never the reset', async () => {
+    const tour = await visit(player({ role: USER_ROLE.ADMIN, onboarding_pending: true }))
+    expect(wizard(tour).props('mode')).toBe(WIZARD_MODE.FULL)
 
-    await setMustPick(false)
-
-    expect(wrapper.findComponent(ForceUsernameModal).exists()).toBe(false)
-    expect(digestOpensByItself(wrapper)).toBe(false)
+    const reset = await visit(player({ role: USER_ROLE.ADMIN, display_name_must_set: true }))
+    expect(wizard(reset).exists()).toBe(false)
   })
 
-  it('keeps the avatar menu working after the picker', async () => {
+  it('keeps the tour for when the portal opens again, not the name reset', async () => {
+    route.name = 'portal-maintenance'
+    const tour = await visit(player({ onboarding_pending: true }))
+    expect(wizard(tour).exists()).toBe(false)
+
+    const reset = await visit(player({ display_name_must_set: true }))
+    expect(wizard(reset).exists()).toBe(true)
+  })
+
+  it.each([
+    ['the tour', { onboarding_pending: true }],
+    ['the name reset', { display_name_must_set: true }],
+  ])('hands over to the digest, at once and in its frame, after %s', async (_, flags) => {
+    const wrapper = await visit(player(flags))
+
+    await finishWizard(wrapper)
+
+    expect(wizard(wrapper).exists()).toBe(false)
+    expect(digest(wrapper).props()).toMatchObject({ open: true, chained: true, auto: false })
+  })
+
+  it('opens the digest as usual once the portal opens, after a name chosen in maintenance', async () => {
+    route.name = 'portal-maintenance'
     const wrapper = await visit(player({ display_name_must_set: true }))
-    await setMustPick(false)
+
+    await finishWizard(wrapper)
+    expect(digest(wrapper).exists()).toBe(false)
+
+    route.name = 'portal-home'
+    await nextTick()
+    expect(digest(wrapper).props()).toMatchObject({ open: true, chained: false })
+  })
+
+  it('opens the digest the next time from the avatar menu as usual', async () => {
+    const wrapper = await visit(player({ onboarding_pending: true }))
+    await finishWizard(wrapper)
+
+    digest(wrapper).vm.$emit('close')
+    await nextTick()
+    expect(digest(wrapper).props()).toMatchObject({ open: false, chained: false })
 
     wrapper.findComponent(PortalNav).vm.$emit('open-daily-digest')
     await nextTick()
+    expect(digest(wrapper).props()).toMatchObject({ open: true, chained: false })
+  })
+})
 
-    expect(wrapper.findComponent(PortalDailyDigestOverlay).props('open')).toBe(true)
+describe('PortalLayout.vue, the window that opens by itself', () => {
+  it('opens on a visit without the wizard', async () => {
+    const wrapper = await visit(player())
+
+    expect(digest(wrapper).props('auto')).toBe(true)
+    expect(wizard(wrapper).exists()).toBe(false)
   })
 
-  it('opens again on the next portal load', async () => {
-    const first = await visit(player({ display_name_must_set: true }))
-    await setMustPick(false)
+  it('opens again by itself on the next portal load', async () => {
+    const first = await visit(player({ onboarding_pending: true }))
+    await finishWizard(first)
     mounted.splice(mounted.indexOf(first), 1)
     first.unmount()
 
     const next = await visit(player())
 
-    expect(digestOpensByItself(next)).toBe(true)
-  })
-
-  it('applies to a name reset during the visit', async () => {
-    const wrapper = await visit(player())
-    expect(digestOpensByItself(wrapper)).toBe(true)
-
-    await setMustPick(true)
-    await setMustPick(false)
-
-    expect(digestOpensByItself(wrapper)).toBe(false)
-  })
-
-  it('does not hold it back for an admin', async () => {
-    const wrapper = await visit(player({ role: USER_ROLE.ADMIN, display_name_must_set: true }))
-
-    expect(wrapper.findComponent(ForceUsernameModal).exists()).toBe(false)
-    expect(digestOpensByItself(wrapper)).toBe(true)
+    expect(digest(next).props()).toMatchObject({ auto: true, open: false })
   })
 })
 
@@ -142,30 +180,26 @@ describe('PortalLayout.vue, with the real daily digest', () => {
     apiGet.mockReset().mockResolvedValue({ digest: null })
   })
 
-  it('checks for content on a visit without the picker, and nothing else', async () => {
+  it('checks for content on a visit without the wizard, and nothing else', async () => {
     await visitWithRealDigest(player())
 
     // The news and the new version live in the digest: no window of their own asks the server.
     expect(urls()).toEqual([DIGEST_AUTO])
   })
 
-  it('checks for nothing once the username is saved', async () => {
-    await visitWithRealDigest(player({ display_name_must_set: true }))
-
-    await setMustPick(false)
-    await flushPromises()
+  it('asks nothing while the wizard is open', async () => {
+    await visitWithRealDigest(player({ onboarding_pending: true }))
 
     expect(urls()).toEqual([])
   })
 
-  it('loads it on demand from the avatar menu after the picker', async () => {
-    const wrapper = await visitWithRealDigest(player({ display_name_must_set: true }))
-    await setMustPick(false)
+  it('loads it fresh, once, as soon as the wizard ends', async () => {
+    const wrapper = await visitWithRealDigest(player({ onboarding_pending: true }))
+
+    await finishWizard(wrapper)
     await flushPromises()
 
-    wrapper.findComponent(PortalNav).vm.$emit('open-daily-digest')
-    await flushPromises()
-
+    // Fresh: the digest of the hour may still carry the name from before.
     expect(urls()).toEqual([DIGEST_MANUAL])
   })
 })

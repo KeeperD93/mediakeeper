@@ -71,6 +71,24 @@
   }
 }
 
+/* Right after the first-login wizard: the backdrop stays, the window rises in its place. */
+.dd-overlay:has(> .dd-panel--chained) {
+  animation: none;
+}
+.dd-panel--chained {
+  animation: dd-rise var(--portal-wizard-chain-enter) var(--portal-ease-default) both;
+}
+@keyframes dd-rise {
+  from {
+    opacity: 0;
+    transform: translateY(var(--portal-space-2-5));
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
 /* « Compact view », in the top corner: the account keeps the choice. */
 .dd-switch {
   position: absolute;
@@ -131,9 +149,16 @@
   outline-offset: var(--portal-focus-ring-offset);
 }
 
+/* Loading, failed or nothing new: the message, then the button out under it. */
+.dd-state-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-bottom: 72px;
+}
 .dd-state {
   margin: 0;
-  padding: 120px var(--portal-space-6) 72px;
+  padding: 120px var(--portal-space-6) var(--portal-space-6);
   text-align: center;
   font-size: var(--portal-text-base);
   color: var(--portal-text-muted-solid);
@@ -149,5 +174,8 @@
   .dd-switch-track,
   .dd-switch-knob {
     transition: none;
+  }
+  .dd-panel--chained {
+    animation: none;
   }
 }

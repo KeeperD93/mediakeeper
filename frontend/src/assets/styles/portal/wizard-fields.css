@@ -1,0 +1,227 @@
+/* First-login wizard: the controls of its steps. Name field and its message, chips
+ * (free names, genres) and choice cards with their radio.
+ * Classes start with wz-; the window's width (container dd) is in wizard.css. */
+
+/* Name */
+.wz-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--portal-space-2);
+}
+.wz-label {
+  font-size: var(--portal-text-sm);
+  font-weight: var(--portal-font-bold);
+  color: var(--portal-text-secondary-solid);
+}
+.wz-inputwrap {
+  position: relative;
+}
+/* 16 px of text: iPhone does not zoom into the field. */
+.wz-input {
+  display: block;
+  width: 100%;
+  min-height: var(--portal-wizard-input-height);
+  box-sizing: border-box;
+  padding: var(--portal-space-3) var(--portal-space-3-5);
+  border: var(--portal-border-width) solid var(--portal-border-strong);
+  border-radius: var(--portal-radius-md);
+  background: var(--portal-surface-2);
+  color: var(--portal-text-primary-solid);
+  font: inherit;
+  font-size: var(--portal-text-md);
+  font-weight: var(--portal-font-medium);
+  outline: none;
+  transition:
+    border-color var(--portal-dur-base) var(--portal-ease-default),
+    box-shadow var(--portal-dur-base) var(--portal-ease-default);
+}
+.wz-input:focus {
+  border-color: var(--portal-accent-400);
+  outline: none;
+  box-shadow: var(--portal-shadow-wizard-field);
+}
+.wz-input.is-err {
+  border-color: rgb(var(--portal-color-error-light-rgb), 0.75);
+}
+.wz-input.is-ok {
+  border-color: rgb(var(--portal-color-success-light-rgb), 0.6);
+}
+.wz-input[readonly] {
+  padding-right: var(--portal-touch-target);
+  background: var(--portal-surface-1);
+  color: var(--portal-text-secondary-solid);
+}
+.wz-lockic {
+  position: absolute;
+  top: 50%;
+  right: var(--portal-space-3-5);
+  transform: translateY(-50%);
+  color: var(--portal-text-muted-solid);
+}
+.wz-rules {
+  margin: 0;
+  font-size: var(--portal-text-xs);
+  color: var(--portal-text-muted-solid);
+}
+/* Always a line high: the step does not jump when a message comes or goes. */
+.wz-msg {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 var(--portal-space-2);
+  min-height: var(--portal-space-5-5);
+  margin: 0;
+  font-size: var(--portal-text-sm);
+  font-weight: var(--portal-font-medium);
+}
+.wz-msg--ok {
+  color: var(--portal-color-success-light);
+}
+.wz-msg--err {
+  color: var(--portal-color-error-light);
+}
+.wz-msg--info {
+  color: var(--portal-accent-light);
+}
+.wz-sugg {
+  display: flex;
+  flex-direction: column;
+  gap: var(--portal-space-2);
+}
+.wz-sugg > span {
+  font-size: var(--portal-text-sm);
+  color: var(--portal-text-muted-solid);
+}
+
+/* Chips: free names, genres */
+.wz-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--portal-space-2);
+}
+.wz-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--portal-space-2);
+  min-height: var(--portal-touch-target);
+  padding: 0 var(--portal-space-4);
+  box-sizing: border-box;
+  border: var(--portal-border-width) solid var(--portal-border-strong);
+  border-radius: var(--portal-radius-pill);
+  background: var(--portal-surface-2);
+  color: var(--portal-text-primary-solid);
+  font: inherit;
+  font-size: var(--portal-text-base);
+  cursor: pointer;
+  transition:
+    border-color var(--portal-dur-base) var(--portal-ease-default),
+    background var(--portal-dur-base) var(--portal-ease-default);
+}
+@media (hover: hover) {
+  .wz-chip:hover {
+    border-color: var(--portal-border-intense);
+  }
+}
+.wz-chip.is-on {
+  border-color: var(--portal-accent-400);
+  background: var(--portal-wizard-accent-tint);
+}
+.wz-tick {
+  display: none;
+  color: var(--portal-accent-200);
+}
+.wz-chip.is-on .wz-tick {
+  display: inline-flex;
+}
+.wz-gdot {
+  flex: none;
+  width: var(--portal-wizard-dot-size);
+  height: var(--portal-wizard-dot-size);
+  border-radius: var(--portal-radius-circle);
+  background: var(--wz-genre);
+}
+
+/* Choice cards with a real radio inside */
+.wz-opts {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--portal-space-2-5);
+}
+.wz-opt {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--portal-space-3);
+  width: 100%;
+  min-height: var(--portal-touch-target);
+  padding: var(--portal-space-3-5) var(--portal-space-4);
+  box-sizing: border-box;
+  border: var(--portal-border-width) solid var(--portal-border-default);
+  border-radius: var(--portal-radius-lg);
+  background: var(--portal-surface-1);
+  color: var(--portal-text-primary-solid);
+  text-align: left;
+  cursor: pointer;
+}
+.wz-opt.is-on {
+  border-color: var(--portal-accent-400);
+  background: rgb(var(--portal-accent-500-rgb), 0.2);
+}
+.wz-opt.is-off {
+  opacity: var(--portal-opacity-disabled);
+  cursor: not-allowed;
+}
+.wz-radio {
+  flex: none;
+  width: var(--portal-wizard-radio-size);
+  height: var(--portal-wizard-radio-size);
+  margin: var(--portal-space-0-5) 0 0;
+  border: var(--portal-wizard-radio-ring) solid var(--portal-text-muted);
+  border-radius: var(--portal-radius-circle);
+  background: none;
+  appearance: none;
+  cursor: inherit;
+}
+.wz-radio:checked {
+  border: var(--portal-wizard-radio-ring-on) solid var(--portal-accent-light);
+}
+.wz-ot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--portal-space-1-5) var(--portal-space-2);
+  font-size: var(--portal-text-base);
+  font-weight: var(--portal-font-bold);
+}
+.wz-ot > svg {
+  color: var(--portal-accent-light);
+}
+.wz-oh {
+  display: block;
+  margin-top: var(--portal-space-1);
+  font-size: var(--portal-text-sm);
+  line-height: var(--portal-lh-normal);
+  color: var(--portal-text-muted-solid);
+}
+.wz-rec {
+  padding: var(--portal-space-1) var(--portal-space-2);
+  border-radius: var(--portal-radius-pill);
+  background: rgb(var(--portal-accent-500-rgb), 0.24);
+  font-size: var(--portal-text-3xs);
+  font-weight: var(--portal-font-bold);
+  letter-spacing: var(--portal-tracking-eyebrow);
+  text-transform: uppercase;
+  color: var(--portal-accent-200);
+}
+
+@container dd (min-width: 480px) {
+  .wz-opts--2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wz-input,
+  .wz-chip {
+    transition: none;
+  }
+}

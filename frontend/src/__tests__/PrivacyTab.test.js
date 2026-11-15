@@ -19,25 +19,29 @@ const mocks = vi.hoisted(() => ({
   profile: { value: { source: 'emby' } },
 }))
 
-vi.mock('vue-i18n', () => ({
-  useI18n: () => ({
-    t: (key, params) => {
-      // The deletion modal compares typed input against the magic
-      // word — return a deterministic value so the confirm flow can
-      // be exercised end-to-end here.
-      if (key === 'portal.privacy.deleteModal.magicWord') return 'SUPPRIMER'
-      return params ? `${key}:${JSON.stringify(params)}` : key
+vi.mock('vue-i18n', async () => {
+  // A real ref: the tab watches ``locale`` to reload the text.
+  const { ref } = await import('vue')
+  return {
+    useI18n: () => ({
+      t: (key, params) => {
+        // The deletion modal compares typed input against the magic
+        // word — return a deterministic value so the confirm flow can
+        // be exercised end-to-end here.
+        if (key === 'portal.privacy.deleteModal.magicWord') return 'SUPPRIMER'
+        return params ? `${key}:${JSON.stringify(params)}` : key
+      },
+      locale: ref('fr'),
+    }),
+    // ``I18nT`` is imported by PrivacyTab + DeleteConfirmModal — stub it as
+    // a render-slots span so named slots (``contact``, ``word``) still emit
+    // their content for the assertions below.
+    I18nT: {
+      name: 'I18nT',
+      template: '<span><slot name="contact" /><slot name="word" /><slot /></span>',
     },
-    locale: { value: 'fr' },
-  }),
-  // ``I18nT`` is imported by PrivacyTab + DeleteConfirmModal — stub it as
-  // a render-slots span so named slots (``contact``, ``word``) still emit
-  // their content for the assertions below.
-  I18nT: {
-    name: 'I18nT',
-    template: '<span><slot name="contact" /><slot name="word" /><slot /></span>',
-  },
-}))
+  }
+})
 
 vi.mock('@/composables/portal/useGdprUser', () => ({
   EXPORT_LIMIT: 'export_rate_limited',
@@ -110,6 +114,21 @@ describe('PrivacyTab', () => {
     expect(w.find('.pt-privacy-text').exists()).toBe(true)
     expect(w.find('.pt-privacy-text').html()).toContain('Politique FR')
     expect(w.find('.pt-privacy-empty').exists()).toBe(false)
+  })
+
+  it('scrubs the privacy HTML before rendering it', async () => {
+    mocks.getPrivacyText.mockResolvedValueOnce({
+      lang: 'fr',
+      text_html: '<p>Test policy</p><img src="x" onerror="alert(1)"><script>alert(1)</script>',
+      dpo_contact: '',
+    })
+    const w = buildTab()
+    await flushPromises()
+
+    const text = w.get('.pt-privacy-text').html()
+    expect(text).toContain('<p>Test policy</p>')
+    expect(text).not.toContain('onerror')
+    expect(text).not.toContain('<script')
   })
 
   it('renders the not-configured fallback when text is empty', async () => {

@@ -41,13 +41,13 @@
       </button>
 
       <transition name="pt-help-accordion">
-        <!-- Body is server-side sanitised HTML (bleach whitelist) and
-             passed through DOMPurify here as defence in depth. -->
+        <!-- Body sanitised by the server on write, then again here as
+             defence in depth. -->
         <!-- eslint-disable vue/no-v-html -->
         <div
           v-if="expandedId === a.id"
           class="pt-help-card-content pt-help-article-body"
-          v-html="purify(a.body_html)"
+          v-html="sanitizeHtml(a.body_html)"
         />
         <!-- eslint-enable vue/no-v-html -->
       </transition>
@@ -56,9 +56,9 @@
 </template>
 
 <script setup>
-import DOMPurify from 'dompurify'
 import { ChevronDown, Pencil } from 'lucide-vue-next'
 import { helpIconFor } from '@/utils/portal/helpIconMap'
+import { sanitizeHtml } from '@/utils/sanitizeHtml'
 
 defineProps({
   articles: { type: Array, default: () => [] },
@@ -67,15 +67,6 @@ defineProps({
   showCategory: { type: Boolean, default: false },
 })
 defineEmits(['toggle', 'edit'])
-
-// Server already sanitises ``body_html`` with a strict bleach whitelist
-// (services/portal/help_sanitize.py). Running it through DOMPurify here
-// is belt-and-braces: if the backend ever regresses, the rendered HTML
-// is still scrubbed before reaching the DOM.
-function purify(html) {
-  if (!html) return ''
-  return DOMPurify.sanitize(String(html))
-}
 
 function excerpt(html) {
   if (!html) return ''

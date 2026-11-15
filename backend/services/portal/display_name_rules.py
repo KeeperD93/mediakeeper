@@ -3,7 +3,6 @@
 The live check, the profile update and the first-login wizard all ask
 ``judge_display_name``: a name the check accepts is a name the save accepts.
 """
-import re
 import unicodedata
 from datetime import UTC, datetime
 
@@ -115,13 +114,27 @@ def looks_provisional(name: str) -> bool:
     )
 
 
-_EDGES = re.compile(r"^[\s﻿]+|[\s﻿]+$")
+def _is_edge(ch: str) -> bool:
+    """A space or a byte-order mark: str.strip() keeps the marks, the browser trims them."""
+    return ch.isspace() or ch == "\ufeff"
+
+
+def _trim_edges(text: str) -> str:
+    """``text`` without the spaces and byte-order marks at its ends: one scan from
+    each end stays linear, where a pattern anchored to the end can backtrack
+    quadratically on a long run of spaces inside the text."""
+    start, end = 0, len(text)
+    while start < end and _is_edge(text[start]):
+        start += 1
+    while end > start and _is_edge(text[end - 1]):
+        end -= 1
+    return text[start:end]
 
 
 def clean_display_name(raw: str | None) -> str:
     """A submitted name as it is judged and stored: tags stripped, clipped, and
-    trimmed of spaces and byte-order marks, as the browser trims it."""
-    return _EDGES.sub("", strip_tags_and_trim(raw, max_len=dn.MAX_LENGTH))
+    trimmed of spaces and byte-order marks at both ends."""
+    return _trim_edges(strip_tags_and_trim(raw, max_len=dn.MAX_LENGTH))
 
 
 def same_name(a: str, b: str) -> bool:

@@ -28,9 +28,9 @@
     <!-- Floating action cluster (chat / surprise / promotion). The chat
          panel is mounted from inside the FAB so we only instantiate it
          once per layout and keep the singleton websocket happy.
-         Hidden while the user owes us a display name so they can't drop
-         into chat under their pre-reset alias. -->
-    <HomeFab v-if="!mustPickUsername && !isMaintenancePage" @open-surprise="surpriseOpen = true" />
+         Hidden while the first-login wizard is due so nobody drops into
+         chat before choosing a name. -->
+    <HomeFab v-if="!wizardMode && !isMaintenancePage" @open-surprise="surpriseOpen = true" />
 
     <SurpriseOverlay v-if="surpriseOpen" @close="surpriseOpen = false" />
 
@@ -45,14 +45,14 @@
     <!-- Daily digest overlay: auto-opens once per calendar day when there is
          content to show, can also be re-opened manually from the avatar menu.
          It carries the news and the new Portal version too, so neither pops up
-         on its own. It waits for the picker: when the admin reset a viewer's
-         display name, ForceUsernameModal must stay the topmost layer until they
-         pick a new one, otherwise the digest paints over it and traps them. -->
+         on its own. While the first-login wizard is due it waits, then opens
+         right after it, in the same frame, even with nothing new. -->
     <PortalDailyDigestOverlay
-      v-if="!mustPickUsername && !isMaintenancePage"
+      v-if="!wizardMode && !isMaintenancePage"
       :open="dailyDigestOpen"
-      :auto="!pickerShownThisVisit"
-      @close="dailyDigestOpen = false"
+      :auto="!wizardShownThisVisit"
+      :chained="digestChained"
+      @close="onDigestClose"
     />
 
     <!-- Help center overlay — opened from the avatar menu. Lazy-rendered:
@@ -60,14 +60,16 @@
          overlay is first opened. -->
     <PortalHelpOverlay v-if="!isMaintenancePage" :open="helpOpen" @close="helpOpen = false" />
 
-    <!-- Blocking modal mounted via v-if so the picker is GUARANTEED to be
-         visible whenever ``mustPickUsername`` is true: the modal arms in
-         its onMounted hook with ``props.open=true``, no transition watcher
-         needed and no chance of a stuck visibility latch (the previous
-         :open binding could race with profile arrival on a fresh F5). The
-         backend ``display_name_must_set`` flag is the single source of
-         truth and only flips back to false on a saved display name. -->
-    <ForceUsernameModal v-if="mustPickUsername" :open="true" />
+    <!-- First-login wizard, blocking: the whole tour once per account
+         (``onboarding_pending``), the name alone after an admin reset it
+         (``display_name_must_set``). The server's flags are the only truth:
+         its final save clears them, and the wizard hands over to the digest. -->
+    <PortalOnboardingWizard
+      v-if="wizardShown"
+      :key="wizardMode"
+      :mode="wizardMode"
+      @done="onWizardDone"
+    />
   </div>
 </template>
 
@@ -85,9 +87,10 @@ import EventBanner from './EventBanner.vue'
 import DeletionPendingBanner from './DeletionPendingBanner.vue'
 import PortalDailyDigestOverlay from './PortalDailyDigestOverlay.vue'
 import PortalHelpOverlay from './PortalHelpOverlay.vue'
-import ForceUsernameModal from './settings/ForceUsernameModal.vue'
+import PortalOnboardingWizard from './wizard/PortalOnboardingWizard.vue'
 import { USER_ROLE } from '@/constants/auth'
 import { PORTAL_TAB } from '@/constants/portal'
+import { WIZARD_MODE } from '@/constants/portalOnboarding'
 
 const route = useRoute()
 const router = useRouter()
@@ -126,9 +129,23 @@ watch(
 
 const surpriseOpen = ref(false)
 const dailyDigestOpen = ref(false)
+// The digest opens in the wizard's frame: no fade of the backdrop, the window rises.
+const digestChained = ref(false)
 const helpOpen = ref(false)
 
 function onOpenDailyDigest() {
+  dailyDigestOpen.value = true
+}
+
+function onDigestClose() {
+  dailyDigestOpen.value = false
+  digestChained.value = false
+}
+
+function onWizardDone() {
+  // A name chosen on the maintenance page: the digest waits for the portal to open,
+  // then rises as usual, out of the wizard's frame.
+  digestChained.value = !isMaintenancePage.value
   dailyDigestOpen.value = true
 }
 
@@ -138,21 +155,28 @@ function onOpenHelp() {
 
 const activeTab = computed(() => route.name || PORTAL_TAB.HOME)
 const isAdmin = computed(() => profile.value?.role === USER_ROLE.ADMIN)
-// Pre-pseudo gate: viewers whose ``display_name_must_set`` flag is on
-// (first login or admin-triggered reset) must clear the picker before
-// they can use anything else. Drives both the blocking ForceUsernameModal
-// and the v-if guards on the auto-popping overlays / FAB.
-const mustPickUsername = computed(() => !isAdmin.value && !!profile.value?.display_name_must_set)
-// After the picker, the page comes first: what opens by itself waits for the
-// next portal load. The avatar menu still opens it on demand.
-const pickerShownThisVisit = ref(mustPickUsername.value)
-watch(mustPickUsername, must => {
-  if (must) pickerShownThisVisit.value = true
+// First-login gate: the whole tour once per account, admins included; else the
+// name alone when an admin reset it (never owed by an admin). Until it is done,
+// nothing else opens by itself and the FAB stays hidden.
+const wizardMode = computed(() => {
+  if (profile.value?.onboarding_pending) return WIZARD_MODE.FULL
+  if (!isAdmin.value && profile.value?.display_name_must_set) return WIZARD_MODE.RESET
+  return null
+})
+// The wizard opens the digest itself when it ends: the digest does not look for
+// content on its own during that visit.
+const wizardShownThisVisit = ref(!!wizardMode.value)
+watch(wizardMode, mode => {
+  if (mode) wizardShownThisVisit.value = true
 })
 // Maintenance lockdown: non-admins are redirected here by the router guard.
 // Hide the whole portal chrome (nav, FAB, banners, auto-popping overlays) so
-// only the holding page — and the first-login username picker — remain.
+// only the holding page — and a name owed after a reset — remain. The tour
+// waits for the portal to open again.
 const isMaintenancePage = computed(() => route.name === 'portal-maintenance')
+const wizardShown = computed(
+  () => wizardMode.value === WIZARD_MODE.RESET || (!!wizardMode.value && !isMaintenancePage.value),
+)
 // Backoffice access is its own gate: a Portal moderator (role=admin)
 // is not necessarily a backoffice operator. Imported Emby accounts
 // always fail the backoffice login because their stored hash is the

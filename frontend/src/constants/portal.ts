@@ -22,6 +22,19 @@ export type PortalTab = (typeof PORTAL_TAB)[keyof typeof PORTAL_TAB]
 export const MIN_LEVEL = 1
 export const MAX_LEVEL = 50
 
+/** Rank tier of a player by level, lowest first (server `tier_for_level`). */
+export const RANK_TIER = Object.freeze({
+  BRONZE: 'bronze',
+  SILVER: 'silver',
+  GOLD: 'gold',
+  PLATINUM: 'platinum',
+  DIAMOND: 'diamond',
+  MASTER: 'master',
+  LEGENDARY: 'legendary',
+} as const)
+
+export type RankTier = (typeof RANK_TIER)[keyof typeof RANK_TIER]
+
 /**
  * Person filmography role filter — also the `role` query param used when
  * deep-linking into the person page from detail carousels / cast lists.
