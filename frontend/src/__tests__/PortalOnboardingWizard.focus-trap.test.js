@@ -70,4 +70,14 @@ describe('PortalOnboardingWizard, the focus trap', () => {
 
     expect(document.activeElement).toBe(nextButton(wrapper).element)
   })
+
+  it('wraps Shift+Tab from the step title, where the focus lands, to the main button', async () => {
+    const wrapper = await nameStep()
+    await vi.advanceTimersByTimeAsync(0)
+    expect(document.activeElement).toBe(wrapper.get('h1').element)
+
+    tab(true)
+
+    expect(document.activeElement).toBe(nextButton(wrapper).element)
+  })
 })

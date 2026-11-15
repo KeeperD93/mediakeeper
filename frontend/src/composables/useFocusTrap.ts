@@ -30,6 +30,10 @@ function getFocusables(container: HTMLElement): HTMLElement[] {
   return Array.from(container.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR)).filter(isVisible)
 }
 
+function comesBefore(el: HTMLElement, other: HTMLElement): boolean {
+  return Boolean(el.compareDocumentPosition(other) & Node.DOCUMENT_POSITION_FOLLOWING)
+}
+
 export function useFocusTrap(options: UseFocusTrapOptions): void {
   if (typeof document === 'undefined') return
 
@@ -61,12 +65,16 @@ export function useFocusTrap(options: UseFocusTrapOptions): void {
     const first = focusables[0]
     const last = focusables[focusables.length - 1]
     const current = document.activeElement as HTMLElement | null
-    // The container itself (its initial focus without initialFocusRef, or a
-    // click on the panel's text) counts as the start of the cycle.
-    if (event.shiftKey && (current === first || current === container)) {
+    // Focus out of the Tab order but inside: the container itself (its initial focus
+    // without initialFocusRef, a click on the panel's text) or a title given the focus.
+    // Before the first control it starts the cycle, after the last one it ends it.
+    const outOfCycle = !!current && container.contains(current) && !focusables.includes(current)
+    const atStart = current === first || (outOfCycle && comesBefore(current, first))
+    const atEnd = current === last || (outOfCycle && comesBefore(last, current))
+    if (event.shiftKey && atStart) {
       event.preventDefault()
       last.focus()
-    } else if (!event.shiftKey && current === last) {
+    } else if (!event.shiftKey && atEnd) {
       event.preventDefault()
       first.focus()
     }
