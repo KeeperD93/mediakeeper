@@ -116,7 +116,6 @@ async def test_build_digest_caches_per_lang(db_session, monkeypatch):
     distinct entries, so an `en` viewer is never served the `fr` payload cached
     moments earlier by another locale (a regression once titles became per-viewer)."""
     user, _ = await make_portal_user(db_session, username="digest-cache", display_name="V", role="viewer")
-    digest_cache._digest_cache.clear()
 
     async def _recent(db, since, lang="fr"):
         return [{"title": f"add [{lang}]"}]
@@ -159,4 +158,3 @@ async def test_build_digest_caches_per_lang(db_session, monkeypatch):
     # A cached re-read serves the locale-correct payload, not the first one cached.
     again = await dd.build_digest(db_session, user, lang="fr")
     assert again["recent_adds"] == [{"title": "add [fr]"}]
-    digest_cache._digest_cache.clear()

@@ -10,7 +10,6 @@ from api import portal_changelog
 from constants.changelog import PORTAL_SEEN_VERSION_KEY
 from constants.daily_digest import RELEASE_SHOWN_DAYS
 from services.portal import daily_digest as dd_svc
-from services.portal import daily_digest_cache as digest_cache
 from services.portal import daily_digest_sources as sources
 from services.settings import get_user_preferences, upsert_user_preferences
 from tests._portal_profile_helpers import PORTAL_COOKIE, make_portal_user, portal_token
@@ -26,7 +25,6 @@ RELEASE = {
 @pytest.fixture
 def quiet_sources():
     """Every other block is empty, so the version is judged alone."""
-    digest_cache._digest_cache.clear()
     quota = {"used": 0, "max_allowed": 0, "unlimited": False, "remaining": 0}
     stubs = [
         patch.object(sources, "recent_adds", AsyncMock(return_value=[])),
@@ -46,7 +44,6 @@ def quiet_sources():
     yield
     for stub in stubs:
         stub.stop()
-    digest_cache._digest_cache.clear()
 
 
 def _week_started(days_ago: float, version: str = RELEASE["version"]) -> dict:

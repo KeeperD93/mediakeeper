@@ -176,6 +176,16 @@ def _reset_update_check_cache():
 
 
 @pytest.fixture(autouse=True)
+def _reset_daily_digest_cache():
+    """Drop the cached daily digest payloads between tests: user ids restart with
+    each test database, so a payload one test leaves would answer the next."""
+    from services.portal import daily_digest_cache as _dd_cache
+    _dd_cache.clear_cache()
+    yield
+    _dd_cache.clear_cache()
+
+
+@pytest.fixture(autouse=True)
 def _reset_diagnostic_log_sentinels():
     """Restore the WARN-once cooldown sentinels to their module-init
     value (-inf) between tests. The CSRF middleware and the WS
