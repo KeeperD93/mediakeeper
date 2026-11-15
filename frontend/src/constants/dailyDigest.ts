@@ -33,3 +33,23 @@ export type ReleaseCategory = (typeof RELEASE_CATEGORY)[keyof typeof RELEASE_CAT
 
 /** Changes the closed "New version" card lists before « +N other changes ». */
 export const DIGEST_RELEASE_TEASER_SIZE = 3
+
+/** Kinds of row in the digest's news list, under its main news card. */
+export const DIGEST_ROW_KIND = Object.freeze({
+  NEWS: 'news',
+  RELEASE: 'release',
+} as const)
+
+export type DigestRowKind = (typeof DIGEST_ROW_KIND)[keyof typeof DIGEST_ROW_KIND]
+
+/**
+ * Place of a row in the digest's news list, first to last: pinned news, then
+ * announcements (additions and other news with them), maintenance, the new version, events.
+ */
+export const DIGEST_ROW_RANK = Object.freeze({
+  PINNED: 0,
+  ANNOUNCEMENT: 1,
+  MAINTENANCE: 2,
+  RELEASE: 3,
+  EVENT: 4,
+} as const)

@@ -24,7 +24,7 @@ utilisateurs.
 - Identité visuelle — nouveau logo et nouvelle bannière, icônes de l'application refaites.
 - Jours d'affilée et Régulier — dès 5 min regardées ; musique et livres audio exclus.
 - Trophées secrets — nom et icône visibles, description et progression cachées jusqu'au déblocage.
-- Quoi de neuf aujourd'hui ? — refondu : actualités en tête, vue compacte, alerte d'expiration, « Pour vous », nouvelle version.
+- Quoi de neuf aujourd'hui ? — refondu : actualités en tête, rangées par type, vue compacte, alerte d'expiration, « Pour vous », nouvelle version.
 - Pseudos — mots réservés, imitations et formes de pseudo provisoire refusés, 3 caractères (2 en chinois ou coréen).
 
 ### Fixed

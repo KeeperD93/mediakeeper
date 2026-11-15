@@ -1,4 +1,10 @@
-import { DIGEST_RELEASE_TEASER_SIZE, NEWS_TYPE, RELEASE_CATEGORY } from '@/constants/dailyDigest'
+import {
+  DIGEST_RELEASE_TEASER_SIZE,
+  DIGEST_ROW_KIND,
+  DIGEST_ROW_RANK,
+  NEWS_TYPE,
+  RELEASE_CATEGORY,
+} from '@/constants/dailyDigest'
 import { getLocale } from '@/i18n'
 import { localizedDate } from '@/utils/datetime'
 import { localizedNumber } from '@/utils/localizedNumber'
@@ -6,6 +12,11 @@ import { localizedNumber } from '@/utils/localizedNumber'
 const NEWS_TYPES = Object.values(NEWS_TYPE)
 const RELEASE_CATEGORIES = Object.values(RELEASE_CATEGORY)
 const NEWS_BADGE_TONE = { [NEWS_TYPE.MAINTENANCE]: 'warn', [NEWS_TYPE.EVENT]: 'event' }
+// Types without a rank of their own go with the announcements.
+const NEWS_RANK = {
+  [NEWS_TYPE.MAINTENANCE]: DIGEST_ROW_RANK.MAINTENANCE,
+  [NEWS_TYPE.EVENT]: DIGEST_ROW_RANK.EVENT,
+}
 
 /** Paragraphs of a news text: split on blank lines, or on line breaks when it has none. */
 export function newsParagraphs(content) {
@@ -24,6 +35,7 @@ export function newsView(item) {
   const tone = NEWS_BADGE_TONE[type]
   return {
     id: item.id,
+    type,
     title: item.title,
     imageUrl: item.image_url || null,
     pinned: !!item.pinned,
@@ -70,6 +82,37 @@ export function releaseView(release) {
     rest,
     restLabel: localizedNumber(rest),
   }
+}
+
+function newsRow(item) {
+  const view = newsView(item)
+  const rank = view.pinned
+    ? DIGEST_ROW_RANK.PINNED
+    : (NEWS_RANK[view.type] ?? DIGEST_ROW_RANK.ANNOUNCEMENT)
+  return { kind: DIGEST_ROW_KIND.NEWS, key: view.id, rank, view }
+}
+
+/**
+ * The news block as both views lay it out: the first news item in the list's order
+ * gets the card, the other rows follow `DIGEST_ROW_RANK` and keep the server's order
+ * (newest first) within a rank. Drawn only when there is at least one news item.
+ */
+export function newsLayout(news, release) {
+  const rows = news.map(newsRow)
+  if (release) {
+    rows.push({
+      kind: DIGEST_ROW_KIND.RELEASE,
+      key: DIGEST_ROW_KIND.RELEASE,
+      rank: DIGEST_ROW_RANK.RELEASE,
+      view: releaseView(release),
+    })
+  }
+  rows.sort((a, b) => a.rank - b.rank)
+  const [main] = rows.splice(
+    rows.findIndex(row => row.kind === DIGEST_ROW_KIND.NEWS),
+    1,
+  )
+  return { main: main.view, rows }
 }
 
 /** First letter in capitals, for a date or a delay that opens a line. */
