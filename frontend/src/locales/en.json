@@ -3168,8 +3168,6 @@
       },
       "steps": {
         "welcome": {
-          "eyebrowNew": "First sign-in",
-          "eyebrow": "Guided tour",
           "title": "Welcome to MediaKeeper",
           "subNew": "The requests portal, and much more: lists, trophies, leaderboards, movie nights… We'll guide you step by step.",
           "sub": "The portal has grown. A short tour, just once: check your settings and discover everything on offer."

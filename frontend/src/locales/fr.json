@@ -3168,8 +3168,6 @@
       },
       "steps": {
         "welcome": {
-          "eyebrowNew": "Première connexion",
-          "eyebrow": "Visite guidée",
           "title": "Bienvenue sur MediaKeeper",
           "subNew": "Le portail des demandes, et bien plus encore : listes, trophées, classement, soirées ciné… On vous guide pas à pas.",
           "sub": "Le portail s’enrichit. Une petite visite, une seule fois : vérifiez vos réglages et découvrez tout ce qui est disponible."

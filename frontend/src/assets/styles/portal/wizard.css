@@ -56,9 +56,12 @@
 }
 .wz-step--welcome {
   align-items: center;
-  gap: var(--portal-space-1-5);
+  gap: var(--portal-space-5);
   padding-top: var(--portal-space-3);
   text-align: center;
+}
+.wz-step--welcome .dd-sub {
+  margin-top: var(--portal-space-3);
 }
 .wz-banner {
   display: block;

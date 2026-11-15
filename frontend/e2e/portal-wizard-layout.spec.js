@@ -75,6 +75,24 @@ const layout = page =>
     }
   })
 
+// The welcome's blocks: no eyebrow, the introduction under the title, then the list and
+// the bottom sentence, each one step gap apart.
+const welcomeSpacing = page =>
+  page.evaluate(() => {
+    const box = selector =>
+      document.querySelector(`.wz-step--welcome ${selector}`).getBoundingClientRect()
+    const token = name =>
+      parseFloat(getComputedStyle(document.documentElement).getPropertyValue(name))
+    return {
+      eyebrow: document.querySelector('.wz-step--welcome .dd-date') !== null,
+      titleToIntro: box('.dd-sub').top - box('h1').bottom,
+      introToList: box('.wz-plan').top - box('.wz-head').bottom,
+      listToNote: box('.wz-time').top - box('.wz-plan').bottom,
+      near: token('--portal-space-3'),
+      apart: token('--portal-space-5'),
+    }
+  })
+
 // Within a pixel: box edges fall on fractions of a pixel.
 const expectSame = (actual, expected, what) =>
   expect(Math.abs(actual - expected), `${what}: ${actual} vs ${expected}`).toBeLessThan(1)
@@ -132,6 +150,19 @@ test.describe('The first-login wizard on a computer', () => {
     expectSame(laptop.panel.top, laptop.screen - laptop.panel.bottom, 'gap above and below, laptop')
     expect(laptop.overlayMoves).toBe(false)
     expect(laptop.windowClips, 'the scrollbar stays inside the rounded window').toBe(true)
+
+    expect(tracker.unexpected).toEqual([])
+  })
+
+  test('spaces the welcome out, without an eyebrow', async ({ page }) => {
+    await page.setViewportSize({ width: 1366, height: 768 })
+    const tracker = await openWizard(page)
+
+    const spacing = await welcomeSpacing(page)
+    expect(spacing.eyebrow, 'no eyebrow on the welcome').toBe(false)
+    expectSame(spacing.titleToIntro, spacing.near, 'title to introduction')
+    expectSame(spacing.introToList, spacing.apart, 'introduction to list')
+    expectSame(spacing.listToNote, spacing.apart, 'list to bottom sentence')
 
     expect(tracker.unexpected).toEqual([])
   })

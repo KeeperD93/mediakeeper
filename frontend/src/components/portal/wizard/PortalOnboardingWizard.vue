@@ -40,7 +40,7 @@
                 :tier="wz.me.tier"
               />
               <div class="dd-grow">
-                <span class="dd-date">{{ wz.head.eyebrow }}</span>
+                <span v-if="wz.head.eyebrow" class="dd-date">{{ wz.head.eyebrow }}</span>
                 <h1 :id="headingId" ref="headingRef" class="dd-hello wz-hello" tabindex="-1">
                   {{ wz.head.title }}
                 </h1>
