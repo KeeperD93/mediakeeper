@@ -25,4 +25,8 @@ describe('sanitizeHtml', () => {
   it('reads a non-string value as text', () => {
     expect(sanitizeHtml(12345)).toBe('12345')
   })
+
+  it('does not throw on an object whose toString is not a function', () => {
+    expect(sanitizeHtml({ toString: 'x' })).toBe('[object Object]')
+  })
 })

@@ -8,5 +8,6 @@ import DOMPurify from 'dompurify'
  * @returns {string} the scrubbed HTML, or ``''`` for empty input
  */
 export function sanitizeHtml(html) {
-  return html ? DOMPurify.sanitize(String(html)) : ''
+  // No String(): DOMPurify reads any value itself, where String() throws on some objects.
+  return html ? DOMPurify.sanitize(html) : ''
 }

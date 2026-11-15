@@ -41,8 +41,8 @@
       </button>
 
       <transition name="pt-help-accordion">
-        <!-- Body sanitised by the server (services/portal/help_sanitize.py),
-             then again here as defence in depth. -->
+        <!-- Body sanitised by the server on write, then again here as
+             defence in depth. -->
         <!-- eslint-disable vue/no-v-html -->
         <div
           v-if="expandedId === a.id"
