@@ -8,6 +8,7 @@ import { vi } from 'vitest'
 import { flushPromises, mount } from '@vue/test-utils'
 import i18n from '@/i18n'
 import PortalOnboardingWizard from '@/components/portal/wizard/PortalOnboardingWizard.vue'
+import { WIZARD_MODE } from '@/constants/portalOnboarding'
 import { api, auth, applyPortalLocale, showToast } from './_onboardingWizardSpies'
 
 export { api, auth, applyPortalLocale, showToast }
@@ -67,12 +68,21 @@ export function resetBench() {
   i18n.global.locale.value = 'fr'
 }
 
-export async function openWizard(profile, mode = 'full') {
+/**
+ * `realTeleport`: the window goes into document.body and keeps its elements from one
+ * render to the next, as in the browser (setup.js's stub rebuilds them); read it from
+ * the document then, the wrapper does not reach it.
+ */
+export async function openWizard(profile, mode = WIZARD_MODE.FULL, { realTeleport = false } = {}) {
   auth.profile.value = profile
   const wrapper = mount(PortalOnboardingWizard, {
     props: { mode },
     attachTo: document.body,
-    global: { plugins: [i18n], mocks: { $t: i18n.global.t } },
+    global: {
+      plugins: [i18n],
+      mocks: { $t: i18n.global.t },
+      stubs: realTeleport ? { Teleport: false } : {},
+    },
   })
   await flushPromises()
   return wrapper

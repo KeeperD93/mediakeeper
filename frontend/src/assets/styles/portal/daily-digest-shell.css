@@ -67,7 +67,7 @@
 }
 @media (min-width: 1024px) {
   .dd-overlay {
-    padding-block: 56px;
+    padding-block: var(--portal-digest-margin-block);
   }
 }
 
