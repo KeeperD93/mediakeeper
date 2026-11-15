@@ -13,6 +13,7 @@ import {
   next,
   nextButton,
   openWizard,
+  plain,
   resetBench,
   serverAnswers,
   typeName,
@@ -48,7 +49,7 @@ const open = async (...args) => {
   return wrapper
 }
 const input = wrapper => wrapper.get('.wz-input')
-const message = wrapper => wrapper.get('.wz-msg').text()
+const message = wrapper => plain(wrapper.get('.wz-msg').text())
 const isOff = button => button.attributes('disabled') !== undefined
 
 /** `username-state` answers only when the test says so; other checks find the name current. */
@@ -96,7 +97,7 @@ describe('PortalOnboardingWizard, a name reset before the tour', () => {
 
     expect(input(wrapper).element.value).toBe('')
     expect(input(wrapper).attributes('placeholder')).toBe('Votre nouveau pseudo')
-    expect(wrapper.get('.dd-sub').text()).toContain(
+    expect(plain(wrapper.get('.dd-sub').text())).toContain(
       'Un administrateur a réinitialisé votre pseudo « Alice_42 »',
     )
     expect(wrapper.get('.wz-note').text()).toBe(

@@ -13,6 +13,7 @@ import {
   next,
   nextButton,
   openWizard,
+  plain,
   resetBench,
   serverAnswers,
   showToast,
@@ -92,7 +93,9 @@ describe('PortalOnboardingWizard, the window', () => {
     const bar = wrapper.get('[role="progressbar"]')
     expect(bar.attributes()).toMatchObject({ 'aria-valuenow': '1', 'aria-valuemax': '9' })
     expect(wrapper.get('.wz-count').text()).toBe('Étape 1 sur 9')
-    expect(document.activeElement.textContent.trim()).toBe('Comment devons-nous vous appeler ?')
+    expect(plain(document.activeElement.textContent.trim())).toBe(
+      'Comment devons-nous vous appeler ?',
+    )
   })
 })
 
@@ -164,7 +167,9 @@ describe('PortalOnboardingWizard, the name', () => {
     await next(wrapper)
 
     expect(wrapper.get('.wz-input').element.value).toBe('Alice')
-    expect(wrapper.get('.wz-msg').text()).toBe('C’est votre pseudo actuel : vous pouvez le garder.')
+    expect(plain(wrapper.get('.wz-msg').text())).toBe(
+      'C’est votre pseudo actuel : vous pouvez le garder.',
+    )
     expect(nextButton(wrapper).text()).toBe('Garder ce pseudo')
   })
 
@@ -174,7 +179,7 @@ describe('PortalOnboardingWizard, the name', () => {
     await next(wrapper)
 
     expect(wrapper.get('.wz-input').attributes('readonly')).toBeDefined()
-    expect(wrapper.get('.wz-msg').text()).toBe(
+    expect(plain(wrapper.get('.wz-msg').text())).toBe(
       'Vous avez changé de pseudo il y a moins de 6 mois : vous pourrez le modifier à partir du 31 mars 2027.',
     )
     expect(wrapper.find('.wz-note--warn').exists()).toBe(false)
@@ -196,7 +201,7 @@ describe('PortalOnboardingWizard, the end', () => {
     api.apiPost.mockResolvedValue(saved)
     const wrapper = await toDone(member(NEW), { Bruno: { reason: 'free', available: true } })
 
-    expect(wrapper.text()).toContain(
+    expect(plain(wrapper.text())).toContain(
       'Vérifiez vos choix : ils sont enregistrés quand vous continuez.',
     )
     expect(api.apiPost).not.toHaveBeenCalled()
@@ -272,7 +277,7 @@ describe('PortalOnboardingWizard, a name reset by an administrator', () => {
     const wrapper = await open(member({ ...NEW, display_name: 'Alice_42' }), 'reset')
 
     expect(heading(wrapper)).toBe('Choisissez un nouveau pseudo')
-    expect(wrapper.text()).toContain('« Alice_42 »')
+    expect(plain(wrapper.text())).toContain('« Alice_42 »')
     expect(wrapper.find('[role="progressbar"]').exists()).toBe(false)
     expect(wrapper.find('.wz-banner--sm').exists()).toBe(true)
     expect(wrapper.get('.wz-foot-hint').text()).toBe('Étape obligatoire')

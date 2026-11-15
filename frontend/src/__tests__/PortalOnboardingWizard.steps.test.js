@@ -12,6 +12,7 @@ import {
   member,
   next,
   openWizard,
+  plain,
   resetBench,
   serverAnswers,
   showToast,
@@ -169,7 +170,7 @@ describe('PortalOnboardingWizard, the notifications', () => {
     await next(wrapper)
     expect(heading(wrapper)).toBe(TITLE.notifications)
     const confirm = wrapper.get('.wz-confirm')
-    expect(confirm.text()).toContain('Êtes-vous sûr ?')
+    expect(plain(confirm.text())).toContain('Êtes-vous sûr ?')
     expect(confirm.text()).toContain('Réessayer')
     // Read once, through the focus, with its reason: no alert announcing it again.
     const title = confirm.get('.wz-confirm-t')

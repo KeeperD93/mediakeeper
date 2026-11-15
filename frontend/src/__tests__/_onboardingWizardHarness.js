@@ -78,7 +78,12 @@ export async function openWizard(profile, mode = 'full') {
   return wrapper
 }
 
-export const heading = wrapper => wrapper.get('h1').text()
+// French keeps « ? ! : ; » and guillemets with their words by a no-break space; the
+// tests write a plain one.
+const NBSP = String.fromCharCode(0xa0)
+export const plain = text => text.replaceAll(NBSP, ' ')
+
+export const heading = wrapper => plain(wrapper.get('h1').text())
 export const nextButton = wrapper => wrapper.get('.wz-next')
 export const backButton = wrapper => wrapper.find('.wz-foot .wz-ghost')
 
