@@ -84,7 +84,8 @@ def new_year(plays: list[LocalPlay]) -> int:
 
 def friday_13(plays: list[LocalPlay]) -> int:
     return int(any(
-        at.day == 13 and at.weekday() == _FRIDAY and _has_genre(row, _HORROR_GENRES)
+        at.day == 13 and at.weekday() == _FRIDAY
+        and row.item_type == _MOVIE and _has_genre(row, _HORROR_GENRES)
         for row, at in plays
     ))
 
@@ -99,7 +100,8 @@ def indecisive(plays: list[LocalPlay]) -> int:
 
 def summer(plays: list[LocalPlay]) -> int:
     return int(any(
-        at.month in _SUMMER_MONTHS and _has_genre(row, _SUMMER_GENRES)
+        at.month in _SUMMER_MONTHS
+        and row.item_type == _MOVIE and _has_genre(row, _SUMMER_GENRES)
         for row, at in plays
     ))
 

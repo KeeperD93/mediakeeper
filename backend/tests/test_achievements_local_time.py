@@ -108,6 +108,20 @@ def test_summer(moment, genres, in_utc, in_paris):
     assert _values("secret_summer", [_row(moment, genres=genres)]) == (in_utc, in_paris)
 
 
+@pytest.mark.parametrize(
+    ("condition", "moment", "genres"),
+    [
+        ("secret_friday13", _at(2026, 2, 13, 12, 0), "Horror"),
+        ("secret_summer", _at(2026, 7, 15, 12, 0), "Adventure"),
+    ],
+)
+@pytest.mark.parametrize("item_type", ["Episode", "Video"])
+def test_genre_trophies_count_movies_only(condition, moment, genres, item_type):
+    """Their descriptions name a movie: an episode or a home video of the genre counts for nothing."""
+    assert _values(condition, [_row(moment, genres=genres)]) == (1, 1)
+    assert _values(condition, [_row(moment, genres=genres, item_type=item_type)]) == (0, 0)
+
+
 def test_half_hour_zones_keep_their_minutes():
     kolkata = ZoneInfo("Asia/Kolkata")
     rule = LOCAL_TIME_RULES["secret_countdown"]
