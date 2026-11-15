@@ -1,5 +1,4 @@
 """XP boost event service — active multipliers for grants, running events for the daily digest."""
-import logging
 from datetime import datetime, timezone, tzinfo
 
 from sqlalchemy import select
@@ -7,8 +6,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from models.portal.xp_boost import XpBoostEvent
 from services.instance_time import to_local
-
-logger = logging.getLogger("mediakeeper.portal.xp_boost")
 
 
 async def _running_events(db: AsyncSession, now: datetime) -> list[XpBoostEvent]:
