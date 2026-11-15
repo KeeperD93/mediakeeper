@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { flushPromises, shallowMount } from '@vue/test-utils'
-import { nextTick, ref } from 'vue'
+import { nextTick, reactive, ref } from 'vue'
 
 import PortalDailyDigestOverlay from '@/components/portal/PortalDailyDigestOverlay.vue'
 import PortalLayout from '@/components/portal/PortalLayout.vue'
@@ -11,7 +11,8 @@ import { WIZARD_MODE } from '@/constants/portalOnboarding'
 
 const profile = ref(null)
 const ui = ref({})
-const route = { name: 'portal-home' }
+// Reactive, as vue-router's: the page follows a move off the maintenance page.
+const route = reactive({ name: 'portal-home' })
 const checkPortalAuth = vi.fn().mockResolvedValue(true)
 const apiGet = vi.fn()
 
@@ -119,6 +120,18 @@ describe('PortalLayout.vue, the first-login wizard', () => {
 
     expect(wizard(wrapper).exists()).toBe(false)
     expect(digest(wrapper).props()).toMatchObject({ open: true, chained: true, auto: false })
+  })
+
+  it('opens the digest as usual once the portal opens, after a name chosen in maintenance', async () => {
+    route.name = 'portal-maintenance'
+    const wrapper = await visit(player({ display_name_must_set: true }))
+
+    await finishWizard(wrapper)
+    expect(digest(wrapper).exists()).toBe(false)
+
+    route.name = 'portal-home'
+    await nextTick()
+    expect(digest(wrapper).props()).toMatchObject({ open: true, chained: false })
   })
 
   it('opens the digest the next time from the avatar menu as usual', async () => {

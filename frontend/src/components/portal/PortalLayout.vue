@@ -143,7 +143,9 @@ function onDigestClose() {
 }
 
 function onWizardDone() {
-  digestChained.value = true
+  // A name chosen on the maintenance page: the digest waits for the portal to open,
+  // then rises as usual, out of the wizard's frame.
+  digestChained.value = !isMaintenancePage.value
   dailyDigestOpen.value = true
 }
 
