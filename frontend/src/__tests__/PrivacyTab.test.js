@@ -112,6 +112,21 @@ describe('PrivacyTab', () => {
     expect(w.find('.pt-privacy-empty').exists()).toBe(false)
   })
 
+  it('scrubs the privacy HTML before rendering it', async () => {
+    mocks.getPrivacyText.mockResolvedValueOnce({
+      lang: 'fr',
+      text_html: '<p>Test policy</p><img src="x" onerror="alert(1)"><script>alert(1)</script>',
+      dpo_contact: '',
+    })
+    const w = buildTab()
+    await flushPromises()
+
+    const text = w.get('.pt-privacy-text').html()
+    expect(text).toContain('<p>Test policy</p>')
+    expect(text).not.toContain('onerror')
+    expect(text).not.toContain('<script')
+  })
+
   it('renders the not-configured fallback when text is empty', async () => {
     mocks.getPrivacyText.mockResolvedValueOnce({
       lang: 'fr',

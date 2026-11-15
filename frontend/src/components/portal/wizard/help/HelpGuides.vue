@@ -42,12 +42,12 @@
             {{ $t('portal.wizardHelp.guides.missing') }}
           </p>
           <!-- Same rendering as the Help Center: the server sanitises the body,
-               DOMPurify scrubs it again before it reaches the DOM. -->
+               then it is scrubbed again here. -->
           <!-- eslint-disable vue/no-v-html -->
           <div
             v-else
             class="wzh-guide-body pt-help-article-body"
-            v-html="purify(articleFor(guide.slug).body_html)"
+            v-html="sanitizeHtml(articleFor(guide.slug).body_html)"
           />
           <!-- eslint-enable vue/no-v-html -->
         </div>
@@ -58,10 +58,10 @@
 
 <script setup>
 import { ref, useId } from 'vue'
-import DOMPurify from 'dompurify'
 import { ChevronDown } from 'lucide-vue-next'
 import { HELP_GUIDES } from '@/constants/portalWizardHelp'
 import { useHelpGuides } from '@/composables/portal/useHelpGuides'
+import { sanitizeHtml } from '@/utils/sanitizeHtml'
 import '@/assets/styles/portal/help-overlay-content.css'
 import '@/assets/styles/portal/wizard-help-guides.css'
 
@@ -74,9 +74,5 @@ const { loading, error, ensureLoaded, articleFor } = useHelpGuides()
 function toggle(slug) {
   openSlug.value = openSlug.value === slug ? null : slug
   if (openSlug.value) ensureLoaded()
-}
-
-function purify(html) {
-  return DOMPurify.sanitize(String(html || ''))
 }
 </script>

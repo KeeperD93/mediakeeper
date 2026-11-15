@@ -89,7 +89,7 @@
             <!-- Operator's own donation appeal — everyone when configured. -->
             <section v-if="showInstance" class="dn-section dn-section--instance">
               <h3 class="dn-section-title">{{ $t('donation.instanceTitle') }}</h3>
-              <!-- Server sanitises on write; DOMPurify here is defence in depth. -->
+              <!-- Server sanitises on write; scrubbed again here as defence in depth. -->
               <!-- eslint-disable-next-line vue/no-v-html -->
               <div v-if="messageHtml" class="dn-quote" v-html="messageHtml" />
               <p v-else class="dn-quote">{{ $t('donation.instanceIntro') }}</p>
@@ -117,10 +117,10 @@
 
 <script setup>
 import { computed, ref, toRef, useId } from 'vue'
-import DOMPurify from 'dompurify'
 import { ArrowUpRight, Coffee, Github, Heart, Star, X } from 'lucide-vue-next'
 import { useFocusTrap } from '@/composables/useFocusTrap'
 import { safeHref } from '@/utils/safeUrl'
+import { sanitizeHtml } from '@/utils/sanitizeHtml'
 import { MEDIAKEEPER_SUPPORT } from '@/constants/donation'
 
 import '@/assets/styles/donation-overlay.css'
@@ -144,12 +144,8 @@ const showInstance = computed(() => !!props.donation?.enabled && !!instanceHref.
 
 // The operator message is sanitised HTML (bleach server-side, with empty
 // editor content like "<p></p>" already normalised to ""). A non-empty
-// value is therefore real content; DOMPurify re-purifies before v-html as
-// defence in depth.
-const messageHtml = computed(() => {
-  const raw = props.donation?.message || ''
-  return raw ? DOMPurify.sanitize(raw) : ''
-})
+// value is therefore real content.
+const messageHtml = computed(() => sanitizeHtml(props.donation?.message))
 
 function close() {
   emit('close')

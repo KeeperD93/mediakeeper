@@ -3,6 +3,7 @@
  * - admin sees the MediaKeeper section (Ko-fi + star), sponsor hidden while blank
  * - the operator section shows for anyone when enabled with a safe link
  * - an unsafe operator URL drops the operator section (safeHref guard)
+ * - the operator message is scrubbed before rendering; scrubbed to nothing, the intro shows
  * - close button emits close
  */
 import { describe, it, expect } from 'vitest'
@@ -51,6 +52,34 @@ describe('DonationOverlay', () => {
     const cta = w.get('.dn-section--instance a.dn-cta--primary')
     expect(cta.attributes('href')).toBe('https://example.org/give')
     expect(w.text()).toContain('Help me')
+    w.unmount()
+  })
+
+  it('scrubs the operator message before rendering it', () => {
+    const w = build({
+      donation: {
+        enabled: true,
+        url: 'https://example.org/give',
+        message:
+          '<p>Help <strong>me</strong></p><img src="x" onerror="alert(1)"><script>alert(1)</script>',
+      },
+    })
+    const quote = w.get('.dn-quote').html()
+    expect(quote).toContain('<p>Help <strong>me</strong></p>')
+    expect(quote).not.toContain('onerror')
+    expect(quote).not.toContain('<script')
+    w.unmount()
+  })
+
+  it('shows the default intro when the message scrubs to nothing', () => {
+    const w = build({
+      donation: {
+        enabled: true,
+        url: 'https://example.org/give',
+        message: '<script>alert(1)</script>',
+      },
+    })
+    expect(w.get('.dn-quote').text()).toBe('donation.instanceIntro')
     w.unmount()
   })
 
