@@ -10,7 +10,7 @@ from models.portal.achievement import UserAchievement
 from models.portal.audit import AdminAuditLog
 from models.portal.xp_ledger import XpLedger
 from services.backup.create import BackupResult
-from services.portal import daily_digest
+from services.portal import daily_digest_cache as digest_cache
 from services.portal.achievements import seed_achievements
 from services.portal.admin_users_constants import (
     ACTION_DEBUG_ZONE_CORRECTION,
@@ -74,7 +74,7 @@ async def test_apply_takes_back_the_trophy_its_xp_and_its_badge(client, db_sessi
     # Past the level 2 threshold (300 XP): taking the trophy's 40 XP back costs a level.
     profile.xp, profile.level, profile.selected_badges = 320, 2, [EARLY]
     await db_session.commit()
-    daily_digest._cache_set(alice, "2026-02-02", "fr", {"cached": True})
+    digest_cache.put(alice, "2026-02-02", "fr", {"cached": True})
     simulated = (await client.get(SIMULATE)).json()
     assert (simulated["players_losing_level"], simulated["max_level_loss"]) == (1, 1)
 
@@ -92,7 +92,7 @@ async def test_apply_takes_back_the_trophy_its_xp_and_its_badge(client, db_sessi
     profile = await profile_of(db_session, alice)
     assert (profile.xp, profile.level, profile.selected_badges) == (280, 1, None)
     assert (await db_session.execute(select(XpLedger).where(XpLedger.user_id == alice))).first() is None
-    assert all(key[0] != alice for key in daily_digest._digest_cache)
+    assert all(key[0] != alice for key in digest_cache._digest_cache)
 
     audits = {
         row.action: row.payload for row in (await db_session.execute(select(AdminAuditLog))).scalars()

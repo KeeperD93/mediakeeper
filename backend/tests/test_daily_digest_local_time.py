@@ -9,6 +9,7 @@ from models.portal.profile import UserProfile
 from models.user import User
 from services.instance_time import INSTANCE_TIMEZONE_KEY
 from services.portal import daily_digest as digest
+from services.portal import daily_digest_cache as digest_cache
 from services.portal import daily_digest_sources as sources
 from services.settings import get_user_preferences, set_setting
 from tests._portal_profile_helpers import PORTAL_COOKIE, make_portal_user, portal_token
@@ -47,14 +48,14 @@ def _stubbed_sources() -> list:
 
 @pytest.fixture
 def stubbed_sources():
-    digest._digest_cache.clear()
+    digest_cache._digest_cache.clear()
     stubs = _stubbed_sources()
     for stub in stubs:
         stub.start()
     yield
     for stub in stubs:
         stub.stop()
-    digest._digest_cache.clear()
+    digest_cache._digest_cache.clear()
 
 
 @pytest.mark.asyncio

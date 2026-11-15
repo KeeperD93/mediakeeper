@@ -9,6 +9,7 @@ import pytest
 
 from services.portal import available_localize as al
 from services.portal import daily_digest as dd
+from services.portal import daily_digest_cache as digest_cache
 from services.portal import daily_digest_sources as sources
 from tests._portal_profile_helpers import PORTAL_COOKIE, make_portal_user, portal_token
 
@@ -115,7 +116,7 @@ async def test_build_digest_caches_per_lang(db_session, monkeypatch):
     distinct entries, so an `en` viewer is never served the `fr` payload cached
     moments earlier by another locale (a regression once titles became per-viewer)."""
     user, _ = await make_portal_user(db_session, username="digest-cache", display_name="V", role="viewer")
-    dd._digest_cache.clear()
+    digest_cache._digest_cache.clear()
 
     async def _recent(db, since, lang="fr"):
         return [{"title": f"add [{lang}]"}]
@@ -152,10 +153,10 @@ async def test_build_digest_caches_per_lang(db_session, monkeypatch):
     assert fr["recent_adds"] == [{"title": "add [fr]"}]
     assert en["recent_adds"] == [{"title": "add [en]"}]
 
-    user_keys = {k for k in dd._digest_cache if k[0] == user.id}
+    user_keys = {k for k in digest_cache._digest_cache if k[0] == user.id}
     assert len(user_keys) == 2
     assert {k[2] for k in user_keys} == {"fr", "en"}
     # A cached re-read serves the locale-correct payload, not the first one cached.
     again = await dd.build_digest(db_session, user, lang="fr")
     assert again["recent_adds"] == [{"title": "add [fr]"}]
-    dd._digest_cache.clear()
+    digest_cache._digest_cache.clear()

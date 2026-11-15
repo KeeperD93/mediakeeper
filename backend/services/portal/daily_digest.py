@@ -5,14 +5,12 @@ account expiry, news, the new Portal version, library additions, "for you"
 items, upcoming events, monthly ranking, level progress, request quota, open
 tickets, closest achievement, play-day streak). Leaf aggregators live in
 :mod:`daily_digest_sources`, :mod:`daily_digest_account` and
-:mod:`daily_digest_for_you` so this file stays focused on caching, the
-viewer's preferences (dismissal, compact view) and composition.
+:mod:`daily_digest_for_you`, the 1h payload cache in :mod:`daily_digest_cache`,
+so this file stays focused on the viewer's preferences (dismissal, compact
+view) and composition.
 
-The payload is cached in-memory for ~1h per (user_id, date, lang) triple so a
-user re-opening the overlay — or navigating pages that remount the
-layout — doesn't trigger a full re-aggregation. Dismissal is stored in
-``user_preferences.portal_daily_digest_dismissed_date`` as a
-``YYYY-MM-DD`` string so the frontend can skip rendering until tomorrow.
+Dismissal is stored in ``user_preferences.portal_daily_digest_dismissed_date``
+as a ``YYYY-MM-DD`` string so the frontend can skip rendering until tomorrow.
 The library-additions block lists items added since the viewer last
 caught up (a per-user seen watermark in the same prefs blob, 30-day
 floor, capped); the watermark advances 24h after a dismiss so just-seen
@@ -23,7 +21,6 @@ from __future__ import annotations
 
 import json
 import logging
-import time
 from datetime import datetime, timedelta, timezone
 from typing import Any
 
@@ -34,8 +31,14 @@ from constants.daily_digest import RELEASE_SHOWN_DAYS
 from models.user import User
 from services.instance_time import get_instance_zone, to_local
 from services.portal import daily_digest_account as account
+from services.portal import daily_digest_cache as digest_cache
 from services.portal import daily_digest_for_you as for_you
 from services.portal import daily_digest_sources as sources
+from services.portal.daily_digest_cache import (
+    PODIUM_FIELDS,
+    clear_cache,
+    invalidate_cache,
+)
 from services.portal.profiles import get_or_create_profile
 from services.settings import get_user_preferences, upsert_user_preferences
 
@@ -46,61 +49,14 @@ _PREF_KEY_DISMISSED_AT = "portal_daily_digest_dismissed_at"
 _PREF_KEY_SEEN_AT = "portal_daily_digest_recent_seen_at"
 _PREF_KEY_COMPACT = "portal_daily_digest_compact"
 _PREF_KEY_RELEASE = "portal_daily_digest_release"
-_CACHE_TTL_SEC = 3600
 _GRACE_HOURS = 24
 _MAX_LOOKBACK_DAYS = 30
-
-# Cache: (user_id, date_iso, lang) -> (expires_at_epoch, payload). lang is part
-# of the key because the payload re-resolves media titles/synopsis per viewer
-# locale; a lang-agnostic key would serve the first-cached language to all.
-_digest_cache: dict[tuple[int, str, str], tuple[float, dict]] = {}
-# Moved by every drop: a payload built across a drop holds the old data, it is not cached.
-_cache_generation = 0
-# What a member's podium row shows the other readers: a change drops every payload.
-PODIUM_FIELDS = (
-    "display_name", "is_public", "avatar_url", "avatar_custom_path", "avatar_effect", "selected_title",
-)
 
 
 async def _today_iso(db: AsyncSession) -> str:
     """Today on the calendar of the instance: the overlay comes back at its midnight."""
     zone = await get_instance_zone(db)
     return to_local(datetime.now(timezone.utc), zone).date().isoformat()
-
-
-def _cache_get(user_id: int, date_iso: str, lang: str) -> dict | None:
-    key = (user_id, date_iso, lang)
-    hit = _digest_cache.get(key)
-    if not hit:
-        return None
-    expires_at, payload = hit
-    if expires_at < time.time():
-        _digest_cache.pop(key, None)
-        return None
-    return payload
-
-
-def _cache_set(user_id: int, date_iso: str, lang: str, payload: dict) -> None:
-    _digest_cache[(user_id, date_iso, lang)] = (time.time() + _CACHE_TTL_SEC, payload)
-
-
-def invalidate_cache(user_id: int) -> None:
-    """Drop cached payload for a user (used on dismiss so reopens don't
-    keep serving stale content)."""
-    global _cache_generation
-    _cache_generation += 1
-    for key in list(_digest_cache.keys()):
-        if key[0] == user_id:
-            _digest_cache.pop(key, None)
-
-
-def clear_cache() -> None:
-    """Drop every cached payload: something a member shows the others changed
-    (name, visibility, avatar, avatar effect, title), and any reader's podium
-    may show them."""
-    global _cache_generation
-    _cache_generation += 1
-    _digest_cache.clear()
 
 
 async def _load_prefs(db: AsyncSession, user_id: int, *, lock_row: bool = False) -> dict:
@@ -229,12 +185,12 @@ async def build_digest(
     explicitly asks for a fresh view. ``release`` is the current Portal version
     as its changelog describes it, read by the caller.
     """
-    generation = _cache_generation
+    generation = digest_cache.generation()
     now = datetime.now(timezone.utc)
     zone = await get_instance_zone(db)
     date_iso = to_local(now, zone).date().isoformat()
     if use_cache:
-        cached = _cache_get(user.id, date_iso, lang)
+        cached = digest_cache.get(user.id, date_iso, lang)
         if cached is not None:
             return cached
 
@@ -283,13 +239,15 @@ async def build_digest(
         "streak": streak,
         "next_achievement": next_ach,
     }
-    if generation == _cache_generation:
-        _cache_set(user.id, date_iso, lang, payload)
+    if generation == digest_cache.generation():
+        digest_cache.put(user.id, date_iso, lang, payload)
     return payload
 
 
 __all__ = [
+    "PODIUM_FIELDS",
     "build_digest",
+    "clear_cache",
     "invalidate_cache",
     "is_compact",
     "is_dismissed_today",

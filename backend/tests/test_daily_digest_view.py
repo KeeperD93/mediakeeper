@@ -10,6 +10,7 @@ from constants.requests import REQUEST_AVAILABLE
 from models.portal.news import News, NewsRead
 from models.portal.request import MediaRequest
 from services.portal import daily_digest as dd_svc
+from services.portal import daily_digest_cache as digest_cache
 from services.portal import daily_digest_sources as sources
 from services.portal._pseudo_words import generate_pseudo
 from services.settings import get_user_preferences
@@ -21,7 +22,7 @@ VIEW_URL = "/api/portal/daily-digest/view"
 @pytest.fixture
 def quiet_sources():
     """The blocks older than the redesign show nothing, so each new one is judged alone."""
-    dd_svc._digest_cache.clear()
+    digest_cache._digest_cache.clear()
     quota = {"used": 0, "max_allowed": 0, "unlimited": False, "remaining": 0}
     stubs = [
         patch.object(sources, "recent_adds", AsyncMock(return_value=[])),
@@ -39,7 +40,7 @@ def quiet_sources():
     yield
     for stub in stubs:
         stub.stop()
-    dd_svc._digest_cache.clear()
+    digest_cache._digest_cache.clear()
 
 
 async def _sign_in(client, db, **profile):
