@@ -19,25 +19,29 @@ const mocks = vi.hoisted(() => ({
   profile: { value: { source: 'emby' } },
 }))
 
-vi.mock('vue-i18n', () => ({
-  useI18n: () => ({
-    t: (key, params) => {
-      // The deletion modal compares typed input against the magic
-      // word — return a deterministic value so the confirm flow can
-      // be exercised end-to-end here.
-      if (key === 'portal.privacy.deleteModal.magicWord') return 'SUPPRIMER'
-      return params ? `${key}:${JSON.stringify(params)}` : key
+vi.mock('vue-i18n', async () => {
+  // A real ref: the tab watches ``locale`` to reload the text.
+  const { ref } = await import('vue')
+  return {
+    useI18n: () => ({
+      t: (key, params) => {
+        // The deletion modal compares typed input against the magic
+        // word — return a deterministic value so the confirm flow can
+        // be exercised end-to-end here.
+        if (key === 'portal.privacy.deleteModal.magicWord') return 'SUPPRIMER'
+        return params ? `${key}:${JSON.stringify(params)}` : key
+      },
+      locale: ref('fr'),
+    }),
+    // ``I18nT`` is imported by PrivacyTab + DeleteConfirmModal — stub it as
+    // a render-slots span so named slots (``contact``, ``word``) still emit
+    // their content for the assertions below.
+    I18nT: {
+      name: 'I18nT',
+      template: '<span><slot name="contact" /><slot name="word" /><slot /></span>',
     },
-    locale: { value: 'fr' },
-  }),
-  // ``I18nT`` is imported by PrivacyTab + DeleteConfirmModal — stub it as
-  // a render-slots span so named slots (``contact``, ``word``) still emit
-  // their content for the assertions below.
-  I18nT: {
-    name: 'I18nT',
-    template: '<span><slot name="contact" /><slot name="word" /><slot /></span>',
-  },
-}))
+  }
+})
 
 vi.mock('@/composables/portal/useGdprUser', () => ({
   EXPORT_LIMIT: 'export_rate_limited',
