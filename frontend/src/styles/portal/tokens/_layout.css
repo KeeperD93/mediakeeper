@@ -168,7 +168,6 @@
   --portal-wizard-phone-icon: 30px; /* icons of the phone bars, drawn small */
   --portal-wizard-phone-avatar: 28px;
   --portal-wizard-phone-logo: 22px;
-  --portal-wizard-phone-fab: 40px;
   --portal-shadow-wizard-banner: 0 0 36px rgb(var(--portal-color-info-rgb), 0.3);
   --portal-shadow-wizard-banner-sm: 0 0 18px rgb(var(--portal-color-info-rgb), 0.25);
   --portal-shadow-wizard-segment: 0 0 10px rgb(var(--portal-accent-500-rgb), 0.55);

@@ -3350,7 +3350,8 @@
         "phone": {
           "tabs": "Tabs at the bottom: Home, My profile, Lists, Issues",
           "top": "At the top: the magnifying glass (search), notifications, your avatar",
-          "calendar": "Calendar: in your avatar menu"
+          "calendar": "Calendar: in your avatar menu",
+          "fab": "\"+\" button: bottom right"
         }
       },
       "expiry": {
