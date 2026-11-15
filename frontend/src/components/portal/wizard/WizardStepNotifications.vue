@@ -34,10 +34,15 @@
     <div v-if="wz.notify.confirm" class="wz-note wz-note--warn wz-confirm">
       <BellOff :size="18" aria-hidden="true" />
       <div>
-        <p ref="confirmTitleRef" class="wz-confirm-t" tabindex="-1">
+        <p
+          ref="confirmTitleRef"
+          class="wz-confirm-t"
+          tabindex="-1"
+          :aria-describedby="confirmTextId"
+        >
           {{ $t('portal.wizard.notifications.confirmTitle') }}
         </p>
-        <p>{{ $t('portal.wizard.notifications.confirmText') }}</p>
+        <p :id="confirmTextId">{{ $t('portal.wizard.notifications.confirmText') }}</p>
         <div class="wz-confirm-actions">
           <button v-if="state === NOTIFY_STATE.DEFAULT" type="button" class="wz-ghost" @click="ask">
             {{ $t('portal.wizard.notifications.retry') }}
@@ -52,7 +57,7 @@
 </template>
 
 <script setup>
-import { computed, inject, nextTick, ref, watch } from 'vue'
+import { computed, inject, nextTick, ref, useId, watch } from 'vue'
 import {
   Bell,
   BellOff,
@@ -76,6 +81,7 @@ const USES = [
 
 const wz = inject(ONBOARDING_WIZARD_KEY)
 const confirmTitleRef = ref(null)
+const confirmTextId = useId()
 const state = computed(() => wz.notify.state)
 const unavailable = computed(() =>
   [NOTIFY_STATE.INSECURE, NOTIFY_STATE.UNSUPPORTED].includes(state.value),
@@ -83,8 +89,8 @@ const unavailable = computed(() =>
 
 const ask = () => wz.notify.ask()
 
-// « Are you sure? » takes the focus, so it is read before anything else (and only once:
-// no alert role on top).
+// « Are you sure? » takes the focus, its reason as description, so both are read before
+// anything else (and only once: no alert role on top).
 watch(
   () => wz.notify.confirm,
   shown => {

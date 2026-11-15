@@ -171,8 +171,10 @@ describe('PortalOnboardingWizard, the notifications', () => {
     const confirm = wrapper.get('.wz-confirm')
     expect(confirm.text()).toContain('Êtes-vous sûr ?')
     expect(confirm.text()).toContain('Réessayer')
-    // Read once, through the focus: no alert announcing it a second time.
-    expect(document.activeElement).toBe(confirm.get('.wz-confirm-t').element)
+    // Read once, through the focus, with its reason: no alert announcing it again.
+    const title = confirm.get('.wz-confirm-t')
+    expect(document.activeElement).toBe(title.element)
+    expect(confirm.get(`#${title.attributes('aria-describedby')}`).text()).toMatch(/^Vous ne/)
     expect(confirm.attributes('role')).toBeUndefined()
 
     await confirm.findAll('.wz-ghost').at(-1).trigger('click')
