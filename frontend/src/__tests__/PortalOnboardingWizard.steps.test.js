@@ -168,10 +168,14 @@ describe('PortalOnboardingWizard, the notifications', () => {
 
     await next(wrapper)
     expect(heading(wrapper)).toBe(TITLE.notifications)
-    expect(wrapper.get('[role="alert"]').text()).toContain('Êtes-vous sûr ?')
-    expect(wrapper.get('[role="alert"]').text()).toContain('Réessayer')
+    const confirm = wrapper.get('.wz-confirm')
+    expect(confirm.text()).toContain('Êtes-vous sûr ?')
+    expect(confirm.text()).toContain('Réessayer')
+    // Read once, through the focus: no alert announcing it a second time.
+    expect(document.activeElement).toBe(confirm.get('.wz-confirm-t').element)
+    expect(confirm.attributes('role')).toBeUndefined()
 
-    await wrapper.findAll('[role="alert"] .wz-ghost').at(-1).trigger('click')
+    await confirm.findAll('.wz-ghost').at(-1).trigger('click')
     expect(heading(wrapper)).toBe(TITLE.genres)
   })
 
@@ -182,7 +186,7 @@ describe('PortalOnboardingWizard, the notifications', () => {
     await wrapper.get('.wz-ask').trigger('click')
     await flushPromises()
 
-    expect(wrapper.get('[role="alert"]').text()).not.toContain('Réessayer')
+    expect(wrapper.get('.wz-confirm').text()).not.toContain('Réessayer')
     expect(wrapper.text()).toContain('Votre navigateur bloque les notifications de ce site.')
   })
 

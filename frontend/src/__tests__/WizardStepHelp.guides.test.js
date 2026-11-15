@@ -52,6 +52,8 @@ describe('WizardStepHelp — other guides', () => {
       'Le calendrier et la création d’événements',
     ])
     expect(rows().every(row => row.attributes('aria-expanded') === 'false')).toBe(true)
+    // A closed guide points to no panel: it does not exist yet.
+    expect(rows().every(row => row.attributes('aria-controls') === undefined)).toBe(true)
     expect(panel().exists()).toBe(false)
     expect(h.apiGet).not.toHaveBeenCalled()
   })

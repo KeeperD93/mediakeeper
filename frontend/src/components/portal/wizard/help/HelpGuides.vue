@@ -16,7 +16,7 @@
             type="button"
             class="wzh-guide-btn"
             :aria-expanded="openSlug === guide.slug ? 'true' : 'false'"
-            :aria-controls="`${uid}-${guide.key}-panel`"
+            :aria-controls="openSlug === guide.slug ? `${uid}-${guide.key}-panel` : undefined"
             @click="toggle(guide.slug)"
           >
             <component :is="guide.icon" :size="18" class="wzh-guide-ic" aria-hidden="true" />

@@ -31,7 +31,7 @@
     </button>
     <p v-else class="wz-where">{{ $t('portal.wizard.notifications.denied') }}</p>
 
-    <div v-if="wz.notify.confirm" class="wz-note wz-note--warn wz-confirm" role="alert">
+    <div v-if="wz.notify.confirm" class="wz-note wz-note--warn wz-confirm">
       <BellOff :size="18" aria-hidden="true" />
       <div>
         <p ref="confirmTitleRef" class="wz-confirm-t" tabindex="-1">
@@ -83,7 +83,8 @@ const unavailable = computed(() =>
 
 const ask = () => wz.notify.ask()
 
-// « Are you sure? » takes the focus, so it is read before anything else.
+// « Are you sure? » takes the focus, so it is read before anything else (and only once:
+// no alert role on top).
 watch(
   () => wz.notify.confirm,
   shown => {
