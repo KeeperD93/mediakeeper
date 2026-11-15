@@ -48,60 +48,67 @@
     </article>
 
     <div v-if="rows.length" class="dd-more-news">
-      <div
-        v-for="row in rows"
-        :key="row.key"
-        class="dd-more-item"
-        :class="{
-          'dd-more-item--release': row.kind === DIGEST_ROW_KIND.RELEASE,
-          'dd-more-item--open': openId === row.key,
-        }"
-      >
-        <button
-          type="button"
-          class="dd-more-row"
-          :aria-expanded="openId === row.key ? 'true' : 'false'"
-          @click="toggleRow(row)"
+      <template v-for="row in rows" :key="row.key">
+        <DigestBoostRow
+          v-if="row.kind === DIGEST_ROW_KIND.BOOST"
+          :boost="row.view"
+          :open="openId === row.key"
+          @toggle="toggleRow(row)"
+        />
+        <div
+          v-else
+          class="dd-more-item"
+          :class="{
+            'dd-more-item--release': row.kind === DIGEST_ROW_KIND.RELEASE,
+            'dd-more-item--open': openId === row.key,
+          }"
         >
-          <span
-            v-if="row.view.isNew"
-            class="dd-new-mini"
-            role="img"
-            :aria-label="$t('portal.dailyDigest.news.new')"
-          />
-          <template v-if="row.kind === DIGEST_ROW_KIND.RELEASE">
-            <span class="dd-badge dd-badge--release">
-              {{ $t('portal.dailyDigest.release.badge') }}
+          <button
+            type="button"
+            class="dd-more-row"
+            :aria-expanded="openId === row.key ? 'true' : 'false'"
+            @click="toggleRow(row)"
+          >
+            <span
+              v-if="row.view.isNew"
+              class="dd-new-mini"
+              role="img"
+              :aria-label="$t('portal.dailyDigest.news.new')"
+            />
+            <template v-if="row.kind === DIGEST_ROW_KIND.RELEASE">
+              <span class="dd-badge dd-badge--release">
+                {{ $t('portal.dailyDigest.release.badge') }}
+              </span>
+              <span class="dd-more-title">
+                {{
+                  $t(
+                    'portal.dailyDigest.release.line',
+                    { version: row.view.version, n: row.view.totalLabel },
+                    row.view.total,
+                  )
+                }}
+              </span>
+            </template>
+            <template v-else>
+              <span class="dd-badge" :class="row.view.badgeClass">{{ $t(row.view.typeKey) }}</span>
+              <span class="dd-more-title">{{ row.view.title }}</span>
+            </template>
+            <span class="dd-more-date">{{ row.view.date }}</span>
+            <span class="dd-chev" :class="{ 'dd-chev--up': openId === row.key }">
+              <ChevronDown :size="16" aria-hidden="true" />
             </span>
-            <span class="dd-more-title">
-              {{
-                $t(
-                  'portal.dailyDigest.release.line',
-                  { version: row.view.version, n: row.view.totalLabel },
-                  row.view.total,
-                )
-              }}
-            </span>
-          </template>
-          <template v-else>
-            <span class="dd-badge" :class="row.view.badgeClass">{{ $t(row.view.typeKey) }}</span>
-            <span class="dd-more-title">{{ row.view.title }}</span>
-          </template>
-          <span class="dd-more-date">{{ row.view.date }}</span>
-          <span class="dd-chev" :class="{ 'dd-chev--up': openId === row.key }">
-            <ChevronDown :size="16" aria-hidden="true" />
-          </span>
-        </button>
-        <div v-if="openId === row.key" class="dd-more-body">
-          <DigestReleaseGroups
-            v-if="row.kind === DIGEST_ROW_KIND.RELEASE"
-            :groups="row.view.groups"
-          />
-          <template v-else>
-            <p v-for="(text, i) in row.view.paragraphs" :key="i">{{ text }}</p>
-          </template>
+          </button>
+          <div v-if="openId === row.key" class="dd-more-body">
+            <DigestReleaseGroups
+              v-if="row.kind === DIGEST_ROW_KIND.RELEASE"
+              :groups="row.view.groups"
+            />
+            <template v-else>
+              <p v-for="(text, i) in row.view.paragraphs" :key="i">{{ text }}</p>
+            </template>
+          </div>
         </div>
-      </div>
+      </template>
     </div>
   </section>
 </template>
@@ -111,6 +118,7 @@ import { computed, onMounted, ref } from 'vue'
 import { ChevronDown, Megaphone } from 'lucide-vue-next'
 import { DIGEST_ROW_KIND } from '@/constants/dailyDigest'
 import { newsLayout } from '@/utils/portal/dailyDigest'
+import DigestBoostRow from './DigestBoostRow.vue'
 import DigestReleaseGroups from './DigestReleaseGroups.vue'
 import '@/assets/styles/portal/daily-digest-news.css'
 import '@/assets/styles/portal/daily-digest-release-list.css'
@@ -120,10 +128,12 @@ const props = defineProps({
   news: { type: Array, required: true },
   // The new Portal version, as a row of the list.
   release: { type: Object, default: null },
+  // The XP boosts running now, a row each.
+  boosts: { type: Array, default: () => [] },
 })
 const emit = defineEmits(['read', 'seen', 'open-release'])
 
-const layout = computed(() => newsLayout(props.news, props.release))
+const layout = computed(() => newsLayout(props.news, props.release, props.boosts))
 const main = computed(() => layout.value.main)
 const rows = computed(() => layout.value.rows)
 
@@ -141,7 +151,7 @@ function toggleRow(row) {
   openId.value = openId.value === row.key ? null : row.key
   if (openId.value !== row.key) return
   if (row.kind === DIGEST_ROW_KIND.RELEASE) emit('open-release')
-  else emit('read', row.key)
+  else if (row.kind === DIGEST_ROW_KIND.NEWS) emit('read', row.key)
 }
 
 // A text that fits on the card has no « Read more »: it counts as read on close.

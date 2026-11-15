@@ -6,7 +6,7 @@ import {
   RELEASE_CATEGORY,
 } from '@/constants/dailyDigest'
 import { getLocale } from '@/i18n'
-import { localizedDate } from '@/utils/datetime'
+import { localizedDate, localizedDateTime } from '@/utils/datetime'
 import { localizedNumber } from '@/utils/localizedNumber'
 
 const NEWS_TYPES = Object.values(NEWS_TYPE)
@@ -84,6 +84,48 @@ export function releaseView(release) {
   }
 }
 
+/** Time left before `iso` in its largest whole unit: days, hours, then minutes (one at least). */
+export function timeLeft(iso, now = Date.now()) {
+  const seconds = Math.max(60, Math.trunc((new Date(iso).getTime() - now) / 1000))
+  if (seconds >= 86400) return { unit: 'days', n: Math.trunc(seconds / 86400) }
+  if (seconds >= 3600) return { unit: 'hours', n: Math.trunc(seconds / 3600) }
+  return { unit: 'minutes', n: Math.trunc(seconds / 60) }
+}
+
+/**
+ * A running XP boost as the digest draws it: « Reduced XP » under ×1, its multiplier and
+ * its end in the viewer's language, the time left, its text and the actions it is
+ * limited to (none: every action counts).
+ */
+export function boostView(boost, now = Date.now()) {
+  const left = timeLeft(boost.ends_at, now)
+  // The end on the server's clock, the same for every viewer: its wall time read as UTC.
+  const end = new Date(`${boost.ends_local}Z`)
+  return {
+    key: `${DIGEST_ROW_KIND.BOOST}-${boost.id}`,
+    name: boost.name,
+    reduced: boost.multiplier < 1,
+    multiplier: localizedNumber(boost.multiplier),
+    until: localizedDate(end, { day: 'numeric', month: 'short', timeZone: 'UTC' }),
+    ends: localizedDateTime(end, {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long',
+      hour: '2-digit',
+      minute: '2-digit',
+      timeZone: 'UTC',
+    }),
+    leftKey: `portal.dailyDigest.boost.left.${left.unit}`,
+    left: left.n,
+    leftLabel: localizedNumber(left.n),
+    paragraphs: newsParagraphs(boost.description),
+    actions: boost.actions.map(action => ({
+      key: `portal.dailyDigest.boost.actions.${action}`,
+      action,
+    })),
+  }
+}
+
 function newsRow(item) {
   const view = newsView(item)
   const rank = view.pinned
@@ -92,12 +134,18 @@ function newsRow(item) {
   return { kind: DIGEST_ROW_KIND.NEWS, key: view.id, rank, view }
 }
 
+function boostRow(boost) {
+  const view = boostView(boost)
+  return { kind: DIGEST_ROW_KIND.BOOST, key: view.key, rank: DIGEST_ROW_RANK.BOOST, view }
+}
+
 /**
  * The news block as both views lay it out: the first news item in the list's order
  * gets the card, the other rows follow `DIGEST_ROW_RANK` and keep the server's order
- * (newest first) within a rank. Drawn only when there is at least one news item.
+ * (newest news, first boost to end) within a rank. Drawn only when there is at least
+ * one news item.
  */
-export function newsLayout(news, release) {
+export function newsLayout(news, release, boosts = []) {
   const rows = news.map(newsRow)
   if (release) {
     rows.push({
@@ -107,6 +155,7 @@ export function newsLayout(news, release) {
       view: releaseView(release),
     })
   }
+  rows.push(...boosts.map(boostRow))
   rows.sort((a, b) => a.rank - b.rank)
   const [main] = rows.splice(
     rows.findIndex(row => row.kind === DIGEST_ROW_KIND.NEWS),

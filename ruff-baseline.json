@@ -833,9 +833,6 @@
     "I001": 1,
     "UP045": 11
   },
-  "backend/services/portal/xp_boost.py": {
-    "I001": 1
-  },
   "backend/services/scheduler/_handlers.py": {
     "I001": 1
   },

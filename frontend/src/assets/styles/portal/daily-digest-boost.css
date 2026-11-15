@@ -1,0 +1,58 @@
+/* Daily digest: a running XP boost as a row of the news list, or alone without news
+ * (DigestBoostRow.vue, DigestBoosts.vue). Green for a bonus, orange under ×1. */
+
+.dd-boost--up {
+  --dd-boost-rgb: var(--portal-color-success-light-rgb);
+  --dd-boost-text: var(--portal-color-success-soft);
+}
+.dd-boost--down {
+  --dd-boost-rgb: var(--portal-color-warning-rgb);
+  --dd-boost-text: var(--portal-color-warning-soft);
+}
+.dd-badge.dd-badge--boost {
+  color: var(--portal-color-success-soft);
+  background: rgb(var(--portal-color-success-light-rgb), 0.18);
+}
+.dd-more-item.dd-more-item--boost {
+  border-color: rgb(var(--dd-boost-rgb), 0.38);
+  background: linear-gradient(
+    135deg,
+    rgb(var(--dd-boost-rgb), 0.12),
+    rgb(var(--dd-boost-rgb), 0.03)
+  );
+}
+.dd-more-item.dd-more-item--boost.dd-more-item--open {
+  border-color: rgb(var(--dd-boost-rgb), 0.55);
+  background: rgb(var(--dd-boost-rgb), 0.07);
+}
+.dd-boost-end {
+  color: var(--dd-boost-text);
+  font-variant-numeric: tabular-nums;
+}
+/* Alone, without a news card above it. */
+.dd-more-news.dd-boost-list {
+  margin-top: 0;
+}
+
+/* Compact view: the row and its text inside the list box, tinted to its inner corners. */
+.dd-boost-row {
+  --dd-boost-row-radius: calc(var(--portal-radius-lg) - var(--portal-border-width));
+
+  background: linear-gradient(90deg, rgb(var(--dd-boost-rgb), 0.1), rgb(var(--dd-boost-rgb), 0.02));
+}
+/* Its button is the row's first child: the line above it goes on the row. */
+.dd-boost-row:not(:first-child) {
+  border-top: var(--portal-border-width) solid var(--portal-border-subtle);
+}
+.dd-boost-row:first-child {
+  border-radius: var(--dd-boost-row-radius) var(--dd-boost-row-radius) 0 0;
+}
+.dd-boost-row:last-child {
+  border-radius: 0 0 var(--dd-boost-row-radius) var(--dd-boost-row-radius);
+}
+.dd-boost-row:only-child {
+  border-radius: var(--dd-boost-row-radius);
+}
+.dd-boost-row .ddc-rowbody p + p {
+  margin-top: var(--portal-space-1);
+}

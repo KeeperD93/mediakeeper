@@ -19,6 +19,7 @@ utilisateurs.
 ### Added
 - Aide — articles de départ aussi en anglais.
 - Première connexion — assistant pas à pas (pseudo, profil, notifications, aides animées).
+- Quoi de neuf aujourd'hui ? — bonus d'XP en cours : multiplicateur, fin et actions concernées.
 
 ### Changed
 - Identité visuelle — nouveau logo et nouvelle bannière, icônes de l'application refaites.

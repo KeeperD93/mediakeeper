@@ -134,7 +134,8 @@ async def test_the_cache_of_one_local_day_is_not_served_the_next(
 
     _freeze(monkeypatch, TUESDAY_NIGHT_IN_PARIS)
     tuesday = await digest.build_digest(db_session, alice)
-    assert await digest.build_digest(db_session, alice) is tuesday
+    assert await digest.build_digest(db_session, alice) == tuesday
+    assert sources.recent_adds.await_count == 1  # the second one came from the cache
 
     # Forty minutes later, within the cache hour, it is Wednesday in Paris.
     _freeze(monkeypatch, TUESDAY_NIGHT_IN_PARIS + timedelta(minutes=40))

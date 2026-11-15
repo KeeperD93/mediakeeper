@@ -79,6 +79,13 @@
             <DigestReleaseGroups :groups="row.view.groups" />
           </div>
         </div>
+        <DigestBoostRow
+          v-else-if="row.kind === DIGEST_ROW_KIND.BOOST"
+          :boost="row.view"
+          :open="openId === row.key"
+          compact
+          @toggle="toggleRow(row)"
+        />
         <template v-else>
           <button
             type="button"
@@ -123,6 +130,7 @@ import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { Megaphone } from 'lucide-vue-next'
 import { DIGEST_ROW_KIND } from '@/constants/dailyDigest'
 import { newsLayout } from '@/utils/portal/dailyDigest'
+import DigestBoostRow from './DigestBoostRow.vue'
 import DigestReleaseGroups from './DigestReleaseGroups.vue'
 import '@/assets/styles/portal/daily-digest-compact-news.css'
 import '@/assets/styles/portal/daily-digest-release-list.css'
@@ -132,10 +140,12 @@ const props = defineProps({
   news: { type: Array, required: true },
   // The new Portal version, as a row of the list.
   release: { type: Object, default: null },
+  // The XP boosts running now, a row each, always in sight.
+  boosts: { type: Array, default: () => [] },
 })
 const emit = defineEmits(['read', 'seen', 'open-release'])
 
-const layout = computed(() => newsLayout(props.news, props.release))
+const layout = computed(() => newsLayout(props.news, props.release, props.boosts))
 const main = computed(() => layout.value.main)
 const rows = computed(() => layout.value.rows)
 
@@ -166,7 +176,7 @@ function toggleRow(row) {
   openId.value = openId.value === row.key ? null : row.key
   if (openId.value !== row.key) return
   if (row.kind === DIGEST_ROW_KIND.RELEASE) emit('open-release')
-  else emit('read', row.key)
+  else if (row.kind === DIGEST_ROW_KIND.NEWS) emit('read', row.key)
 }
 
 // The first paragraph stops at two lines: « Read more » shows when it is cut.

@@ -1,13 +1,14 @@
 """Daily digest orchestrator for the Portal viewer.
 
 Once-per-day overlay payload aggregating the viewer's blocks (who is greeted,
-account expiry, news, the new Portal version, library additions, "for you"
-items, upcoming events, monthly ranking, level progress, request quota, open
-tickets, closest achievement, play-day streak). Leaf aggregators live in
-:mod:`daily_digest_sources`, :mod:`daily_digest_account` and
-:mod:`daily_digest_for_you`, the 1h payload cache in :mod:`daily_digest_cache`,
-so this file stays focused on the viewer's preferences (dismissal, compact
-view) and composition.
+account expiry, news, the new Portal version, running XP boosts, library
+additions, "for you" items, upcoming events, monthly ranking, level progress,
+request quota, open tickets, closest achievement, play-day streak). Leaf
+aggregators live in :mod:`daily_digest_sources`, :mod:`daily_digest_account`
+and :mod:`daily_digest_for_you`, the 1h payload cache in
+:mod:`daily_digest_cache`, so this file stays focused on the viewer's
+preferences (dismissal, compact view) and composition. The XP boosts are read
+on every call, outside the cache: one starts or ends within its hour.
 
 Dismissal is stored in ``user_preferences.portal_daily_digest_dismissed_date``
 as a ``YYYY-MM-DD`` string so the frontend can skip rendering until tomorrow.
@@ -20,7 +21,6 @@ stays a week from the first close under it, marked new until the viewer opens it
 from __future__ import annotations
 
 import json
-import logging
 from datetime import datetime, timedelta, timezone
 from typing import Any
 
@@ -34,6 +34,7 @@ from services.portal import daily_digest_account as account
 from services.portal import daily_digest_cache as digest_cache
 from services.portal import daily_digest_for_you as for_you
 from services.portal import daily_digest_sources as sources
+from services.portal import xp_boost
 from services.portal.daily_digest_cache import (
     PODIUM_FIELDS,
     clear_cache,
@@ -41,8 +42,6 @@ from services.portal.daily_digest_cache import (
 )
 from services.portal.profiles import get_or_create_profile
 from services.settings import get_user_preferences, upsert_user_preferences
-
-logger = logging.getLogger("mediakeeper.portal.daily_digest")
 
 _PREF_KEY_DISMISSED_DATE = "portal_daily_digest_dismissed_date"
 _PREF_KEY_DISMISSED_AT = "portal_daily_digest_dismissed_at"
@@ -138,6 +137,12 @@ def _release_block(release: dict | None, prefs: dict, now: datetime) -> dict | N
     return {**release, "is_new": prefs.get(PORTAL_SEEN_VERSION_KEY) != release["version"]}
 
 
+def _with_boosts(payload: dict[str, Any], boosts: list[dict]) -> dict[str, Any]:
+    """A built or cached payload, left as it is, plus the XP boosts running now,
+    which are worth opening the overlay for."""
+    return {**payload, "xp_boosts": boosts, "empty": payload["empty"] and not boosts}
+
+
 async def mark_dismissed(
     db: AsyncSession, user_id: int, *, release_version: str | None = None,
 ) -> str:
@@ -189,10 +194,11 @@ async def build_digest(
     now = datetime.now(timezone.utc)
     zone = await get_instance_zone(db)
     date_iso = to_local(now, zone).date().isoformat()
+    boosts = await xp_boost.active_boosts(db, now, zone)
     if use_cache:
         cached = digest_cache.get(user.id, date_iso, lang)
         if cached is not None:
-            return cached
+            return _with_boosts(cached, boosts)
 
     profile = await get_or_create_profile(db, user)
 
@@ -241,7 +247,7 @@ async def build_digest(
     }
     if generation == digest_cache.generation():
         digest_cache.put(user.id, date_iso, lang, payload)
-    return payload
+    return _with_boosts(payload, boosts)
 
 
 __all__ = [

@@ -1,12 +1,32 @@
-"""XP boost event service — load active multipliers and apply to grants."""
+"""XP boost event service — active multipliers for grants, running events for the daily digest."""
 import logging
-from datetime import datetime, timezone
+from datetime import datetime, timezone, tzinfo
+
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from models.portal.xp_boost import XpBoostEvent
+from services.instance_time import to_local
 
 logger = logging.getLogger("mediakeeper.portal.xp_boost")
+
+
+async def _running_events(db: AsyncSession, now: datetime) -> list[XpBoostEvent]:
+    """Enabled events whose window holds ``now``, the first to end first."""
+    return (await db.execute(
+        select(XpBoostEvent).where(
+            XpBoostEvent.enabled == True,  # noqa: E712
+            XpBoostEvent.starts_at <= now,
+            XpBoostEvent.ends_at >= now,
+        ).order_by(XpBoostEvent.ends_at, XpBoostEvent.id)
+    )).scalars().all()
+
+
+def _limited_to(ev: XpBoostEvent) -> list[str] | None:
+    """The actions an event is limited to, in the admin's order; None when it has no filter."""
+    if not ev.action_filter:
+        return None
+    return list(dict.fromkeys(a.strip() for a in ev.action_filter.split(",") if a.strip()))
 
 
 async def get_active_multiplier(db: AsyncSession, action: str) -> float:
@@ -15,23 +35,35 @@ async def get_active_multiplier(db: AsyncSession, action: str) -> float:
     Multiple overlapping events multiply together.
     Returns 1.0 when no events are active.
     """
-    now = datetime.now(timezone.utc)
-    rows = (await db.execute(
-        select(XpBoostEvent).where(
-            XpBoostEvent.enabled == True,  # noqa: E712
-            XpBoostEvent.starts_at <= now,
-            XpBoostEvent.ends_at >= now,
-        )
-    )).scalars().all()
-
     multiplier = 1.0
-    for ev in rows:
-        if ev.action_filter:
-            allowed = {a.strip() for a in ev.action_filter.split(",") if a.strip()}
-            if action not in allowed:
-                continue
+    for ev in await _running_events(db, datetime.now(timezone.utc)):
+        actions = _limited_to(ev)
+        if actions is not None and action not in actions:
+            continue
         multiplier *= ev.multiplier or 1.0
     return multiplier
+
+
+async def active_boosts(db: AsyncSession, now: datetime, zone: tzinfo) -> list[dict]:
+    """The events running at ``now`` as the daily digest lists them. ``ends_local`` is
+    the end on the clock of ``zone``, without offset, shown as is to every viewer;
+    an empty ``actions`` means every action counts."""
+    boosts = []
+    for ev in await _running_events(db, now):
+        actions = _limited_to(ev)
+        if actions == []:
+            continue  # a filter of separators only matches no action: nothing to announce
+        ends = _parse_dt(ev.ends_at)
+        boosts.append({
+            "id": ev.id,
+            "name": ev.name,
+            "description": ev.description,
+            "multiplier": ev.multiplier,
+            "ends_at": ends.isoformat(timespec="seconds"),
+            "ends_local": to_local(ends, zone).replace(tzinfo=None).isoformat(timespec="seconds"),
+            "actions": actions or [],
+        })
+    return boosts
 
 
 async def list_events(db: AsyncSession) -> list[dict]:
