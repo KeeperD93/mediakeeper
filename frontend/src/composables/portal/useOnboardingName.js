@@ -21,16 +21,19 @@ const LONG_DATE = { day: 'numeric', month: 'long', year: 'numeric' }
  * @param {object} options
  * @param {import('vue').Ref<string>} options.account a WIZARD_ACCOUNT, LOCKED once known
  * @param {import('vue').Ref<string|null>} options.lockedUntil end of the lock of a LOCKED account
+ * @param {import('vue').Ref<boolean>} options.lockPending true until the lock is known
  * @param {string} options.current the name the account has now
  * @param {boolean} options.reset the name alone, after an admin reset it
  */
-export function useOnboardingName({ account, lockedUntil, current, reset }) {
+export function useOnboardingName({ account, lockedUntil, lockPending, current, reset }) {
   const { t } = useI18n()
   const { state: check, check: runCheck, refuse: showRefusal } = useDisplayNameCheck()
-  const fresh = account.value === WIZARD_ACCOUNT.NEW
-  const value = ref(fresh ? '' : current)
+  // A name still owed starts empty: neither the provisional nor the reset one can be kept.
+  const owed = [WIZARD_ACCOUNT.NEW, WIZARD_ACCOUNT.RESET].includes(account.value)
+  const value = ref(owed ? '' : current)
   const touched = ref(false)
   const locked = computed(() => account.value === WIZARD_ACCOUNT.LOCKED)
+  const frozen = computed(() => locked.value || lockPending.value)
   const trimmed = computed(() => value.value.trim())
 
   // 'empty', 'pending', a DISPLAY_NAME_REASON or NAME_CHECK_FAILED.
@@ -39,25 +42,28 @@ export function useOnboardingName({ account, lockedUntil, current, reset }) {
     if (check.pending) return 'pending'
     return check.reason
   })
-  const ok = computed(() => locked.value || ACCEPTED.includes(verdict.value))
+  const ok = computed(
+    () => !lockPending.value && (locked.value || ACCEPTED.includes(verdict.value)),
+  )
   const refused = computed(
     () =>
       !ACCEPTED.includes(verdict.value) &&
       Object.values(DISPLAY_NAME_REASON).includes(verdict.value),
   )
   const invalid = computed(
-    () => !locked.value && (refused.value || (touched.value && verdict.value === 'empty')),
+    () => !frozen.value && (refused.value || (touched.value && verdict.value === 'empty')),
   )
 
   /** `{ tone: 'ok' | 'err' | 'info', text }` under the field. */
   const message = computed(() => {
+    if (lockPending.value) return { tone: 'info', text: t(`${K}.checking`) }
     if (locked.value) {
       return { tone: 'info', text: t(`${K}.lockedAccount`, { date: dateOf(lockedUntil.value) }) }
     }
     const v = verdict.value
     if (v === 'empty') {
       if (touched.value) return { tone: 'err', text: t(`${K}.empty`) }
-      return { tone: 'info', text: fresh || reset ? t(`${K}.prompt`) : '' }
+      return { tone: 'info', text: owed || reset ? t(`${K}.prompt`) : '' }
     }
     if (v === 'pending') return { tone: 'info', text: t(`${K}.checking`) }
     if (v === NAME_CHECK_FAILED) return { tone: 'err', text: t(`${K}.checkFailed`) }
@@ -111,13 +117,14 @@ export function useOnboardingName({ account, lockedUntil, current, reset }) {
   })
 
   // A name already filled in (an existing account) is judged before the step shows.
-  if (!fresh) runCheck(value.value)
+  if (!owed) runCheck(value.value)
 
   return {
     value,
     trimmed,
     touched,
     locked,
+    frozen,
     ok,
     invalid,
     message,

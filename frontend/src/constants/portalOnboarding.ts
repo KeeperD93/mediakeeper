@@ -39,9 +39,13 @@ export const FULL_TOUR: readonly WizardStep[] = Object.freeze([
   WIZARD_STEP.DONE,
 ])
 
-/** Who the name step talks to: no name chosen yet, a name to keep or change, a locked name. */
+/**
+ * Who the name step talks to: no name chosen yet, a chosen name an admin reset, a name
+ * to keep or change, a locked name.
+ */
 export const WIZARD_ACCOUNT = Object.freeze({
   NEW: 'new',
+  RESET: 'reset',
   EXISTING: 'existing',
   LOCKED: 'locked',
 } as const)

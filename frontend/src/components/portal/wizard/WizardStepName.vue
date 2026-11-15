@@ -1,5 +1,5 @@
 <template>
-  <div v-if="!wz.full" class="wz-note">
+  <div v-if="resetName" class="wz-note">
     <Info :size="18" aria-hidden="true" />
     <p>{{ $t('portal.wizard.name.resetInfo') }}</p>
   </div>
@@ -13,7 +13,7 @@
     <label class="wz-label" :for="inputId">{{ $t('portal.wizard.name.label') }}</label>
     <div class="wz-inputwrap">
       <input
-        v-if="name.locked"
+        v-if="name.frozen"
         :id="inputId"
         class="wz-input"
         type="text"
@@ -77,8 +77,10 @@ const inputId = useId()
 const rulesId = useId()
 const messageId = useId()
 
+// The name an admin reset: alone after the reset, or inside the tour.
+const resetName = computed(() => !wz.full || wz.account === WIZARD_ACCOUNT.RESET)
 const placeholder = computed(() => {
-  if (!wz.full) return t('portal.wizard.name.placeholderReset')
+  if (resetName.value) return t('portal.wizard.name.placeholderReset')
   return wz.account === WIZARD_ACCOUNT.NEW ? t('portal.wizard.name.placeholderNew') : ''
 })
 </script>

@@ -32,11 +32,18 @@ export const ONBOARDING_HEADING_KEY = Symbol('onboarding-heading')
 const W = 'portal.wizard'
 // Notifications that need no « are you sure? »: on, or impossible here.
 const NOTIFY_SETTLED = [NOTIFY_STATE.GRANTED, NOTIFY_STATE.INSECURE, NOTIFY_STATE.UNSUPPORTED]
-// The name step's subtitle, by account.
+// The name step's subtitle, by account (a reset one reads as the reset alone does).
 const NAME_SUB = {
   [WIZARD_ACCOUNT.NEW]: 'subNew',
   [WIZARD_ACCOUNT.EXISTING]: 'subExisting',
   [WIZARD_ACCOUNT.LOCKED]: 'subLocked',
+}
+
+// A name still owed was never chosen, or chosen then reset: the server tells them apart
+// by the date of the last choice, which a reset keeps.
+function firstAccount(profile) {
+  if (!profile.display_name_must_set) return WIZARD_ACCOUNT.EXISTING
+  return profile.display_name_changed_at ? WIZARD_ACCOUNT.RESET : WIZARD_ACCOUNT.NEW
 }
 
 export function useOnboardingWizard(mode, onDone) {
@@ -52,8 +59,10 @@ export function useOnboardingWizard(mode, onDone) {
   const index = ref(0)
   const step = computed(() => steps[index.value])
 
-  const account = ref(me.display_name_must_set ? WIZARD_ACCOUNT.NEW : WIZARD_ACCOUNT.EXISTING)
+  const account = ref(firstAccount(me))
   const lockedUntil = ref(null)
+  // An existing name may be locked: nothing is offered on it until the server says.
+  const lockPending = ref(full && account.value === WIZARD_ACCOUNT.EXISTING)
   // The instance's own language is only known while the account follows it.
   const instanceLanguage = me.language ? null : me.effective_language || null
 
@@ -70,6 +79,7 @@ export function useOnboardingWizard(mode, onDone) {
   const name = useOnboardingName({
     account,
     lockedUntil,
+    lockPending,
     current: me.display_name || '',
     reset: !full,
   })
@@ -85,21 +95,27 @@ export function useOnboardingWizard(mode, onDone) {
     }),
     avatarFile: () => (choices.avatar === AVATAR_CHOICE.OWN ? choices.avatarFile : null),
     onNameRefused: reason => {
+      // A locked name the rules refused since the wizard opened: the field opens to say
+      // why, or the person could neither keep it nor pick another.
+      if (name.locked.value) account.value = WIZARD_ACCOUNT.EXISTING
       name.refusedBySave(reason)
       goTo(S.NAME)
     },
     onDone,
   })
 
-  if (full && account.value === WIZARD_ACCOUNT.EXISTING) {
+  if (lockPending.value) {
     apiGet('/api/portal/profiles/me/username-state')
       .then(res => {
         if (!res?.locked) return
         lockedUntil.value = res.locked_until
         account.value = WIZARD_ACCOUNT.LOCKED
       })
-      // Unknown lock: the field stays open and the live check answers `locked`.
+      // Unknown lock: the field opens and the live check answers `locked`.
       .catch(() => {})
+      .finally(() => {
+        lockPending.value = false
+      })
   }
 
   // The name alone after a reset is no tour: no progress to show.
@@ -174,6 +190,12 @@ export function useOnboardingWizard(mode, onDone) {
     if (choices.avatarPreview) URL.revokeObjectURL(choices.avatarPreview)
   })
 
+  const resetSub = () => t(`${W}.steps.reset.sub`, { name: me.display_name || '' })
+  const nameSub = () =>
+    account.value === WIZARD_ACCOUNT.RESET
+      ? resetSub()
+      : t(`${W}.steps.name.${NAME_SUB[account.value]}`)
+
   // Eyebrow, title and subtitle of the step's head.
   const head = computed(() => {
     const key = `${W}.steps.${step.value}`
@@ -189,14 +211,13 @@ export function useOnboardingWizard(mode, onDone) {
       return {
         eyebrow: t(`${W}.steps.reset.eyebrow`),
         title: t(`${W}.steps.reset.title`),
-        sub: t(`${W}.steps.reset.sub`, { name: me.display_name || '' }),
+        sub: resetSub(),
       }
     }
-    const sub = step.value === S.NAME ? NAME_SUB[account.value] : 'sub'
     return {
       eyebrow: t(`${key}.eyebrow`),
       title: t(`${key}.title`, { name: name.shown.value }),
-      sub: t(`${key}.${sub}`),
+      sub: step.value === S.NAME ? nameSub() : t(`${key}.sub`),
     }
   })
 
