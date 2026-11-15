@@ -54,6 +54,13 @@ async function stepOf(title, profile = member(), mode) {
   return walkTo(wrapper, title)
 }
 const radios = wrapper => wrapper.findAll('.wz-radio')
+/** Put `file` in the image field, as the browser's picker does. */
+async function pickFile(wrapper, file) {
+  const input = wrapper.get('.wz-file')
+  Object.defineProperty(input.element, 'files', { value: [file], configurable: true })
+  await input.trigger('change')
+}
+const image = name => new File(['x'], name, { type: 'image/png' })
 const recapValue = (wrapper, label) =>
   wrapper
     .findAll('.wz-rrow')
@@ -207,18 +214,13 @@ describe('PortalOnboardingWizard, genres and image', () => {
   it('refuses a file that is no image or too heavy, at once', async () => {
     const wrapper = await stepOf(TITLE.avatar)
     await radios(wrapper)[1].setValue(true)
-    const input = wrapper.get('.wz-file')
 
-    const pick = async file => {
-      Object.defineProperty(input.element, 'files', { value: [file], configurable: true })
-      await input.trigger('change')
-    }
-    await pick(new File(['x'], 'notes.txt', { type: 'text/plain' }))
+    await pickFile(wrapper, new File(['x'], 'notes.txt', { type: 'text/plain' }))
     expect(wrapper.get('.wz-upload [role="alert"]').text()).toContain('n’est pas une image')
 
-    const heavy = new File(['x'], 'big.png', { type: 'image/png' })
+    const heavy = image('big.png')
     Object.defineProperty(heavy, 'size', { value: 6 * 1024 * 1024 })
-    await pick(heavy)
+    await pickFile(wrapper, heavy)
     expect(wrapper.get('.wz-upload [role="alert"]').text()).toContain('dépasse 5 Mo')
   })
 
@@ -226,10 +228,7 @@ describe('PortalOnboardingWizard, genres and image', () => {
     vi.stubGlobal('URL', { createObjectURL: () => 'blob:preview', revokeObjectURL: vi.fn() })
     const wrapper = await stepOf(TITLE.avatar)
     await radios(wrapper)[1].setValue(true)
-    const input = wrapper.get('.wz-file')
-    const file = new File(['x'], 'me.png', { type: 'image/png' })
-    Object.defineProperty(input.element, 'files', { value: [file], configurable: true })
-    await input.trigger('change')
+    await pickFile(wrapper, image('me.png'))
     expect(wrapper.get('.wz-av img').attributes('src')).toBe('blob:preview')
 
     await walkTo(wrapper, TITLE.done)
@@ -245,6 +244,39 @@ describe('PortalOnboardingWizard, genres and image', () => {
     )
     expect(auth.replaceProfile).toHaveBeenCalledWith(member({ onboarding_pending: false }))
     expect(wrapper.emitted('done')).toHaveLength(1)
+  })
+
+  it('puts the sent image on the saved profile', async () => {
+    vi.stubGlobal('URL', { createObjectURL: () => 'blob:preview', revokeObjectURL: vi.fn() })
+    const wrapper = await stepOf(TITLE.avatar)
+    await radios(wrapper)[1].setValue(true)
+    await pickFile(wrapper, image('me.png'))
+    await walkTo(wrapper, TITLE.done)
+    api.apiPost.mockResolvedValue(member({ onboarding_pending: false }))
+    api.apiFetch.mockResolvedValue({ json: async () => ({ avatar_url: '/avatars/7.png' }) })
+
+    await next(wrapper)
+
+    expect(auth.replaceProfile).toHaveBeenCalledWith(
+      member({ onboarding_pending: false, avatar_url: '/avatars/7.png', avatar_is_custom: true }),
+    )
+    expect(showToast).not.toHaveBeenCalled()
+  })
+
+  it('frees each preview once replaced, and the last one when the wizard goes', async () => {
+    const revokeObjectURL = vi.fn()
+    let made = 0
+    vi.stubGlobal('URL', { createObjectURL: () => `blob:preview-${++made}`, revokeObjectURL })
+    const wrapper = await stepOf(TITLE.avatar)
+    await radios(wrapper)[1].setValue(true)
+
+    await pickFile(wrapper, image('first.png'))
+    await pickFile(wrapper, image('second.png'))
+    expect(revokeObjectURL.mock.calls).toEqual([['blob:preview-1']])
+
+    wrappers.splice(wrappers.indexOf(wrapper), 1)
+    wrapper.unmount()
+    expect(revokeObjectURL.mock.calls).toEqual([['blob:preview-1'], ['blob:preview-2']])
   })
 })
 

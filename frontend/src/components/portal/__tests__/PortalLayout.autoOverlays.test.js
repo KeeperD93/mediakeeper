@@ -66,10 +66,11 @@ async function visit(initial, stubs = {}) {
   return wrapper
 }
 
-// The wizard's last save: the server clears its flags, then the wizard hands over.
+// The wizard's last save: the wizard hands over, then the saved profile (its flags
+// cleared) takes it away. The real save keeps this order (see the chain test).
 async function finishWizard(wrapper) {
-  profile.value = { ...profile.value, onboarding_pending: false, display_name_must_set: false }
   wrapper.findComponent(PortalOnboardingWizard).vm.$emit('done')
+  profile.value = { ...profile.value, onboarding_pending: false, display_name_must_set: false }
   await nextTick()
 }
 
