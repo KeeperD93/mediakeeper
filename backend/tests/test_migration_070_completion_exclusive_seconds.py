@@ -14,7 +14,6 @@ from api.stats._activity import delete_activity
 from models.base import Base
 from models.playback_stats import PlaybackCompletion, PlaybackSession
 from services.stats_aggregator.users_admin import merge_user_stats
-from services.stats_collector._measure import MAX_CARRY_SECONDS
 from tests._migration_helpers import BACKEND_ROOT, alembic_db_at
 from tests._watch_measurement_helpers import STEP, emby_session, poll
 
@@ -60,7 +59,7 @@ def _sitting(
 def _completion(conn, session_id: int, user: str, item: str, at: datetime, watched: int, source: str = "live") -> None:
     conn.execute(sa.insert(_COMPLETIONS_BEFORE).values(
         session_id=session_id, user_id=user, user_name=user, item_id=item, item_type="Movie",
-        item_name="Test Movie", runtime_seconds=600, watched_seconds=watched, completed_at=at, source=source,
+        item_name="Test Movie", runtime_seconds=RUNTIME, watched_seconds=watched, completed_at=at, source=source,
     ))
 
 
@@ -125,7 +124,7 @@ def test_upgrade_adds_the_column_and_backfills_each_watched_title(alembic_db):
         ("dave", "M-B"): [0],
         ("frank", "MOVIE-4"): [510],
         ("grace", "MOVIE-5"): [390],
-        ("heidi", "MOVIE-6"): [300 - MAX_CARRY_SECONDS],
+        ("heidi", "MOVIE-6"): [300 - _load_migration()._MAX_CARRY_SECONDS],
     }
 
 
@@ -244,7 +243,7 @@ async def test_a_deleted_sitting_takes_off_the_most_the_row_can_have_watched_sin
     await _admin_deletes(db, "S-Xa")
 
     # Its 90 s of end credits come off, timed to its last poll, with a poll's carry.
-    assert await _backfilled(db) == {done: live[done] - MAX_CARRY_SECONDS}
+    assert await _backfilled(db) == {done: live[done] - _load_migration()._MAX_CARRY_SECONDS}
 
 
 async def test_a_rewind_in_the_end_credits_leaves_a_refused_title_refused(db_session):
