@@ -18,7 +18,7 @@ utilisateurs.
 
 ### Added
 - Aide — articles de départ aussi en anglais.
-- Première connexion — assistant pas à pas (pseudo, profil, notifications, aides animées).
+- Première connexion — assistant pas à pas (pseudo, profil, notifications, aides animées, installation de l'application).
 
 ### Changed
 - Identité visuelle — nouveau logo et nouvelle bannière, icônes de l'application refaites.

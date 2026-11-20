@@ -3012,6 +3012,16 @@
       "lists": "Lists",
       "calendar": "Calendar"
     },
+    "appInstall": {
+      "title": "Install the app",
+      "intro": "Open MediaKeeper from its icon, like a real app.",
+      "button": "Install",
+      "ios": "Tap the Share button, then \"Add to Home Screen\".",
+      "iosNotify": "On iPhone and iPad, this is also what lets you receive notifications.",
+      "mac": "In Safari, open the File menu, then choose \"Add to Dock\".",
+      "firefoxAndroid": "In Firefox's menu (the three dots), choose \"Add app to Home screen\".",
+      "otherBrowser": "Firefox cannot install apps on a computer yet: open the portal in Chrome or Edge to install it."
+    },
     "changelog": {
       "title": "What's new",
       "subtitle": "All user-facing updates",

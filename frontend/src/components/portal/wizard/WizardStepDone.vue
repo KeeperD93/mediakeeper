@@ -17,6 +17,25 @@
       </button>
     </div>
   </div>
+  <!-- Only where the browser can install it, and the portal is not installed yet. -->
+  <div v-if="way" class="wz-next-box">
+    <span class="wz-next-ic"><Download :size="22" :stroke-width="1.8" aria-hidden="true" /></span>
+    <div class="dd-grow">
+      <p>
+        <b>{{ $t('portal.appInstall.title') }}</b>
+      </p>
+      <p>{{ $t('portal.appInstall.intro') }}</p>
+      <p v-for="key in steps" :key="key">{{ $t(key) }}</p>
+      <button
+        v-if="way === INSTALL_WAY.PROMPT"
+        type="button"
+        class="wz-ghost wz-install"
+        @click="install"
+      >
+        {{ $t('portal.appInstall.button') }}
+      </button>
+    </div>
+  </div>
   <div class="wz-next-box">
     <span class="wz-next-ic"><Sparkles :size="22" :stroke-width="1.8" aria-hidden="true" /></span>
     <div class="dd-grow">
@@ -31,16 +50,19 @@
 <script setup>
 import { computed, inject } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { Sparkles } from 'lucide-vue-next'
+import { Download, Sparkles } from 'lucide-vue-next'
 import { AVAILABLE_LOCALES } from '@/i18n'
+import { useAppInstall } from '@/composables/portal/useAppInstall'
 import { ONBOARDING_WIZARD_KEY } from '@/composables/portal/useOnboardingWizard'
 import { AVATAR_CHOICE, NOTIFY_STATE, WIZARD_STEP as S } from '@/constants/portalOnboarding'
 import { GENRE_PICKER, isGenrePicked } from '@/constants/portalGenres'
+import { INSTALL_WAY } from '@/constants/portalInstall'
 
 const V = 'portal.wizard.done.values'
 
 const { t } = useI18n()
 const wz = inject(ONBOARDING_WIZARD_KEY)
+const { way, steps, install } = useAppInstall()
 
 function languageValue() {
   const code = wz.choices.language
