@@ -19,7 +19,7 @@ utilisateurs.
 ### Added
 - Aide — articles de départ aussi en anglais.
 - Première connexion — assistant pas à pas (pseudo, profil, notifications, aides animées).
-- Installer l'application — proposé à la fin de l'assistant et dans le menu de l'avatar.
+- Installer l'application — proposé par l'assistant et le menu de l'avatar.
 
 ### Changed
 - Identité visuelle — nouveau logo et nouvelle bannière, icônes de l'application refaites.
