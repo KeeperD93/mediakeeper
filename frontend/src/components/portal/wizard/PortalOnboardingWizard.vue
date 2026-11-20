@@ -2,7 +2,6 @@
   <Teleport to="body">
     <!-- No way out but the last button: no cross, no Escape, no click beside. -->
     <div class="dd-overlay wz-overlay">
-      <div class="dd-glow" aria-hidden="true" />
       <div
         ref="panelRef"
         class="dd-panel wz"

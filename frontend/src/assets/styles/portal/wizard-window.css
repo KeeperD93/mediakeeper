@@ -17,9 +17,9 @@
   height: 100%;
   margin: auto;
 }
-/* The window always fits the screen: nothing around it scrolls, not even the glow that
-   overflows behind it. Phone: no gap under the window, the footer reaches the screen's
-   bottom edge and keeps the iPhone's home bar clear itself. */
+/* The window always fits the screen: nothing around it scrolls. Phone: no gap under the
+   window, the footer reaches the screen's bottom edge and keeps the iPhone's home bar
+   clear itself. */
 .wz-overlay.dd-overlay {
   display: flex;
   overflow: clip;
