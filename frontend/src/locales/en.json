@@ -3012,6 +3012,16 @@
       "lists": "Lists",
       "calendar": "Calendar"
     },
+    "appInstall": {
+      "title": "Install the app",
+      "intro": "Open MediaKeeper from its icon, like a real app.",
+      "button": "Install",
+      "ios": "Tap the Share button, then \"Add to Home Screen\".",
+      "iosNotify": "On iPhone and iPad, this is also what lets you receive notifications.",
+      "mac": "In Safari, open the File menu, then choose \"Add to Dock\".",
+      "firefoxAndroid": "In Firefox's menu (the three dots), choose \"Add app to Home screen\".",
+      "otherBrowser": "Firefox cannot install apps on a computer yet: open the portal in Chrome or Edge to install it."
+    },
     "changelog": {
       "title": "What's new",
       "subtitle": "All user-facing updates",
@@ -3168,8 +3178,6 @@
       },
       "steps": {
         "welcome": {
-          "eyebrowNew": "First sign-in",
-          "eyebrow": "Guided tour",
           "title": "Welcome to MediaKeeper",
           "subNew": "The requests portal, and much more: lists, trophies, leaderboards, movie nights… We'll guide you step by step.",
           "sub": "The portal has grown. A short tour, just once: check your settings and discover everything on offer."
@@ -3350,7 +3358,8 @@
         "phone": {
           "tabs": "Tabs at the bottom: Home, My profile, Lists, Issues",
           "top": "At the top: the magnifying glass (search), notifications, your avatar",
-          "calendar": "Calendar: in your avatar menu"
+          "calendar": "Calendar: in your avatar menu",
+          "fab": "\"+\" button: bottom right"
         }
       },
       "expiry": {

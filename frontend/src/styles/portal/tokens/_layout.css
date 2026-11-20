@@ -135,8 +135,11 @@
   /* A control that cannot be used right now (busy, out of range). */
   --portal-opacity-disabled: 0.4;
 
+  /* Window of « What's new today? », worn by the first-login wizard as well. */
+  --portal-digest-margin-block: 56px; /* gap above and below the window from 1024px on */
   /* First-login wizard: the steps the spacing scale lacked, and the sizes of the
      wizard's pieces (PortalOnboardingWizard and its steps). */
+  --portal-wizard-window-height: 800px; /* from 640px on, the same at every step: the welcome fits */
   --portal-space-2-5: 10px; /* mirrors admin --space-2-5 */
   --portal-space-4-5: 18px;
   --portal-space-5-5: 22px;
@@ -165,7 +168,6 @@
   --portal-wizard-phone-icon: 30px; /* icons of the phone bars, drawn small */
   --portal-wizard-phone-avatar: 28px;
   --portal-wizard-phone-logo: 22px;
-  --portal-wizard-phone-fab: 40px;
   --portal-shadow-wizard-banner: 0 0 36px rgb(var(--portal-color-info-rgb), 0.3);
   --portal-shadow-wizard-banner-sm: 0 0 18px rgb(var(--portal-color-info-rgb), 0.25);
   --portal-shadow-wizard-segment: 0 0 10px rgb(var(--portal-accent-500-rgb), 0.55);

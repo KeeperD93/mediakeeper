@@ -1,0 +1,125 @@
+/* First-login wizard (PortalOnboardingWizard.vue): its window, the step that scrolls in
+ * it and the footer under the step. The window's look and the main button are the
+ * daily digest's (dd- classes), so the digest can take its place. Phone first; the
+ * window's own width (container dd) widens its spacings at 480, 640 and 768 px.
+ * Classes start with wz-, a prefix nothing else uses. */
+
+/* A column of the same height at every step: the step scrolls, the footer stays at the
+   window's bottom. The whole screen on a phone; from 640px, centered on the backdrop. */
+.wz {
+  --wz-pad-x: var(--portal-space-5);
+  --wz-pad-top: var(--portal-space-5);
+  --wz-gap: var(--portal-space-6);
+  --wz-foot-pad-top: var(--portal-space-3-5);
+  --wz-foot-pad-bottom: var(--portal-space-4-5);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  margin: auto;
+}
+/* The window always fits the screen: nothing around it scrolls. Phone: no gap under the
+   window, the footer reaches the screen's bottom edge and keeps the iPhone's home bar
+   clear itself. */
+.wz-overlay.dd-overlay {
+  display: flex;
+  overflow: clip;
+  padding-bottom: 0;
+}
+
+.wz-in {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--wz-gap);
+  min-height: 0;
+  padding: var(--wz-pad-top) var(--wz-pad-x) var(--wz-gap);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+/* Footer: back, a hint, the main button, under the step that scrolls */
+.wz-foot {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: var(--portal-space-2-5);
+  padding: var(--wz-foot-pad-top) var(--wz-pad-x)
+    calc(var(--wz-foot-pad-bottom) + env(safe-area-inset-bottom, 0px));
+  border-top: var(--portal-border-width) solid var(--portal-border-subtle);
+  border-radius: 0 0 var(--portal-radius-2xl) var(--portal-radius-2xl);
+  background: var(--portal-digest-bg);
+}
+.wz-foot .wz-ghost {
+  flex: none;
+}
+.wz-foot-hint {
+  flex: 1;
+  margin: 0;
+  font-size: var(--portal-text-xs);
+  color: var(--portal-text-muted-solid);
+}
+.wz-next {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--portal-space-2);
+  margin-left: auto;
+}
+.wz-next:disabled {
+  opacity: var(--portal-opacity-disabled);
+  box-shadow: none;
+  cursor: not-allowed;
+}
+
+/* A framed window from a tablet on: the same gap above and below, as the digest's. */
+@media (min-width: 640px) {
+  /* Clipped to its rounded corners: the step's scrollbar stays inside, in every browser. */
+  .wz {
+    height: min(var(--portal-wizard-window-height), 100%);
+    overflow: clip;
+  }
+  /* Chromium and Safari: the scrollbar starts under the rounded corner, not cut by it. */
+  .wz-in::-webkit-scrollbar-track {
+    margin-top: var(--portal-radius-2xl);
+  }
+  .wz-overlay.dd-overlay {
+    padding-bottom: var(--portal-space-6);
+  }
+}
+@media (min-width: 1024px) {
+  .wz-overlay.dd-overlay {
+    padding-bottom: var(--portal-digest-margin-block);
+  }
+}
+
+/* The window is the container: what reads these spacings is inside it. */
+@container dd (min-width: 480px) {
+  .wz-in,
+  .wz-foot {
+    --wz-pad-top: var(--portal-space-6);
+    --wz-pad-x: var(--portal-space-7);
+    --wz-foot-pad-top: var(--portal-space-4);
+    --wz-foot-pad-bottom: var(--portal-space-5);
+  }
+}
+@container dd (min-width: 640px) {
+  .wz-in,
+  .wz-foot {
+    --wz-pad-top: var(--portal-space-7);
+    --wz-pad-x: var(--portal-space-9);
+    --wz-gap: var(--portal-space-7);
+    --wz-foot-pad-top: var(--portal-space-4-5);
+    --wz-foot-pad-bottom: var(--portal-space-5-5);
+  }
+  .wz-next {
+    flex: none;
+    min-width: var(--portal-wizard-cta-min-width);
+  }
+}
+@container dd (min-width: 768px) {
+  .wz-in,
+  .wz-foot {
+    --wz-pad-x: var(--portal-space-12);
+  }
+}

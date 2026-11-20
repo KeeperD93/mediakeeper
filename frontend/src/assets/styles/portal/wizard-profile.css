@@ -1,6 +1,6 @@
 /* First-login wizard: the viewer's avatar (image step, recap, small bars), the
- * notifications step and the recap with what comes next. Classes start with wz-;
- * the window's width (container dd) is in wizard.css. */
+ * notifications step, the recap, the app install and what comes next. Classes start
+ * with wz-; the window's width (container dd) is in wizard-window.css. */
 
 /* The viewer's avatar: their picture, or their initial on the accent gradient */
 .wz-av {
@@ -109,7 +109,7 @@
   color: var(--portal-text-primary-solid);
 }
 
-/* Done: the recap, each choice with « Change », then what opens next */
+/* Done: the recap, each choice with « Change », installing the app, then what opens next */
 .wz-recap {
   padding: var(--portal-space-1) 0;
 }
@@ -175,6 +175,10 @@
     rgb(var(--portal-color-cinema-rgb), 0.08)
   );
   color: var(--portal-color-cinema-soft);
+}
+/* Opens the browser's install window, under the box's text */
+.wz-install {
+  margin-top: var(--portal-space-2-5);
 }
 
 @container dd (min-width: 480px) {

@@ -12,8 +12,20 @@
   overscroll-behavior: contain;
   padding: env(safe-area-inset-top, 0) env(safe-area-inset-right, 0) env(safe-area-inset-bottom, 0)
     env(safe-area-inset-left, 0);
-  /* The page behind shows through, blurred, as behind the Help window. */
-  background: var(--portal-overlay-modal);
+  /* The page behind shows through, blurred, as behind the Help window, under an indigo and
+     pink light. A background, not a layer: it stays still and adds nothing to the scroll. */
+  background:
+    radial-gradient(circle at 15% 20%, rgb(var(--portal-accent-500-rgb), 0.26), transparent 45%),
+    radial-gradient(circle at 85% 65%, rgb(var(--portal-accent-500-rgb), 0.18), transparent 50%),
+    radial-gradient(
+      circle at 45% 100%,
+      rgb(var(--portal-color-accent-hot-rgb), 0.14),
+      transparent 55%
+    ),
+    var(--portal-overlay-modal);
+  /* The gradients span a tenth past each edge, which sets where the light falls. */
+  background-position: center;
+  background-size: 120% 120%;
   -webkit-backdrop-filter: var(--portal-blur-md);
   backdrop-filter: var(--portal-blur-md);
   -webkit-tap-highlight-color: transparent;
@@ -23,21 +35,6 @@
   from {
     opacity: 0;
   }
-}
-/* Indigo and pink light behind the window, still while it scrolls. */
-.dd-glow {
-  position: fixed;
-  inset: -10%;
-  pointer-events: none;
-  filter: blur(40px);
-  background:
-    radial-gradient(circle at 15% 20%, rgb(var(--portal-accent-500-rgb), 0.26), transparent 45%),
-    radial-gradient(circle at 85% 65%, rgb(var(--portal-accent-500-rgb), 0.18), transparent 50%),
-    radial-gradient(
-      circle at 45% 100%,
-      rgb(var(--portal-color-accent-hot-rgb), 0.14),
-      transparent 55%
-    );
 }
 
 /* Phone: the window is the screen. From a tablet on, a framed window on the backdrop. */
@@ -67,7 +64,7 @@
 }
 @media (min-width: 1024px) {
   .dd-overlay {
-    padding-block: 56px;
+    padding-block: var(--portal-digest-margin-block);
   }
 }
 

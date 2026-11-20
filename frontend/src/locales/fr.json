@@ -3012,6 +3012,16 @@
       "lists": "Listes",
       "calendar": "Calendrier"
     },
+    "appInstall": {
+      "title": "Installer l’application",
+      "intro": "Ouvrez MediaKeeper depuis son icône, comme une vraie application.",
+      "button": "Installer",
+      "ios": "Touchez le bouton Partager, puis « Sur l’écran d’accueil ».",
+      "iosNotify": "Sur iPhone et iPad, c’est aussi ce qui permet de recevoir les notifications.",
+      "mac": "Dans Safari, ouvrez le menu Fichier, puis choisissez « Ajouter au Dock ».",
+      "firefoxAndroid": "Dans le menu de Firefox (les trois points), choisissez « Ajouter l’application à l’écran d’accueil ».",
+      "otherBrowser": "Firefox ne sait pas encore installer d’application sur ordinateur : ouvrez le portail dans Chrome ou Edge pour l’installer."
+    },
     "changelog": {
       "title": "Journal des nouveautés",
       "subtitle": "Toutes les évolutions visibles côté utilisateurs",
@@ -3168,8 +3178,6 @@
       },
       "steps": {
         "welcome": {
-          "eyebrowNew": "Première connexion",
-          "eyebrow": "Visite guidée",
           "title": "Bienvenue sur MediaKeeper",
           "subNew": "Le portail des demandes, et bien plus encore : listes, trophées, classement, soirées ciné… On vous guide pas à pas.",
           "sub": "Le portail s’enrichit. Une petite visite, une seule fois : vérifiez vos réglages et découvrez tout ce qui est disponible."
@@ -3350,7 +3358,8 @@
         "phone": {
           "tabs": "Onglets en bas : Accueil, Mon profil, Listes, Problèmes",
           "top": "En haut : la loupe (recherche), les notifications, votre avatar",
-          "calendar": "Calendrier : dans le menu de votre avatar"
+          "calendar": "Calendrier : dans le menu de votre avatar",
+          "fab": "Bouton « + » : en bas à droite"
         }
       },
       "expiry": {
