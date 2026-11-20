@@ -16,7 +16,8 @@ This section intentionally has no date so it is not shown to users.
 
 ### Added
 - Help — starter articles also in English.
-- First sign-in — step-by-step guide (username, profile, notifications, animated help, app install).
+- First sign-in — step-by-step guide (username, profile, notifications, animated help).
+- Install the app — offered at the end of the first sign-in guide and in the avatar menu.
 
 ### Changed
 - Branding — new logo and banner, app icons redone.
