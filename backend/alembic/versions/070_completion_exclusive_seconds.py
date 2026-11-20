@@ -9,20 +9,20 @@ that share as it was when the title counted as watched, which nothing kept:
 Backfilled once:
 - ``history`` completions: 062 set the exclusive time of a rebuilt row to its
   estimate, so the share equals ``watched_seconds``;
-- ``live`` completions: the exclusive seconds of the user's other sittings of
-  the same title, from the previous completion of that title (or 30 days back)
-  up to the completion, as the collector adds them up, plus its own row's. That
-  row kept counting after its title was watched (end credits): what it watched
-  since, known from the completion's watched time, is taken off as if watched
-  alone. Exact when the end was watched alone, lower when it was shared, as long
-  as the sittings are those the collector added up. The clock checks that time:
-  until the title counted, the row watched at most the time since it started;
-  since then, at most the time to its last poll. Out of those bounds the
-  sittings changed (one deleted, an earlier completion deleted with its sitting,
-  statistics merged), and the most the row can have watched since is taken off,
-  so the share stays at or below the collector's, unless a merge both removed
-  and added sittings. A change smaller than the time the row spent not playing
-  goes unnoticed.
+- ``live`` completions: the exclusive seconds of the user's sittings of the
+  same title, from the previous completion of that title (or 30 days back) up
+  to the completion, its own row included. The sittings kept counting after the
+  title was watched (end credits, a second device on the same account): what
+  they watched since, known from the completion's watched time, is taken off as
+  if watched alone. Exact when it was, lower when it was shared. The clock
+  checks that time: until the title counted, a sitting watched at most the time
+  since it started; since then, at most the time to its last poll. Out of those
+  bounds, as when the sittings changed (one deleted, an earlier completion
+  deleted with its sitting, statistics merged), the most they can have watched
+  since is taken off. The share stays at or below the collector's, unless a
+  merge both removed and added sittings, or a change was smaller than the time
+  the sittings spent not playing: it goes unnoticed, and the share can be too
+  high by at most what the changed sitting watched.
 - Offline (``--sql``), only the column and the ``history`` step render: the
   ``live`` backfill reads the rows, and live completions keep 0 without it.
 
@@ -82,25 +82,41 @@ def _has_column(bind) -> bool:
     return _COLUMN in {c["name"] for c in sa.inspect(bind).get_columns(_TABLE)}
 
 
+def _clock(s, at: datetime, *, own: bool) -> tuple[float, float]:
+    """The least and the most sitting ``s`` can have watched since ``at``: until then
+    it watched at most the time since it started; since then, at most the time to
+    its last poll, plus a carry."""
+    watched = s.watched_seconds or 0
+    if s.last_tick_at is None and not own:
+        return 0, 0  # never polled (rebuilt history): it cannot have moved since
+    least = max(0, watched - (at - _utc(s.started_at)).total_seconds()) if s.started_at else 0
+    if s.last_tick_at is None:
+        return least, watched
+    return least, max(0, min(watched, (_utc(s.last_tick_at) - at).total_seconds() + _MAX_CARRY_SECONDS))
+
+
 def _share(done, own, others: list) -> int:
     """The exclusive time the collector fixed on ``done``, from its own row and the
-    ``others`` sittings it added up; at most that once the sittings changed."""
-    own_watched, own_exclusive = own.watched_seconds or 0, own.exclusive_seconds or 0
-    others_exclusive = sum(s.exclusive_seconds or 0 for s in others)
-    # What the own row watched after the title counted.
-    after = own_watched - (done.watched_seconds - sum(s.watched_seconds or 0 for s in others))
-    # The clock: until the title counted, the row watched at most the time since it
-    # started; since then, at most the time to its last poll, plus a carry.
+    ``others`` sittings; at most that once they changed."""
+    own_exclusive = own.exclusive_seconds or 0
+    exclusive = own_exclusive + sum(s.exclusive_seconds or 0 for s in others)
+    # What the sittings watched after the title counted, less those removed since,
+    # plus those added.
+    after = (own.watched_seconds or 0) + sum(s.watched_seconds or 0 for s in others) - done.watched_seconds
     at = _utc(done.completed_at)
-    low = max(0, own_watched - (at - _utc(own.started_at)).total_seconds()) if own.started_at else 0
-    high = own_watched
-    if own.last_tick_at is not None:
-        high = max(0, min(high, (_utc(own.last_tick_at) - at).total_seconds() + _MAX_CARRY_SECONDS))
-    if low <= after <= high:
-        return others_exclusive + max(0, own_exclusive - after)
-    # The sittings changed since: the most the row can have watched since comes off,
-    # with no floor on its own part, which would credit a sitting added since.
-    return max(0, others_exclusive + own_exclusive - round(max(after, high)))
+    low, high = _clock(own, at, own=True)
+    others_moved = False
+    for s in others:
+        least, most = _clock(s, at, own=False)
+        low, high, others_moved = low + least, high + most, others_moved or most > 0
+    if not low <= after <= high:
+        # Out of the clock: the most the sittings can have watched since comes off.
+        return max(0, exclusive - round(max(after, high)))
+    if not others_moved:
+        # Only the own row can have grown since: its part cannot be below 0.
+        return exclusive - own_exclusive + max(0, own_exclusive - after)
+    # Another sitting can have grown since: that floor would credit what it watched.
+    return max(0, exclusive - after)
 
 
 def _live_shares(bind) -> list[dict]:
