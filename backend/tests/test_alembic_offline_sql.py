@@ -60,4 +60,4 @@ def test_offline_sql_renders_070():
         "UPDATE playback_completions SET exclusive_seconds=playback_completions.watched_seconds "
         "WHERE playback_completions.source = 'history'"
     ) in sql
-    assert "-- Offline SQL mode: the live completion backfill is online-only." in sql
+    assert "-- Offline SQL mode: the live completion backfill is online-only; live completions keep 0." in sql

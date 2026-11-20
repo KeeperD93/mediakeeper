@@ -1,6 +1,7 @@
 """Migration 070: each watched title keeps the time its user watched it alone."""
 import importlib.util
 from datetime import UTC, datetime, timedelta
+from types import SimpleNamespace
 
 import pytest
 import sqlalchemy as sa
@@ -9,8 +10,11 @@ from alembic.migration import MigrationContext
 from alembic.operations import Operations
 from sqlalchemy import select
 
+from api.stats._activity import delete_activity
 from models.base import Base
 from models.playback_stats import PlaybackCompletion, PlaybackSession
+from services.stats_aggregator.users_admin import merge_user_stats
+from services.stats_collector._measure import MAX_CARRY_SECONDS
 from tests._migration_helpers import BACKEND_ROOT, alembic_db_at
 from tests._watch_measurement_helpers import STEP, emby_session, poll
 
@@ -18,6 +22,8 @@ REVISION = "070_completion_exclusive_seconds"
 PREVIOUS = "069_profile_level_floor"
 T0 = datetime(2026, 3, 7, 20, 0, tzinfo=UTC)
 RUNTIME = 600
+PAID = RUNTIME * 0.75  # watch XP: 75 % of the runtime watched alone
+ADMIN = SimpleNamespace(username="Alice")
 # The table as it stands before 070 (the model already has the new column).
 _COMPLETIONS_BEFORE = sa.table(
     "playback_completions",
@@ -40,10 +46,13 @@ def _columns(engine) -> set[str]:
     return {c["name"] for c in sa.inspect(engine).get_columns("playback_completions")}
 
 
-def _sitting(conn, user: str, item: str, started: datetime, exclusive: int, watched: int | None = None) -> int:
+def _sitting(
+    conn, user: str, item: str, started: datetime, exclusive: int, watched: int | None = None,
+    last_tick: datetime | None = None,
+) -> int:
     return conn.execute(sa.insert(Base.metadata.tables["playback_sessions"]).values(
         session_key=f"{user}-{item}-{started.timestamp()}", user_id=user, user_name=user,
-        item_id=item, item_name="Test Movie", item_type="Movie", started_at=started,
+        item_id=item, item_name="Test Movie", item_type="Movie", started_at=started, last_tick_at=last_tick,
         watched_seconds=exclusive if watched is None else watched, exclusive_seconds=exclusive,
     )).inserted_primary_key[0]
 
@@ -100,8 +109,9 @@ def test_upgrade_adds_the_column_and_backfills_each_watched_title(alembic_db):
         # Two titles at once for its first 120 s, then alone through the credits.
         mixed = _sitting(conn, "grace", "MOVIE-5", T0, 480, watched=600)
         _completion(conn, mixed, "grace", "MOVIE-5", T0 + timedelta(minutes=9), 510)
-        # A sitting deleted since, position unknown: the row's own exclusive time.
-        kept = _sitting(conn, "heidi", "MOVIE-6", T0, 300)
+        # A sitting deleted since, last polled when its title counted: the row's own
+        # time, less the most it can have watched since (a poll's carry).
+        kept = _sitting(conn, "heidi", "MOVIE-6", T0, 300, last_tick=T0 + timedelta(minutes=5))
         _completion(conn, kept, "heidi", "MOVIE-6", T0 + timedelta(minutes=5), 600)
 
     command.upgrade(cfg, REVISION)
@@ -115,7 +125,7 @@ def test_upgrade_adds_the_column_and_backfills_each_watched_title(alembic_db):
         ("dave", "M-B"): [0],
         ("frank", "MOVIE-4"): [510],
         ("grace", "MOVIE-5"): [390],
-        ("heidi", "MOVIE-6"): [300],
+        ("heidi", "MOVIE-6"): [300 - MAX_CARRY_SECONDS],
     }
 
 
@@ -187,21 +197,93 @@ async def test_the_backfill_finds_the_values_the_collector_fixed(db_session):
     assert await _live_values(db) == live
 
 
-async def test_a_sitting_deleted_since_leaves_the_end_credits_out(db_session):
-    db, end = db_session, RUNTIME // 5
-    # Next to another title for 2 minutes (that one gets the time), left unfinished.
-    await _watch(db, T0, 1, 24, ("MOVIE-Y", "S-Y", 24), ("MOVIE-X", "S-Xa", 24))
-    # Resumed alone the next day at 2 minutes, watched through its end credits.
-    await _watch(db, T0 + timedelta(days=1), 24, end, ("MOVIE-X", "S-Xb", end))
-    live = await _live_values(db)
-    done = await db.scalar(select(PlaybackCompletion.id).where(PlaybackCompletion.item_id == "MOVIE-X"))
-    assert live[done] < RUNTIME * 0.75  # refused live by the 75 % rule
-    # The admin deletes the shared sitting (Statistics > Activity) before 070 runs.
-    await db.delete(await db.scalar(
-        select(PlaybackSession).where(PlaybackSession.item_id == "MOVIE-X").order_by(PlaybackSession.started_at)
-    ))
-    await db.commit()
+async def _play(db, start: datetime, positions: list[int], session: str, user: str = "EMBY-1") -> None:
+    """One poll of MOVIE-X per position, 5 s apart, then the player gone."""
+    at = start
+    for k, position in enumerate(positions):
+        at = start + STEP * k
+        await poll(db, at, emby_session(
+            at=at, position_s=position, item="MOVIE-X", session=session, user=user, runtime_s=RUNTIME,
+        ))
+    await poll(db, at + STEP)
 
+
+async def _sitting_of(db, session: str) -> PlaybackSession:
+    return await db.scalar(select(PlaybackSession).where(PlaybackSession.emby_session_key.endswith(f"_{session}")))
+
+
+async def _done_of(db, session: str) -> int:
+    row = await _sitting_of(db, session)
+    return await db.scalar(select(PlaybackCompletion.id).where(PlaybackCompletion.session_id == row.id))
+
+
+async def _admin_deletes(db, session: str) -> None:
+    """Statistics > Activity > delete: the sitting's watched title goes with it."""
+    await delete_activity(activity_id=(await _sitting_of(db, session)).id, db=db, _=ADMIN)
+
+
+async def _backfilled(db) -> dict[int, int]:
     await db.execute(sa.update(PlaybackCompletion).values(exclusive_seconds=0))  # as before 070
     await _migrate(db, _load_migration().upgrade)
-    assert await _live_values(db) == live
+    return await _live_values(db)
+
+
+async def _shared_start(db) -> None:
+    """MOVIE-X next to MOVIE-Y for 2 minutes (MOVIE-Y gets the time), left unfinished:
+    the sitting the admin deletes."""
+    await _watch(db, T0, 1, 24, ("MOVIE-Y", "S-Y", 24), ("MOVIE-X", "S-Xa", 24))
+
+
+async def test_a_deleted_sitting_takes_off_the_most_the_row_can_have_watched_since(db_session):
+    db = db_session
+    await _shared_start(db)
+    await _watch(db, T0 + timedelta(days=1), 24, RUNTIME // 5, ("MOVIE-X", "S-Xb", RUNTIME // 5))  # alone to the end
+    live = await _live_values(db)
+    done = await _done_of(db, "S-Xb")
+    assert live[done] < PAID  # refused live
+    await _admin_deletes(db, "S-Xa")
+
+    # Its 90 s of end credits come off, timed to its last poll, with a poll's carry.
+    assert await _backfilled(db) == {done: live[done] - MAX_CARRY_SECONDS}
+
+
+async def test_a_rewind_in_the_end_credits_leaves_a_refused_title_refused(db_session):
+    db = db_session
+    await _shared_start(db)
+    # Alone from 2 minutes to 9, then back to 5 minutes for one more: it stops before 85 %.
+    await _play(db, T0 + timedelta(days=1), [120 + 5 * k for k in range(85)] + [300 + 5 * k for k in range(13)], "S-Xb")
+    live = await _live_values(db)
+    done = await _done_of(db, "S-Xb")
+    assert live[done] < PAID
+    await _admin_deletes(db, "S-Xa")
+
+    assert (await _backfilled(db))[done] <= live[done]
+
+
+async def test_an_earlier_completion_deleted_with_its_sitting_adds_nothing(db_session):
+    db = db_session
+    await _watch(db, T0, 1, 100, ("MOVIE-X", "S-A1", 100))  # 500 s alone, left there
+    await _watch(db, T0 + timedelta(days=1), 100, 104, ("MOVIE-X", "S-A2", 104))  # 20 s more: it counts
+    await _watch(db, T0 + timedelta(days=5), 1, 24, ("MOVIE-Y", "S-Y", 24), ("MOVIE-X", "S-B1", 24))
+    await _watch(db, T0 + timedelta(days=6), 24, RUNTIME // 5, ("MOVIE-X", "S-B2", RUNTIME // 5))
+    live = await _live_values(db)
+    second = await _done_of(db, "S-B2")
+    assert live[second] < PAID
+    # The first count goes with its 20 s sitting: the 500 s one now falls in the 30 days.
+    await _admin_deletes(db, "S-A2")
+
+    assert await _backfilled(db) == {second: live[second]}
+
+
+async def test_merged_statistics_take_the_cautious_share(db_session):
+    db = db_session
+    await _play(db, T0, [5 * k for k in range(1, 21)], "S-1a")  # 100 s, left there
+    await _play(db, T0 + timedelta(days=1), [5 * k for k in range(1, 121)], "S-2", user="EMBY-2")
+    await _play(db, T0 + timedelta(days=2), [100 + 5 * k for k in range(101)], "S-1b")  # 100 s to the end
+    live = await _live_values(db)
+    done = await _done_of(db, "S-1b")
+    assert live[done] >= PAID
+    # The other Emby user's count now sits between the two sittings: the first one is lost.
+    await merge_user_stats(db, "EMBY-2", "EMBY-1")
+
+    assert (await _backfilled(db))[done] < PAID
