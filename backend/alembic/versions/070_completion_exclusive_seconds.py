@@ -14,7 +14,11 @@ Backfilled once:
   up to the completion, as the collector adds them up, plus its own row's. That
   row kept counting after its title was watched (end credits): what it watched
   since, known from the completion's watched time, is taken off as if watched
-  alone. Exact when the end was watched alone, lower otherwise.
+  alone. Exact when the end was watched alone and every sitting is still there,
+  lower when the end was shared. When a sitting deleted since leaves the
+  completion with more time than the sittings left can hold, what the row
+  watched since comes from where it stopped instead; a deleted sitting shorter
+  than that does not show, and can leave the share up to its length too high.
 
 Revision ID: 070_completion_exclusive_seconds
 Revises: 069_profile_level_floor
@@ -35,6 +39,10 @@ _TABLE = "playback_completions"
 _COLUMN = "exclusive_seconds"
 _COMPLETION_WINDOW = timedelta(days=30)
 _BATCH = 500
+_TICKS_PER_SECOND = 10_000_000
+# Share of the runtime the position reaches when a title counts as watched
+# (``WATCHED_THRESHOLD``), frozen as it stood.
+_WATCHED_AT = 0.85
 
 _SESSIONS = sa.table(
     "playback_sessions",
@@ -42,6 +50,8 @@ _SESSIONS = sa.table(
     sa.column("user_id", sa.String),
     sa.column("item_id", sa.String),
     sa.column("started_at", sa.DateTime(timezone=True)),
+    sa.column("duration_ticks", sa.BigInteger),
+    sa.column("position_ticks", sa.BigInteger),
     sa.column("watched_seconds", sa.Integer),
     sa.column("exclusive_seconds", sa.Integer),
 )
@@ -71,10 +81,14 @@ def _has_column(bind) -> bool:
 def _share(done, own, others: list) -> int:
     """The exclusive time the collector fixed on ``done``, from its own row and
     the ``others`` sittings it added up."""
-    others_watched = sum(s.watched_seconds or 0 for s in others)
-    # What the own row watched after the title counted. At least 0: a sitting
-    # deleted since would make it negative and credit its time as watched alone.
-    after = max(0, (own.watched_seconds or 0) - (done.watched_seconds - others_watched))
+    own_watched = own.watched_seconds or 0
+    # What the own row watched after the title counted.
+    after = own_watched - (done.watched_seconds - sum(s.watched_seconds or 0 for s in others))
+    if after < 0:
+        # A sitting deleted since: what the row played past the point where its title
+        # counted, from where it stopped, rather than nothing.
+        past = ((own.position_ticks or 0) - (own.duration_ticks or 0) * _WATCHED_AT) / _TICKS_PER_SECOND
+        after = min(own_watched, max(0, round(past))) if own.duration_ticks else 0
     return sum(s.exclusive_seconds or 0 for s in others) + max(0, (own.exclusive_seconds or 0) - after)
 
 
@@ -124,6 +138,11 @@ def upgrade() -> None:
         .where(_COMPLETIONS.c.source == "history")
         .values({_COLUMN: _COMPLETIONS.c.watched_seconds})
     )
+    # ``as_sql`` rather than ``context.is_offline_mode()``: the tests run this step
+    # without an Alembic environment.
+    if op.get_context().as_sql:
+        op.execute("-- Offline SQL mode: the live completion backfill is online-only.")
+        return
     statement = (
         sa.update(_COMPLETIONS)
         .where(_COMPLETIONS.c.id == sa.bindparam("_id"))

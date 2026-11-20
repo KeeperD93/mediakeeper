@@ -51,3 +51,13 @@ def test_offline_sql_renders_067():
 def test_offline_sql_renders_069():
     sql = _render("068_unlinked_profiles_local:069_profile_level_floor")
     assert "UPDATE user_profiles SET level = 1 WHERE level < 1" in sql
+
+
+def test_offline_sql_renders_070():
+    sql = _render("069_profile_level_floor:070_completion_exclusive_seconds")
+    assert "ALTER TABLE playback_completions ADD COLUMN exclusive_seconds INTEGER DEFAULT '0' NOT NULL" in sql
+    assert (
+        "UPDATE playback_completions SET exclusive_seconds=playback_completions.watched_seconds "
+        "WHERE playback_completions.source = 'history'"
+    ) in sql
+    assert "-- Offline SQL mode: the live completion backfill is online-only." in sql

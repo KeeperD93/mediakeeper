@@ -10,7 +10,7 @@ from alembic.operations import Operations
 from sqlalchemy import select
 
 from models.base import Base
-from models.playback_stats import PlaybackCompletion
+from models.playback_stats import PlaybackCompletion, PlaybackSession
 from tests._migration_helpers import BACKEND_ROOT, alembic_db_at
 from tests._watch_measurement_helpers import STEP, emby_session, poll
 
@@ -100,7 +100,7 @@ def test_upgrade_adds_the_column_and_backfills_each_watched_title(alembic_db):
         # Two titles at once for its first 120 s, then alone through the credits.
         mixed = _sitting(conn, "grace", "MOVIE-5", T0, 480, watched=600)
         _completion(conn, mixed, "grace", "MOVIE-5", T0 + timedelta(minutes=9), 510)
-        # A sitting deleted since: its time is never credited as watched alone.
+        # A sitting deleted since, position unknown: the row's own exclusive time.
         kept = _sitting(conn, "heidi", "MOVIE-6", T0, 300)
         _completion(conn, kept, "heidi", "MOVIE-6", T0 + timedelta(minutes=5), 600)
 
@@ -184,4 +184,24 @@ async def test_the_backfill_finds_the_values_the_collector_fixed(db_session):
 
     await _migrate(db, migration.downgrade)
     await _migrate(db, migration.upgrade)
+    assert await _live_values(db) == live
+
+
+async def test_a_sitting_deleted_since_leaves_the_end_credits_out(db_session):
+    db, end = db_session, RUNTIME // 5
+    # Next to another title for 2 minutes (that one gets the time), left unfinished.
+    await _watch(db, T0, 1, 24, ("MOVIE-Y", "S-Y", 24), ("MOVIE-X", "S-Xa", 24))
+    # Resumed alone the next day at 2 minutes, watched through its end credits.
+    await _watch(db, T0 + timedelta(days=1), 24, end, ("MOVIE-X", "S-Xb", end))
+    live = await _live_values(db)
+    done = await db.scalar(select(PlaybackCompletion.id).where(PlaybackCompletion.item_id == "MOVIE-X"))
+    assert live[done] < RUNTIME * 0.75  # refused live by the 75 % rule
+    # The admin deletes the shared sitting (Statistics > Activity) before 070 runs.
+    await db.delete(await db.scalar(
+        select(PlaybackSession).where(PlaybackSession.item_id == "MOVIE-X").order_by(PlaybackSession.started_at)
+    ))
+    await db.commit()
+
+    await db.execute(sa.update(PlaybackCompletion).values(exclusive_seconds=0))  # as before 070
+    await _migrate(db, _load_migration().upgrade)
     assert await _live_values(db) == live
