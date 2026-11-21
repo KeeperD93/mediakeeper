@@ -112,7 +112,7 @@ async def _write_player(db: AsyncSession, plan: PlayerPlan, profile: UserProfile
 
 
 async def _write(db: AsyncSession, as_of: datetime, plan: str, backup: str, audit: dict) -> dict:
-    """Write every changed player and the overall journal; the caller commits."""
+    """Write every changed player and the overall journal, and send them; the caller commits."""
     ctx = await build_context(db, as_of)
     # Profiles before the ledger, in id order, like every XP writer: a gain made meanwhile
     # waits for the commit. An account created after this list is not written.
@@ -133,6 +133,8 @@ async def _write(db: AsyncSession, as_of: datetime, plan: str, backup: str, audi
         payload={"as_of": _iso(as_of), "plan": plan, "backup": backup, **applied},
         commit=False, **audit,
     )
+    # Sent now, so that a row the database refuses fails here: the commit only risks its answer.
+    await db.flush()
     return applied
 
 
@@ -147,7 +149,7 @@ async def _journal_error(db: AsyncSession, payload: dict, audit: dict) -> None:
             commit=True, **audit,
         )
     except Exception:
-        logger.exception("[WATCH_XP_RECALC] journal of the error not written")
+        logger.exception("[WATCH_XP_RECALC] journal of the error may be missing")
 
 
 async def apply_watch_xp_recalc(
@@ -191,12 +193,12 @@ async def apply_watch_xp_recalc(
         try:
             await db.commit()
         except Exception as exc:
-            # A commit can reach the database and lose its answer: everything may be written,
-            # so the cached digests go as well.
+            # A commit can reach the database and lose its answer: everything may be written.
             logger.exception("[WATCH_XP_RECALC] commit outcome unknown; backup %s", name)
-            invalidate_all()
             await _journal_error(db, {**journal, "uncertain": True}, audit)
             raise WatchXpRecalcRefused(APPLY_UNCERTAIN) from exc
-        invalidate_all()
+        finally:
+            # Even a request cancelled during the commit may have written: the cached digests go.
+            invalidate_all()
         logger.info("[WATCH_XP_RECALC] applied: %s, backup %s", applied, name)
         return {"plan": plan, "backup": name, "applied": applied}

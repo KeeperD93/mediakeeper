@@ -1,7 +1,8 @@
 /**
  * Portal admin → debug tools → watch XP recalculation: the simulation shows its facts,
  * each player's change, and nothing to do when nothing changes; applying asks first and
- * sends back the moment and the plan it showed.
+ * sends back the moment and the plan it showed; an uncertain apply drops the simulation
+ * and reloads the players.
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
@@ -151,5 +152,23 @@ describe('AdminDebugWatchXp', () => {
       TOAST_TYPE.ERR,
     )
     expect(wrapper.emitted('changed')).toBeUndefined()
+    expect(wrapper.text()).toContain('Alice') // the simulation stays
+  })
+
+  it('drops the simulation and reloads the players after an uncertain apply', async () => {
+    confirm.mockResolvedValue(true)
+    applyWatchXp.mockRejectedValue(new Error('apply_uncertain'))
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    const wrapper = await simulated()
+    await button(wrapper, 'portal.admin.debug.watchXpApply').trigger('click')
+    await flushPromises()
+    expect(showToast).toHaveBeenCalledWith(
+      'portal.admin.debug.watchXpErrors.apply_uncertain',
+      TOAST_TYPE.ERR,
+    )
+    expect(wrapper.emitted('changed')).toHaveLength(1)
+    expect(wrapper.text()).not.toContain('Alice')
+    const apply = button(wrapper, 'portal.admin.debug.watchXpApply')
+    expect(apply.attributes('disabled')).toBeDefined()
   })
 })

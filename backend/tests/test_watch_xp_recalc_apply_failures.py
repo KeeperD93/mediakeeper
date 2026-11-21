@@ -1,18 +1,22 @@
 """Applying the watch XP recalculation when something is wrong: a plan the admin has not
-seen, a backup missing a part or failing, an error while writing, a commit that fails to
-answer. Nothing of the plan is written, but maybe by that commit."""
+seen, a backup missing a part or failing, an error while writing, a row the database
+refuses, a commit that fails to answer, a request cancelled during its commit. Nothing of
+the plan is written, but maybe by that commit."""
+import asyncio
 import logging
 from pathlib import Path
 
 import pytest
 from sqlalchemy.exc import OperationalError
 
+from models.portal.xp_ledger import XpLedger
 from services.backup.create import BackupResult
 from services.portal import daily_digest
 from services.portal.admin_users_constants import (
     ACTION_DEBUG_WATCH_XP_RECALC,
     ACTION_DEBUG_WATCH_XP_RECALC_PLAYER,
 )
+from services.portal.recalc_lock import RECALC_LOCK
 from services.portal.watch_xp_recalc import _run
 from tests._watch_xp_apply_helpers import (
     APPLY,
@@ -147,7 +151,38 @@ async def test_a_failure_journal_that_fails_still_refuses_the_apply_as_failed(
     assert (resp.status_code, resp.json()["detail"]) == (409, "apply_failed")
     assert await snapshot(db) == before
     assert f"nothing written; backup {ARCHIVE}" in caplog.text
-    assert "journal of the error not written" in caplog.text
+    assert "journal of the error may be missing" in caplog.text
+
+
+async def test_a_row_the_database_refuses_is_refused_as_failed_before_the_commit(
+    client, db_session, backups, monkeypatch, caplog,
+):
+    db = db_session
+    ids = await two_players(client, db)
+    confirmed = await confirmation(client)
+    before = await snapshot(db)
+    record = _run.record_audit
+
+    async def twin_of_a_new_row(db, **kwargs):
+        entry = await record(db, **kwargs)
+        if kwargs["action"] == ACTION_DEBUG_WATCH_XP_RECALC_PLAYER and kwargs["target_user_id"] == ids["bob"]:
+            # Bob is written last: his new rows still wait to be sent, and a twin breaks the unique key.
+            row = next(obj for obj in db.new if isinstance(obj, XpLedger) and obj.user_id == ids["bob"])
+            db.add(XpLedger(
+                user_id=row.user_id, action=row.action, reference=row.reference, xp=1, created_at=row.created_at,
+            ))
+        return entry
+
+    monkeypatch.setattr(_run, "record_audit", twin_of_a_new_row)
+    with caplog.at_level(logging.ERROR, logger=_run.logger.name):
+        resp = await client.post(APPLY, json=confirmed)
+
+    assert (resp.status_code, resp.json()["detail"]) == (409, "apply_failed")
+    assert (await snapshot(db))[:2] == before[:2]
+    (failure,) = (await audit_rows(db))[ACTION_DEBUG_WATCH_XP_RECALC]
+    assert failure.payload == {**confirmed, "backup": ARCHIVE, "failed": True}
+    assert "IntegrityError" in caplog.text
+    assert f"nothing written; backup {ARCHIVE}" in caplog.text
 
 
 async def test_a_failure_whose_rollback_fails_is_still_refused_as_failed(
@@ -175,11 +210,11 @@ async def test_a_failure_whose_rollback_fails_is_still_refused_as_failed(
 
     assert (resp.status_code, resp.json()["detail"]) == (409, "apply_failed")
     assert await snapshot(db) == before
-    assert "journal of the error not written" in caplog.text
+    assert "journal of the error may be missing" in caplog.text
 
 
-def _commit_without_answer(monkeypatch, *, reached: bool) -> None:
-    """The commit of the apply fails to answer, after reaching the database or before."""
+def _replace_the_apply_commit(monkeypatch, replacement) -> None:
+    """``replacement(real_commit)`` runs once, instead of the commit of the apply."""
     record = _run.record_audit
 
     async def recording(db, **kwargs):
@@ -187,16 +222,24 @@ def _commit_without_answer(monkeypatch, *, reached: bool) -> None:
         if kwargs["action"] == ACTION_DEBUG_WATCH_XP_RECALC and "uncertain" not in kwargs["payload"]:
             real_commit = db.commit  # the overall journal is the last write before the commit
 
-            async def lost_answer():
+            async def once():
                 del db.commit
-                if reached:
-                    await real_commit()
-                raise _lost("COMMIT")
+                await replacement(real_commit)
 
-            db.commit = lost_answer
+            db.commit = once
         return entry
 
     monkeypatch.setattr(_run, "record_audit", recording)
+
+
+def _commit_without_answer(monkeypatch, *, reached: bool) -> None:
+    """The commit of the apply fails to answer, after reaching the database or before."""
+    async def lost_answer(real_commit):
+        if reached:
+            await real_commit()
+        raise _lost("COMMIT")
+
+    _replace_the_apply_commit(monkeypatch, lost_answer)
 
 
 @pytest.mark.parametrize("reached", [True, False], ids=["written", "not_written"])
@@ -220,3 +263,31 @@ async def test_a_commit_that_fails_to_answer_is_refused_as_uncertain(
     assert overall[-1] == {**confirmed, "backup": ARCHIVE, "uncertain": True}
     assert f"commit outcome unknown; backup {ARCHIVE}" in caplog.text
     assert daily_digest._digest_cache == {}
+
+
+async def test_a_request_cancelled_during_its_commit_drops_the_cached_digests(
+    client, db_session, backups, monkeypatch,
+):
+    db = db_session
+    ids = await two_players(client, db)
+    confirmed = await confirmation(client)
+    before = await ledger_rows(db)
+    monkeypatch.setattr(daily_digest, "_digest_cache", {})  # left as it was, whatever the outcome
+    daily_digest._cache_set(ids["alice"], "2026-03-08", "fr", {"cached": True})
+    committed = asyncio.Event()
+
+    async def commit_then_wait(real_commit):
+        await real_commit()
+        committed.set()
+        await asyncio.sleep(30)  # cancelled long before
+
+    _replace_the_apply_commit(monkeypatch, commit_then_wait)
+    request = asyncio.create_task(client.post(APPLY, json=confirmed))
+    await asyncio.wait_for(committed.wait(), 10)
+    request.cancel()
+    with pytest.raises(asyncio.CancelledError):
+        await asyncio.wait_for(request, 10)
+
+    assert await ledger_rows(db) != before
+    assert daily_digest._digest_cache == {}
+    assert not RECALC_LOCK.locked()

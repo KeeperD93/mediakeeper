@@ -19,3 +19,10 @@ export const WATCH_XP_LOST = Object.freeze({
 } as const)
 
 export type WatchXpLost = (typeof WATCH_XP_LOST)[keyof typeof WATCH_XP_LOST]
+
+/** A refusal of the apply the card acts on, beyond naming it. */
+export const WATCH_XP_REFUSED = Object.freeze({
+  APPLY_UNCERTAIN: 'apply_uncertain',
+} as const)
+
+export type WatchXpRefused = (typeof WATCH_XP_REFUSED)[keyof typeof WATCH_XP_REFUSED]

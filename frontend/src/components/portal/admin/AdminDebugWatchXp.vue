@@ -89,9 +89,9 @@ import { resolveScopedError } from '@/composables/useApi'
 import { useConfirm } from '@/composables/useConfirm'
 import { useToast } from '@/composables/useToast'
 import { TOAST_TYPE } from '@/constants/toast'
-import { WATCH_XP_LOST, WATCH_XP_SKIP } from '@/constants/watchXpRecalc'
+import { WATCH_XP_LOST, WATCH_XP_REFUSED, WATCH_XP_SKIP } from '@/constants/watchXpRecalc'
 
-// The XP of players changed: the parent reloads its user list.
+// The XP of players changed, or may have: the parent reloads its user list.
 const emit = defineEmits(['changed'])
 
 const { showToast } = useToast()
@@ -180,6 +180,11 @@ async function apply() {
     emit('changed')
   } catch (err) {
     console.error('[AdminDebugWatchXp]', err)
+    if (err?.message === WATCH_XP_REFUSED.APPLY_UNCERTAIN) {
+      // Everything may be written: the old simulation goes, as the message asks for a new one.
+      summary.value = null
+      emit('changed')
+    }
     showToast(
       resolveScopedError(
         'portal.admin.debug.watchXpErrors',
