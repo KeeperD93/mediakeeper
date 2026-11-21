@@ -29,12 +29,16 @@
       <template v-else>
         <li>
           {{
-            $t('portal.admin.debug.watchXpPlayers', {
-              players: summary.players_changed,
-              total: summary.players,
-              before: summary.watch_xp_before,
-              after: summary.watch_xp_after,
-            })
+            $t(
+              'portal.admin.debug.watchXpPlayers',
+              {
+                players: summary.players_changed,
+                total: summary.players,
+                before: summary.watch_xp_before,
+                after: summary.watch_xp_after,
+              },
+              summary.players_changed,
+            )
           }}
         </li>
         <li>
@@ -46,10 +50,18 @@
             })
           }}
         </li>
-        <li>{{ $t('portal.admin.debug.watchXpLost', facts.lost) }}</li>
+        <li>{{ $t('portal.admin.debug.watchXpLost', facts.lost, facts.lost.lost) }}</li>
       </template>
       <li>{{ $t('portal.admin.debug.watchXpSkipped', facts.skipped) }}</li>
-      <li>{{ $t('portal.admin.debug.watchXpNamesakes', { namesake: summary.namesakes }) }}</li>
+      <li>
+        {{
+          $t(
+            'portal.admin.debug.watchXpNamesakes',
+            { namesake: summary.namesakes },
+            summary.namesakes,
+          )
+        }}
+      </li>
       <li v-if="facts.events">{{ $t('portal.admin.debug.watchXpEvents', facts.events) }}</li>
       <li>
         {{ $t('portal.admin.debug.watchXpMonths', { n: summary.leaders_changed.length }) }}
@@ -112,11 +124,9 @@ const RELAY_ERRORS = new Set(['http_502', 'http_503', 'http_504'])
 const answerLost = err => err instanceof TypeError || RELAY_ERRORS.has(err?.message)
 
 function resultText(result) {
+  const players = result.applied.players
   return result.backup
-    ? t('portal.admin.debug.watchXpApplied', {
-        players: result.applied.players,
-        name: result.backup,
-      })
+    ? t('portal.admin.debug.watchXpApplied', { players, name: result.backup }, players)
     : t('portal.admin.debug.watchXpNothing')
 }
 
@@ -173,7 +183,11 @@ async function apply() {
   if (!plan?.players_changed) return
   const ok = await mkConfirm({
     title: t('common.confirmTitle.action'),
-    message: t('portal.admin.debug.watchXpConfirm', { players: plan.players_changed }),
+    message: t(
+      'portal.admin.debug.watchXpConfirm',
+      { players: plan.players_changed },
+      plan.players_changed,
+    ),
     variant: 'danger',
   })
   if (!ok) return
