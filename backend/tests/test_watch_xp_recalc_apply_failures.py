@@ -213,8 +213,8 @@ async def test_a_failure_whose_rollback_fails_is_still_refused_as_failed(
     assert "journal of the error may be missing" in caplog.text
 
 
-def _replace_the_apply_commit(monkeypatch, replacement) -> None:
-    """``replacement(real_commit)`` runs once, instead of the commit of the apply."""
+def _commit_without_answer(monkeypatch, *, reached: bool) -> None:
+    """The commit of the apply fails to answer, after reaching the database or before."""
     record = _run.record_audit
 
     async def recording(db, **kwargs):
@@ -222,24 +222,16 @@ def _replace_the_apply_commit(monkeypatch, replacement) -> None:
         if kwargs["action"] == ACTION_DEBUG_WATCH_XP_RECALC and "uncertain" not in kwargs["payload"]:
             real_commit = db.commit  # the overall journal is the last write before the commit
 
-            async def once():
+            async def lost_answer():
                 del db.commit
-                await replacement(real_commit)
+                if reached:
+                    await real_commit()
+                raise _lost("COMMIT")
 
-            db.commit = once
+            db.commit = lost_answer
         return entry
 
     monkeypatch.setattr(_run, "record_audit", recording)
-
-
-def _commit_without_answer(monkeypatch, *, reached: bool) -> None:
-    """The commit of the apply fails to answer, after reaching the database or before."""
-    async def lost_answer(real_commit):
-        if reached:
-            await real_commit()
-        raise _lost("COMMIT")
-
-    _replace_the_apply_commit(monkeypatch, lost_answer)
 
 
 @pytest.mark.parametrize("reached", [True, False], ids=["written", "not_written"])
@@ -274,14 +266,23 @@ async def test_a_request_cancelled_during_its_commit_drops_the_cached_digests(
     before = await ledger_rows(db)
     monkeypatch.setattr(daily_digest, "_digest_cache", {})  # left as it was, whatever the outcome
     daily_digest._cache_set(ids["alice"], "2026-03-08", "fr", {"cached": True})
-    committed = asyncio.Event()
+    record, committed = _run.record_audit, asyncio.Event()
 
-    async def commit_then_wait(real_commit):
-        await real_commit()
-        committed.set()
-        await asyncio.sleep(30)  # cancelled long before
+    async def recording(db, **kwargs):
+        entry = await record(db, **kwargs)
+        if kwargs["action"] == ACTION_DEBUG_WATCH_XP_RECALC:
+            real_commit = db.commit  # the overall journal is the last write before the commit
 
-    _replace_the_apply_commit(monkeypatch, commit_then_wait)
+            async def commit_then_wait():
+                del db.commit
+                await real_commit()
+                committed.set()
+                await asyncio.sleep(30)  # cancelled long before
+
+            db.commit = commit_then_wait
+        return entry
+
+    monkeypatch.setattr(_run, "record_audit", recording)
     request = asyncio.create_task(client.post(APPLY, json=confirmed))
     await asyncio.wait_for(committed.wait(), 10)
     request.cancel()
