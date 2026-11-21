@@ -5,12 +5,14 @@ from datetime import datetime, timedelta, timezone
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from models.user import User
 from models.portal.event import EventStatus, InvitationStatus, MKEvent, MKEventInvitation
 from models.portal.profile import UserProfile
+from models.user import User
+from services.portal._display_name import resolve_display_name
 from services.portal._rank_tiers import tier_for_level
-from services.portal.avatars import avatar_public_url
 from services.portal.admin_users_constants import ROLE_ADMIN
+from services.portal.avatars import avatar_public_url
+from services.settings import get_portal_default_language
 
 logger = logging.getLogger("mediakeeper.portal.mk_events")
 
@@ -90,27 +92,36 @@ def is_event_terminated(event: MKEvent, now: datetime | None = None) -> bool:
     return reference > scheduled + timedelta(hours=ROOM_CLOSE_AFTER_HOURS)
 
 
-async def _user_label(db: AsyncSession, user_id: int | None) -> str | None:
-    """Resolve a user_id to a display name (pseudo) for notif payloads.
+async def _user_label(
+    db: AsyncSession, user_id: int | None, lang: str | None = None,
+) -> str | None:
+    """Resolve a user_id to their public name, as the chat shows it.
+
+    Their pseudo, the generated one while they never confirmed theirs, the
+    admin label for an admin: never the sign-in name. ``lang`` defaults to
+    the portal language, since notification payloads are stored before
+    anyone reads them.
 
     Returns ``None`` for a purged user (``user_id IS NULL``, FK
     ``SET NULL`` since migration 041) so callers can render a localised
-    "Deleted user" placeholder instead of a fabricated ``user#None``
-    string. A live user with no profile still falls back to the raw
-    ``user#<id>`` marker — same semantics as before.
+    "Deleted user" placeholder.
     """
     if user_id is None:
         return None
-    res = await db.execute(
-        select(UserProfile.display_name, User.username)
-        .select_from(User)
-        .join(UserProfile, UserProfile.user_id == User.id, isouter=True)
-        .where(User.id == user_id)
+    row = (await db.execute(
+        select(
+            UserProfile.display_name,
+            UserProfile.display_name_must_set,
+            UserProfile.role,
+        ).where(UserProfile.user_id == user_id)
+    )).first()
+    display, must_set, role = row if row else (None, True, None)
+    return resolve_display_name(
+        None if (must_set or display is None) else display,
+        user_id,
+        lang or await get_portal_default_language(db),
+        is_admin=role == ROLE_ADMIN,
     )
-    row = res.first()
-    if not row:
-        return f"user#{user_id}"
-    return row[0] or row[1] or f"user#{user_id}"
 
 
 async def is_invitable(db: AsyncSession, user_id: int) -> bool:
@@ -142,34 +153,46 @@ async def is_invitable(db: AsyncSession, user_id: int) -> bool:
     )
 
 
-async def _serialize_event(db: AsyncSession, event: MKEvent) -> dict:
-    """Plain-dict representation including invitations + creator pseudo."""
+async def _serialize_event(
+    db: AsyncSession, event: MKEvent, lang: str | None = None,
+) -> dict:
+    """Plain-dict representation including invitations + creator name.
+
+    Guests and creator carry their public name (see ``_user_label``),
+    never their sign-in name; ``lang`` is the viewer's, the portal
+    language when omitted.
+    """
+    lang = lang or await get_portal_default_language(db)
     inv_rows = (await db.execute(
         select(
             MKEventInvitation,
-            User.username,
             UserProfile.display_name,
+            UserProfile.display_name_must_set,
+            UserProfile.role,
             UserProfile.avatar_url,
             UserProfile.avatar_custom_path,
             UserProfile.level,
         )
-        .join(User, User.id == MKEventInvitation.user_id, isouter=True)
-        .join(UserProfile, UserProfile.user_id == User.id, isouter=True)
+        .join(UserProfile, UserProfile.user_id == MKEventInvitation.user_id, isouter=True)
         .where(MKEventInvitation.event_id == event.id)
     )).all()
     invitations = []
     now = datetime.now(timezone.utc)
-    for inv, username, display, emby_avatar, custom_avatar_path, level in inv_rows:
+    for inv, display, must_set, role, emby_avatar, custom_avatar_path, level in inv_rows:
         # Custom uploads take precedence over the Emby-proxied URL — same
         # rule the profile serializer applies. The seats UI falls back to
-        # the username initial when both are missing (purged user, fresh
-        # account with no profile, etc.).
+        # the name initial when both are missing.
         avatar = avatar_public_url(custom_avatar_path) if custom_avatar_path else emby_avatar
         eff_level = level or 1
         invitations.append({
             "id": inv.id,
             "user_id": inv.user_id,
-            "username": display or username or f"user#{inv.user_id}",
+            "username": resolve_display_name(
+                None if (must_set or display is None) else display,
+                inv.user_id,
+                lang,
+                is_admin=role == ROLE_ADMIN,
+            ),
             "avatar_url": avatar,
             "level": eff_level,
             "tier": tier_for_level(eff_level),
@@ -188,7 +211,7 @@ async def _serialize_event(db: AsyncSession, event: MKEvent) -> dict:
             "responded_at": inv.responded_at.isoformat() if inv.responded_at else None,
         })
 
-    creator_label = await _user_label(db, event.creator_user_id)
+    creator_label = await _user_label(db, event.creator_user_id, lang)
 
     accepted_count = sum(1 for i in invitations if i["status"] == InvitationStatus.ACCEPTED.value)
     max_p = int(event.max_participants or 0)

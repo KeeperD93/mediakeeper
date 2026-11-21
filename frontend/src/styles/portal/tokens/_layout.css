@@ -22,6 +22,8 @@
   --portal-space-2: 8px;
   --portal-space-3: 12px;
   --portal-space-3-5: 14px;
+  --portal-space-4: 16px;
+  --portal-space-5: 20px;
   --portal-space-6: 24px;
 
   /* Border width — mirrors admin --border-width-thin (cards, sub-dividers)
@@ -84,6 +86,8 @@
     rgb(255, 255, 255, 0.04) 50%,
     transparent
   );
+  /* Night indigo shown where a news item has no image. */
+  --portal-gradient-news-fallback: linear-gradient(160deg, #3730a3 0%, #1e1b4b 55%, #0f172a 100%);
 
   /* Overlays */
   --portal-veil-page: rgb(var(--portal-bg-primary-rgb), 0.6); /* page root backdrop tint */
@@ -102,7 +106,7 @@
   --portal-panel-bg-dark: rgb(
     var(--portal-chrome-bg-rgb),
     0.96
-  ); /* daily digest panel — portal chrome tint */
+  ); /* help center panel — portal chrome tint */
 
   /* Z-index (portal layers) */
   --portal-z-sticky: 200;
@@ -130,4 +134,129 @@
 
   /* A control that cannot be used right now (busy, out of range). */
   --portal-opacity-disabled: 0.4;
+
+  /* Window of « What's new today? », worn by the first-login wizard as well. */
+  --portal-digest-margin-block: 56px; /* gap above and below the window from 1024px on */
+  /* First-login wizard: the steps the spacing scale lacked, and the sizes of the
+     wizard's pieces (PortalOnboardingWizard and its steps). */
+  --portal-wizard-window-height: 800px; /* from 640px on, the same at every step: the welcome fits */
+  --portal-space-2-5: 10px; /* mirrors admin --space-2-5 */
+  --portal-space-4-5: 18px;
+  --portal-space-5-5: 22px;
+  --portal-space-7: 28px;
+  --portal-space-8: 32px; /* mirrors admin --space-8 */
+  --portal-space-9: 36px;
+  --portal-space-12: 48px;
+  --portal-wizard-banner-width: 560px; /* welcome banner and list of the steps */
+  --portal-wizard-banner-width-sm: 240px; /* banner above a name reset */
+  --portal-wizard-cta-min-width: 200px; /* main button from a tablet on */
+  --portal-wizard-input-height: 50px;
+  --portal-wizard-progress-height: 6px;
+  --portal-wizard-icon-tile: 40px; /* tinted square behind a feature icon */
+  --portal-wizard-icon-tile-sm: 30px; /* the same, small: uses of the notifications */
+  --portal-wizard-counter-size: 26px; /* number of a step in the welcome list */
+  --portal-wizard-radio-size: 18px;
+  --portal-wizard-radio-ring: 2px;
+  --portal-wizard-radio-ring-on: 5px; /* ring of a checked radio */
+  --portal-wizard-dot-size: 10px; /* colour dot of a genre */
+  --portal-wizard-avatar-lg: 84px; /* avatar of the image step */
+  --portal-wizard-avatar-ring-lg: 3px;
+  --portal-wizard-avatar-hero: 56px; /* avatar beside « Let's go »; 64px from 480px */
+  --portal-wizard-avatar-hero-lg: 64px;
+  --portal-wizard-avatar-sm: 22px; /* avatar in the path to the account settings */
+  --portal-wizard-crumb-height: 34px;
+  --portal-wizard-phone-icon: 30px; /* icons of the phone bars, drawn small */
+  --portal-wizard-phone-avatar: 28px;
+  --portal-wizard-phone-logo: 22px;
+  --portal-shadow-wizard-banner: 0 0 36px rgb(var(--portal-color-info-rgb), 0.3);
+  --portal-shadow-wizard-banner-sm: 0 0 18px rgb(var(--portal-color-info-rgb), 0.25);
+  --portal-shadow-wizard-segment: 0 0 10px rgb(var(--portal-accent-500-rgb), 0.55);
+  --portal-shadow-wizard-avatar: 0 0 18px rgb(var(--portal-accent-500-rgb), 0.35);
+  --portal-shadow-wizard-field: 0 0 0 3px rgb(var(--portal-accent-500-rgb), 0.32);
+  /* The viewer's initial, without a picture (image step, recap, drawn top bars). */
+  --portal-wizard-avatar-bg: linear-gradient(
+    145deg,
+    var(--portal-accent-500),
+    var(--portal-color-premium)
+  );
+}
+
+/* First-login wizard: help demos — portal screens reduced to a desktop view. */
+:root {
+  /* Size of a reduced screen before it is scaled down to the card. */
+  --portal-demo-stage-w: 800px;
+  --portal-demo-stage-h: 480px;
+  --portal-demo-nav-h: 64px; /* top bar */
+  --portal-demo-control: 36px; /* icon buttons, logo, fields, buttons */
+  --portal-demo-control-sm: 28px; /* avatar, search arrow, poster buttons, toast icon */
+  --portal-demo-search-w: 210px;
+  --portal-demo-dialog-w: 440px; /* windows, ticket cards, the banner's text column */
+  --portal-demo-toast-w: 300px;
+  --portal-demo-poster-w: 128px; /* posters of a row or of the results */
+  --portal-demo-detail-poster-w: 150px; /* poster of a title's page */
+  --portal-demo-thumb-w: 52px; /* poster thumbnail in a window or a ticket */
+  --portal-demo-cursor-travel: 72px; /* how far the cursor glides to its target */
+  --portal-aspect-poster: 2 / 3; /* mirrors admin --aspect-poster */
+
+  /* Shadows of the real top bar and banner title, of the cursor, of the lists title. */
+  --portal-demo-nav-shadow: 0 16px 44px rgb(0, 0, 0, 0.28);
+  --portal-demo-text-shadow: 0 2px 16px rgb(0, 0, 0, 0.7);
+  --portal-demo-cursor-shadow: drop-shadow(0 2px 4px rgb(0, 0, 0, 0.6));
+  --portal-demo-title-bar-glow: 0 0 18px rgb(var(--portal-accent-500-rgb), 0.6);
+  --portal-demo-search-focus-ring: 0 0 0 4px rgb(var(--portal-accent-500-rgb), 0.12);
+
+  /* Gradients of the real top bar (over a banner), its active tab and search arrow. */
+  --portal-demo-nav-clear-bg: linear-gradient(
+    to bottom,
+    rgb(4, 8, 16, 0.86) 0%,
+    rgb(4, 8, 16, 0.14) 76%,
+    transparent 100%
+  );
+  --portal-demo-tab-on-bg: linear-gradient(
+    135deg,
+    rgb(var(--portal-accent-500-rgb), 0.26),
+    var(--portal-surface-4)
+  );
+  --portal-demo-search-go-bg: linear-gradient(
+    135deg,
+    rgb(var(--portal-accent-500-rgb), 0.9),
+    rgb(var(--portal-accent-500-rgb), 0.68)
+  );
+  --portal-demo-title-bar-bg: linear-gradient(
+    180deg,
+    var(--portal-accent-400),
+    var(--portal-accent-600)
+  );
+  --portal-demo-poster-panel-bg: linear-gradient(
+    180deg,
+    rgb(8, 10, 16, 0) 0%,
+    rgb(8, 10, 16, 0.72) 35%,
+    rgb(8, 10, 16, 0.94) 100%
+  );
+
+  /* Made-up backdrop of the test title, under the banner's veil or the title page's. */
+  --portal-demo-backdrop:
+    radial-gradient(circle at 72% 30%, rgb(96, 165, 250, 0.55), transparent 38%),
+    radial-gradient(circle at 90% 80%, rgb(249, 115, 22, 0.42), transparent 42%),
+    linear-gradient(120deg, #0b1027 10%, #1e3a8a 55%, #431407 100%);
+  --portal-demo-backdrop-veil:
+    linear-gradient(to top, var(--portal-bg-primary) 0%, rgb(var(--portal-bg-primary-rgb), 0) 45%),
+    linear-gradient(to right, rgb(10, 12, 18, 0.85) 0%, rgb(10, 12, 18, 0) 62%);
+  --portal-demo-backdrop-veil-det:
+    linear-gradient(
+      to top,
+      var(--portal-bg-primary) 0%,
+      rgb(var(--portal-bg-primary-rgb), 0.55) 50%,
+      rgb(10, 12, 18, 0.75) 100%
+    ),
+    linear-gradient(to right, rgb(10, 12, 18, 0.85), rgb(10, 12, 18, 0.2));
+
+  /* Made-up posters of the test titles. */
+  --portal-demo-poster-blue: linear-gradient(160deg, #1d4ed8, #1e3a8a 55%, #0b1027);
+  --portal-demo-poster-teal: linear-gradient(160deg, #0f766e, #134e4a 60%, #0b1f1d);
+  --portal-demo-poster-pink: linear-gradient(160deg, #be185d, #831843 55%, #2a0a1a);
+  --portal-demo-poster-orange: linear-gradient(160deg, #c2410c, #7c2d12 55%, #2b1405);
+  --portal-demo-poster-violet: linear-gradient(160deg, #7c3aed, #4c1d95 55%, #160a2e);
+  --portal-demo-poster-slate: linear-gradient(160deg, #475569, #1e293b 55%, #0f172a);
+  --portal-demo-poster-amber: linear-gradient(160deg, #a16207, #713f12 55%, #241304);
 }

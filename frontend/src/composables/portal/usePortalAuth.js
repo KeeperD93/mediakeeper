@@ -94,6 +94,11 @@ export function usePortalAuth() {
     return res
   }
 
+  // A save answered with the whole profile: the rest of /auth/me stays as it is.
+  function replaceProfile(nextProfile) {
+    profile.value = nextProfile
+  }
+
   function clearPortalAuth() {
     profile.value = null
     isPortalAuth.value = false
@@ -110,6 +115,7 @@ export function usePortalAuth() {
     checkPortalAuth,
     refreshAuth,
     updateProfile,
+    replaceProfile,
     setPortalAuth,
     clearPortalAuth,
     loading,

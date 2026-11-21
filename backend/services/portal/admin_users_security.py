@@ -26,6 +26,7 @@ from core.security import hash_password
 from models.user import User
 from models.portal.profile import UserProfile
 from models.portal.login_history import UserLoginHistory
+from services.portal import daily_digest as dd_svc
 
 from .admin_users_audit import record_audit
 from .admin_users_constants import (
@@ -121,7 +122,7 @@ async def reset_display_name(
 
     The bypass for the 6-month rename cooldown is already wired into the
     user-facing patch path: when ``display_name_must_set`` is true, the
-    lock check is skipped (see ``services.portal.profiles``).
+    lock check is skipped (see ``services.portal.display_name_rules``).
     """
     profile.display_name_must_set = True
     db.add(profile)
@@ -135,6 +136,7 @@ async def reset_display_name(
         commit=False,
     )
     await db.commit()
+    dd_svc.clear_cache()  # the digest podiums show a reset member under their provisional pseudo
     return {"ok": True}
 
 

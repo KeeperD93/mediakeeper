@@ -1,0 +1,178 @@
+/* Daily digest window (PortalDailyDigestOverlay.vue): overlay, frame, view switch and
+ * loading states; what both views share is in daily-digest-common.css.
+ * The window answers to its own width (container dd), not the screen's: the same
+ * layout serves phone, tablet and desktop. Classes start with dd- or ddc-, prefixes
+ * nothing else uses. */
+
+.dd-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: var(--portal-z-overlay);
+  overflow: hidden auto;
+  overscroll-behavior: contain;
+  padding: env(safe-area-inset-top, 0) env(safe-area-inset-right, 0) env(safe-area-inset-bottom, 0)
+    env(safe-area-inset-left, 0);
+  /* The page behind shows through, blurred, as behind the Help window, under an indigo and
+     pink light. A background, not a layer: it stays still and adds nothing to the scroll. */
+  background:
+    radial-gradient(circle at 15% 20%, rgb(var(--portal-accent-500-rgb), 0.26), transparent 45%),
+    radial-gradient(circle at 85% 65%, rgb(var(--portal-accent-500-rgb), 0.18), transparent 50%),
+    radial-gradient(
+      circle at 45% 100%,
+      rgb(var(--portal-color-accent-hot-rgb), 0.14),
+      transparent 55%
+    ),
+    var(--portal-overlay-modal);
+  /* The gradients span a tenth past each edge, which sets where the light falls. */
+  background-position: center;
+  background-size: 120% 120%;
+  -webkit-backdrop-filter: var(--portal-blur-md);
+  backdrop-filter: var(--portal-blur-md);
+  -webkit-tap-highlight-color: transparent;
+  animation: dd-fade-in var(--portal-dur-base) var(--portal-ease-out) both;
+}
+@keyframes dd-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+/* Phone: the window is the screen. From a tablet on, a framed window on the backdrop. */
+.dd-panel {
+  position: relative;
+  container: dd / inline-size;
+  width: 100%;
+  min-height: 100%;
+  box-sizing: border-box;
+  background: var(--portal-digest-bg);
+  color: var(--portal-text-primary-solid);
+  -webkit-font-smoothing: antialiased;
+  outline: none;
+}
+@media (min-width: 640px) {
+  .dd-overlay {
+    padding: var(--portal-space-6);
+  }
+  .dd-panel {
+    max-width: 880px;
+    min-height: 0;
+    margin: 0 auto;
+    border: var(--portal-border-width) solid var(--portal-border-default);
+    border-radius: var(--portal-radius-2xl);
+    box-shadow: var(--portal-shadow-panel);
+  }
+}
+@media (min-width: 1024px) {
+  .dd-overlay {
+    padding-block: var(--portal-digest-margin-block);
+  }
+}
+
+/* Right after the first-login wizard: the backdrop stays, the window rises in its place. */
+.dd-overlay:has(> .dd-panel--chained) {
+  animation: none;
+}
+.dd-panel--chained {
+  animation: dd-rise var(--portal-wizard-chain-enter) var(--portal-ease-default) both;
+}
+@keyframes dd-rise {
+  from {
+    opacity: 0;
+    transform: translateY(var(--portal-space-2-5));
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* « Compact view », in the top corner: the account keeps the choice. */
+.dd-switch {
+  position: absolute;
+  top: var(--portal-space-3);
+  right: var(--portal-space-3);
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--portal-space-2);
+  min-height: var(--portal-touch-target);
+  padding: 0 var(--portal-space-1);
+  border: none;
+  background: none;
+  color: var(--portal-text-muted-solid);
+  font: inherit;
+  font-size: var(--portal-text-xs);
+  font-weight: var(--portal-font-medium);
+  cursor: pointer;
+}
+.dd-switch-track {
+  position: relative;
+  flex: none;
+  width: 36px;
+  height: 20px;
+  border-radius: var(--portal-radius-pill);
+  background: var(--portal-surface-5);
+  transition: background var(--portal-dur-base) var(--portal-ease-default);
+}
+.dd-switch-knob {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 16px;
+  height: 16px;
+  border-radius: var(--portal-radius-circle);
+  background: var(--portal-text-primary-solid);
+  transition: transform var(--portal-dur-base) var(--portal-ease-default);
+}
+.dd-switch[aria-checked='true'] .dd-switch-track {
+  background: var(--portal-accent-500);
+}
+.dd-switch[aria-checked='true'] .dd-switch-knob {
+  transform: translateX(16px);
+}
+.dd-panel--compact .dd-switch {
+  top: var(--portal-space-2);
+  right: var(--portal-space-2);
+}
+@container dd (min-width: 640px) {
+  .dd-panel--full .dd-switch {
+    top: 18px;
+    right: 18px;
+  }
+}
+
+.dd-panel :is(a, button):focus-visible {
+  outline: var(--portal-focus-ring);
+  outline-offset: var(--portal-focus-ring-offset);
+}
+
+/* Loading, failed or nothing new: the message, then the button out under it. */
+.dd-state-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-bottom: 72px;
+}
+.dd-state {
+  margin: 0;
+  padding: 120px var(--portal-space-6) var(--portal-space-6);
+  text-align: center;
+  font-size: var(--portal-text-base);
+  color: var(--portal-text-muted-solid);
+}
+.dd-state--error {
+  color: var(--portal-color-error-light);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dd-overlay {
+    animation: none;
+  }
+  .dd-switch-track,
+  .dd-switch-knob {
+    transition: none;
+  }
+  .dd-panel--chained {
+    animation: none;
+  }
+}

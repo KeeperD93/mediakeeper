@@ -1,0 +1,124 @@
+/* First-login wizard, features step (WizardNavMap.vue): where things are. From 640 px of
+ * window, the top bar of the help demos (DemoTopBar) at its real size, scaled down
+ * (--wz-s); below, a phone with its top bar and bottom tabs. Classes start with wz-. */
+
+.wz-map {
+  padding: var(--portal-space-3-5) var(--portal-space-4) var(--portal-space-4);
+}
+.wz-map-desk {
+  display: none;
+}
+
+/* Top bar, desktop: the demos' bar in the same frame as their screens, scaled to the card */
+.wz-nm-box {
+  --wz-s: 0.66;
+  position: relative;
+  width: calc(var(--portal-demo-stage-w) * var(--wz-s));
+  height: calc(var(--portal-demo-nav-h) * var(--wz-s));
+  overflow: clip;
+  border-radius: var(--portal-radius-md);
+}
+.wz-nm {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: var(--portal-demo-stage-w);
+  color: var(--portal-text-primary);
+  font-size: var(--portal-text-base);
+  line-height: var(--portal-lh-compact);
+  transform: scale(var(--wz-s));
+  transform-origin: 0 0;
+}
+
+/* Phone: top bar and bottom tabs */
+.wz-mphone {
+  display: flex;
+  flex-direction: column;
+  gap: var(--portal-space-2);
+}
+.wz-mbar,
+.wz-mbottom {
+  border: var(--portal-border-width) solid var(--portal-border-default);
+  border-radius: var(--portal-radius-lg);
+  background: var(--portal-wizard-page-bg);
+}
+.wz-mbar {
+  display: flex;
+  align-items: center;
+  gap: var(--portal-space-1-5);
+  padding: var(--portal-space-2) var(--portal-space-2-5);
+}
+.wz-mbrand {
+  display: flex;
+  align-items: center;
+  gap: var(--portal-space-1-5);
+  margin-right: var(--portal-space-1-5);
+  font-family: var(--portal-font-display);
+  font-size: var(--portal-text-xs);
+  font-weight: var(--portal-font-extrabold);
+}
+.wz-mbrand img {
+  width: var(--portal-wizard-phone-logo);
+  height: var(--portal-wizard-phone-logo);
+  object-fit: contain;
+}
+.wz-mic {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--portal-wizard-phone-icon);
+  height: var(--portal-wizard-phone-icon);
+  border-radius: var(--portal-radius-md);
+  background: var(--portal-surface-2);
+  color: var(--portal-text-secondary-solid);
+}
+.wz-mphone .wz-av--md {
+  --wz-av-size: var(--portal-wizard-phone-avatar);
+}
+.wz-mbottom {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--portal-space-1);
+  padding: var(--portal-space-2) var(--portal-space-1-5);
+}
+.wz-mbt {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--portal-space-1);
+  font-size: var(--portal-text-3xs);
+  font-weight: var(--portal-font-medium);
+  text-align: center;
+  color: var(--portal-text-muted-solid);
+}
+.wz-mbt.is-on {
+  color: var(--portal-accent-200);
+}
+
+.wz-mlegend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--portal-space-1-5) var(--portal-space-3-5);
+  margin: var(--portal-space-2-5) 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--portal-text-xs);
+  color: var(--portal-text-muted-solid);
+}
+
+/* The scale keeps the drawn bar inside the card at the narrowest window of each step
+   (640 px: 534 px of card, 768 px: 638 px). */
+@container dd (min-width: 640px) {
+  .wz-map-desk {
+    display: block;
+  }
+  .wz-map-phone {
+    display: none;
+  }
+}
+@container dd (min-width: 768px) {
+  .wz-nm-box {
+    --wz-s: 0.79;
+  }
+}

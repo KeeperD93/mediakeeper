@@ -4,8 +4,12 @@ import App from './App.vue'
 import router from './router'
 import i18n, { initializeLocale } from './i18n'
 import { setToastRouter } from './composables/useToast'
+import { listenForAppInstall } from './composables/portal/useAppInstall'
 import './styles/main.css'
 import './assets/mediamanager.css'
+
+// The browser's install offer can come before the app is mounted: listen from the start.
+listenForAppInstall()
 
 async function bootstrap() {
   await initializeLocale()

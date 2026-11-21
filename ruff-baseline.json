@@ -19,9 +19,6 @@
   "backend/api/backup/_directories.py": {
     "I001": 1
   },
-  "backend/api/changelog.py": {
-    "I001": 1
-  },
   "backend/api/core_routes.py": {
     "I001": 1
   },
@@ -65,9 +62,6 @@
   "backend/api/onboarding.py": {
     "I001": 1
   },
-  "backend/api/portal/__init__.py": {
-    "I001": 1
-  },
   "backend/api/portal/_events_rooms.py": {
     "I001": 1,
     "UP045": 8
@@ -108,9 +102,6 @@
     "PLR0915": 1,
     "UP045": 1
   },
-  "backend/api/portal/daily_digest.py": {
-    "I001": 1
-  },
   "backend/api/portal/deps.py": {
     "I001": 1
   },
@@ -141,12 +132,6 @@
     "UP045": 12
   },
   "backend/api/portal/notifications.py": {
-    "I001": 1
-  },
-  "backend/api/portal/profile_settings.py": {
-    "I001": 1
-  },
-  "backend/api/portal/requests.py": {
     "I001": 1
   },
   "backend/api/portal/social.py": {
@@ -187,9 +172,6 @@
     "I001": 1
   },
   "backend/api/portal_admin_users_gdpr.py": {
-    "I001": 1
-  },
-  "backend/api/portal_changelog.py": {
     "I001": 1
   },
   "backend/api/scheduler.py": {
@@ -620,9 +602,6 @@
   "backend/services/portal/chat.py": {
     "I001": 1
   },
-  "backend/services/portal/daily_digest.py": {
-    "I001": 1
-  },
   "backend/services/portal/daily_digest_sources.py": {
     "I001": 1
   },
@@ -682,7 +661,6 @@
     "I001": 1
   },
   "backend/services/portal/help.py": {
-    "ERA001": 1,
     "I001": 1,
     "UP035": 1,
     "UP045": 7
@@ -691,12 +669,6 @@
     "I001": 1
   },
   "backend/services/portal/help_content_general.py": {
-    "I001": 1
-  },
-  "backend/services/portal/help_content_profile.py": {
-    "I001": 1
-  },
-  "backend/services/portal/help_content_requests.py": {
     "I001": 1
   },
   "backend/services/portal/help_sanitize.py": {
@@ -825,13 +797,8 @@
   "backend/services/portal/profile_stats_viewing.py": {
     "I001": 1
   },
-  "backend/services/portal/profiles.py": {
-    "C901": 1,
-    "I001": 1
-  },
   "backend/services/portal/requests.py": {
-    "C901": 1,
-    "I001": 1
+    "C901": 1
   },
   "backend/services/portal/requests_blacklist.py": {
     "I001": 1

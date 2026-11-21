@@ -2,7 +2,6 @@
 classement, recommandations, pseudo, avatar, visibilité, paramètres)."""
 from __future__ import annotations
 
-
 HELP_PROFILE: list[dict] = [
     {
         "slug": "comment-gagner-de-l-xp",
@@ -12,20 +11,17 @@ HELP_PROFILE: list[dict] = [
         "fr": {
             "title": "Comment gagner de l'XP ?",
             "body_html": """
-<p>L'<strong>XP</strong> (points d'expérience) fait monter ton niveau et débloque des paliers de grade : <em>Bronze → Argent → Or → Platine → Diamant → Maître → Légendaire</em>.</p>
-<p>Voici les principales façons d'en gagner au quotidien :</p>
+<p>L'<strong>XP</strong> (points d'expérience) fait monter ton <strong>niveau</strong>, jusqu'au niveau 50. Ta barre d'XP et ton niveau sont sur <strong>« Mon profil »</strong>.</p>
+<p><strong>Ce qui rapporte de l'XP :</strong></p>
 <ul>
-  <li><strong>+10 XP</strong> par session de visionnage Emby (au moins 5 minutes regardées).</li>
-  <li><strong>+25 XP</strong> quand tu termines un film.</li>
-  <li><strong>+15 XP</strong> par épisode terminé.</li>
-  <li><strong>+50 XP</strong> à la fin d'une saison complète.</li>
-  <li><strong>+5 XP</strong> en notant un contenu après l'avoir vu.</li>
-  <li><strong>+10 XP</strong> en publiant un commentaire constructif.</li>
-  <li><strong>+20 XP</strong> en créant ou contribuant à une liste publique.</li>
-  <li><strong>+15 XP</strong> en participant à une <em>watch party</em> ou à un événement saisonnier.</li>
-  <li><strong>Multiplicateurs ponctuels</strong> : pendant un événement (XP boost), tous les gains sont multipliés (×2, ×3…).</li>
+  <li><strong>+10 XP</strong> par film regardé sur Emby jusqu'à au moins 85 % de sa durée.</li>
+  <li><strong>+3 XP</strong> par épisode regardé jusqu'à au moins 85 % de sa durée.</li>
+  <li><strong>+2 XP</strong> quand tu te connectes au portail, une fois par jour.</li>
+  <li><strong>+5 XP</strong> par nouvelle demande, jusqu'à 25 XP par jour.</li>
+  <li><strong>Les trophées</strong> : chacun rapporte son XP une seule fois, quand tu le débloques. Le montant s'affiche dans <strong>« Voir tous les trophées »</strong>, sur <strong>« Mon profil »</strong>.</li>
 </ul>
-<p><strong>Et les trophées ?</strong> Chaque trophée donne aussi de l'XP, mais le montant dépend de sa rareté. Pour connaître l'XP de chaque trophée, va voir l'onglet <strong>Trophées</strong> dans ton profil — chaque carte affiche son gain.</p>
+<p>Revoir le même film ou le même épisode dans les 24 heures ne rapporte rien de plus. Les autres actions (créer un événement ou une liste publique, écrire dans le chat…) ne donnent pas d'XP directement, mais font avancer certains trophées.</p>
+<p><strong>Périodes bonus :</strong> l'administrateur peut lancer une période pendant laquelle l'XP gagnée est multipliée.</p>
 """.strip(),
         },
     },
@@ -65,14 +61,16 @@ HELP_PROFILE: list[dict] = [
         "fr": {
             "title": "Le classement mensuel",
             "body_html": """
-<p>Le <strong>classement</strong> que tu vois dans ta carte de profil est calculé sur les <strong>30 derniers jours glissants</strong>. Il met en avant les utilisateurs les plus actifs <em>récemment</em>, pas ceux qui cumulent depuis le début.</p>
+<p>Le <strong>classement</strong> compare l'activité des membres. Sur <strong>« Mon profil »</strong>, le bloc <strong>« Classement ce mois »</strong> montre ta place, et la carte <strong>« Classement »</strong> les premiers du moment. Touche le titre de la carte pour voir le classement complet.</p>
+<p><strong>Quatre périodes :</strong> <em>Aujourd'hui</em>, <em>Semaine</em>, <em>Mois</em> et <em>Tout temps</em>. La semaine commence le lundi et le mois le 1er : à chaque nouvelle période, tout le monde repart de zéro.</p>
+<p><strong>Ce qui compte :</strong> seulement l'XP gagnée par ton activité sur la période, c'est-à-dire les films et épisodes regardés, les connexions et les demandes. L'XP des trophées fait monter ton niveau, pas ton classement.</p>
 <ul>
-  <li>Ton <strong>rang</strong> (#1, #2…) reflète ta position parmi les utilisateurs publics.</li>
-  <li>Le <strong>percentile</strong> indique dans quel pourcentage du haut tu te trouves (top 1 %, top 10 %…).</li>
-  <li>La <strong>flèche de mouvement</strong> compare ton rang d'aujourd'hui à celui d'hier : ↗ tu progresses, ↘ tu recules.</li>
+  <li>Ta <strong>place</strong> (#1, #2…) et ton <strong>« Top x% »</strong> te situent parmi les membres classés ce mois-ci.</li>
+  <li>Dans ce bloc, l'écart (par exemple « +2 places ») compare ta place à celle de la fin du mois dernier. Dans la carte et le classement complet, la petite flèche compare avec la veille, la semaine dernière ou le mois dernier, selon la période choisie.</li>
+  <li>Tant que tu n'as rien gagné sur la période, tu n'apparais pas.</li>
 </ul>
-<p>Le classement <strong>ignore les comptes administrateurs</strong> et les profils privés. Si tu masques ton profil, tu n'apparais plus dans la liste publique mais ton XP continue d'être comptabilisée.</p>
-<p>Astuce : un mois de calme te fait redescendre. Pour rester en haut, regarde, note, commente régulièrement.</p>
+<p><strong>Qui y figure :</strong> les membres au profil <em>public</em>. Si tu passes ton profil en <em>Privé</em> (<strong>Paramètres → Visibilité</strong>), tu disparais du classement, mais tu continues à gagner de l'XP.</p>
+<p>Finir un mois dans le top 10, le top 5, le top 3 ou à la première place débloque les trophées <strong>« Compétiteur »</strong>.</p>
 """.strip(),
         },
     },
@@ -104,12 +102,13 @@ HELP_PROFILE: list[dict] = [
         "fr": {
             "title": "Choisir son pseudo",
             "body_html": """
-<p>À ta première connexion sur le portail, MediaKeeper te demande de <strong>choisir un pseudo</strong>. Quelques règles à connaître :</p>
+<p>À ta première connexion sur le portail, MediaKeeper te demande de <strong>choisir un pseudo</strong>. En attendant, les autres membres voient un pseudo provisoire tiré au hasard (« Renard-Bleu-42 ») : il ne peut pas être gardé. Quelques règles à connaître :</p>
 <ul>
   <li>Le pseudo doit être <strong>unique</strong> sur la plateforme (insensible à la casse : « Lola » et « lola » sont identiques).</li>
-  <li>Longueur entre 2 et 50 caractères. Lettres, chiffres, espaces, tirets et apostrophes acceptés.</li>
-  <li>Certains noms sont <strong>réservés</strong> et refusés : <em>admin, administrator, administrateur, root</em>.</li>
+  <li>Longueur entre 3 et 50 caractères (2 suffisent en chinois ou en coréen). Pour le minimum, seuls comptent les lettres, les chiffres et les symboles.</li>
+  <li>Certains noms sont <strong>réservés</strong> et refusés, ainsi que leurs imitations et les pseudos où on les lit comme un mot (<em>SuperAdmin</em>, <em>Joe Root</em>) : <em>admin, administrator, administrateur, root</em>.</li>
   <li>Si le pseudo est déjà pris, MediaKeeper te propose <strong>jusqu'à 5 suggestions</strong> libres (avec un suffixe numérique).</li>
+  <li>Si un administrateur réinitialise ton pseudo, choisis-en un nouveau : l'ancien n'est plus accepté.</li>
 </ul>
 <p><strong>Verrouillage 6 mois</strong> : une fois ton pseudo choisi ou modifié, tu ne peux pas en changer pendant <strong>180 jours</strong>. C'est volontaire pour éviter l'usurpation et garantir aux autres utilisateurs qu'un nom = une personne stable.</p>
 <p>Les administrateurs peuvent bypasser le verrou si tu as une vraie raison de changer (faute de frappe, incident).</p>

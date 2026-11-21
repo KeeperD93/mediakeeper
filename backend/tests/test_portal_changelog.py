@@ -86,6 +86,25 @@ async def test_mark_seen_then_check(client, db_session):
     assert data["has_new"] is False
 
 
+@pytest.mark.asyncio
+async def test_mark_seen_locks_the_preferences_row(client, db_session, monkeypatch):
+    """The daily digest writes the same preferences JSON: both writes go under a lock."""
+    import services.settings as settings_mod
+
+    await _seed_portal_viewer(client, db_session)
+    real = settings_mod.get_user_preferences
+    locks: list[bool] = []
+
+    async def _spy(db, user_id, *, lock_row=False):
+        locks.append(lock_row)
+        return await real(db, user_id, lock_row=lock_row)
+
+    monkeypatch.setattr(settings_mod, "get_user_preferences", _spy)
+
+    assert (await client.post("/api/portal/changelog/seen", json={})).status_code == 200
+    assert locks == [True]
+
+
 def test_mark_seen_request_rejects_extra_key():
     """extra=forbid: an unknown body field fails validation loudly (symmetry
     with the admin MarkSeenRequest twin)."""

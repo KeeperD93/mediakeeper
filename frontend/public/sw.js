@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mk-portal-v3'
+const CACHE_NAME = 'mk-portal-v4'
 const PRECACHE = ['/portal', '/manifest.json']
 
 self.addEventListener('install', (event) => {
@@ -82,8 +82,9 @@ self.addEventListener('push', (event) => {
   event.waitUntil(
     self.registration.showNotification(data.title || 'MediaKeeper', {
       body: data.body || '',
-      icon: '/assets/icons/mediakeeper.png',
-      badge: '/assets/icons/mediakeeper.png',
+      icon: '/assets/icons/mk-icon-192.png',
+      // Android draws the badge from its alpha channel only: a white owl shape.
+      badge: '/assets/icons/mk-badge-96.png',
       data: data.url ? { url: data.url } : undefined,
     })
   )

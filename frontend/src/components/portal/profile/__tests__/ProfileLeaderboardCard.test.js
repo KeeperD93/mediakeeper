@@ -1,6 +1,6 @@
 /**
  * Ranking card of "My profile": the month is already there, the other periods are asked
- * for. The daily digest and the admin widget draw the same rows, each in its own frame.
+ * for. The admin widget draws the same rows in its own frame.
  */
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
@@ -242,36 +242,5 @@ describe('LeaderboardCard.vue without a period', () => {
         .attributes('data-full')
     expect(full(15)).toBeUndefined()
     expect(full(16)).toBe('true')
-  })
-})
-
-describe('LeaderboardCard.vue in the daily digest', () => {
-  const TOP_AND_VIEWER = [row(1, 'Alice'), row(2, 'Bob'), row(3, 'Carol'), ME]
-  const digest = (entries = TOP_AND_VIEWER) =>
-    mount(LeaderboardCard, { props: { entries, digest: true } })
-
-  it('is framed by its section, not as the admin widget', () => {
-    expect(digest().classes()).toEqual(['gc-lb-box'])
-  })
-
-  it('labels the row of the viewer after the top 3, and no other', () => {
-    const rows = digest().findAll('.gc-lb-row')
-    expect(rows.map(item => item.find('.lb-me-pill').exists())).toEqual([false, false, false, true])
-    expect(rows[3].classes()).toContain('gc-lb-row--me')
-    expect(rows[3].find('.gc-lb-pos').text()).toBe('42')
-  })
-
-  it('labels a viewer on the podium too', () => {
-    const wrapper = digest([row(1, 'Alice', { is_current_user: true }), row(2, 'Bob')])
-    expect(wrapper.findAll('.gc-lb-row')[0].find('.lb-me-pill').exists()).toBe(true)
-  })
-
-  it('leaves the title to its section, without a choice of period', () => {
-    const wrapper = digest()
-    expect(wrapper.find('.gc-box-title').exists()).toBe(false)
-    expect(wrapper.find('select').exists()).toBe(false)
-    expect(wrapper.find('[role="tablist"]').exists()).toBe(false)
-    expect(wrapper.find('[role="tabpanel"]').exists()).toBe(false)
-    expect(wrapper.find('.gc-lb-move').attributes('title')).toBe('portal.leaderboard.move.month.up')
   })
 })

@@ -14,9 +14,11 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Outils de debug — recalcul de l'XP de visionnage, avec simulation et sauvegarde.
 
 ### Changed
+- Identité visuelle — nouveau logo et nouvelle bannière, icônes de l'application refaites.
 - Tableau de bord — widget du classement aligné sur la page Classement.
 - Statistiques — série de jours dès 5 min regardées ; musique et livres audio exclus.
 - Portail — trophées secrets : nom et icône visibles, description et progression cachées jusqu'au déblocage.
+- Portail — « Quoi de neuf aujourd'hui ? » refondu : actualités en tête, vue compacte, alerte d'expiration, « Pour vous ».
 
 ### Fixed
 - Barre d'XP — même pourcentage dans le résumé du jour et le profil.
@@ -42,6 +44,11 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - Événements bonus — XP arrondie au plus proche, les moitiés vers le haut.
 - Outils de debug — « Réinitialiser pour tous » ne reprend que l'XP donnée par le trophée.
 - Outils de debug — trophées comptés en UTC : sauvegarde impossible signalée comme incomplète.
+- Portail — « Demandé par » affiche le pseudo, plus le nom de connexion (« vous » pour vos demandes).
+- Portail — Événements : le pseudo remplace le nom de connexion (invités, créateur, notifications).
+- Portail — Événements : plus d'erreur en répondant à l'invitation d'un organisateur supprimé.
+- Utilisateurs — renommer un membre avec un pseudo déjà porté est refusé.
+- Utilisateurs — un administrateur repassé membre ne montre plus son nom de connexion.
 
 ## [1.0.0-rc.10] - 2026-11-11
 

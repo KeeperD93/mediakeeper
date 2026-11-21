@@ -48,6 +48,7 @@ def serialize_profile(profile: UserProfile, *, user: User | None = None) -> dict
         "display_name_changed_at": profile.display_name_changed_at.isoformat()
             if profile.display_name_changed_at else None,
         "display_name_locked_until": locked_until.isoformat() if locked_until else None,
+        "onboarding_pending": profile.onboarding_completed_at is None,
         "avatar_url": _resolve_avatar_url(profile),
         "avatar_emby_url": profile.avatar_url,
         "avatar_is_custom": bool(profile.avatar_custom_path),

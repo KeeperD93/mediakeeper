@@ -1,0 +1,65 @@
+/* Avatar with the frame a Master trophy unlocks. The frames (trophy-master-avatar-fx.css)
+ * are drawn in a 160 px square around an 88 px avatar: here that square is scaled to the
+ * avatar's size. Used by AvatarFrame.vue; every class starts with pt-avf. */
+
+.pt-avf {
+  position: relative;
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Its own avatar: as large as the prop, or as the page sets --pt-avf-size. */
+.pt-avf--own {
+  width: calc(var(--pt-avf-size, var(--pt-avf-default)) * 1px);
+  height: calc(var(--pt-avf-size, var(--pt-avf-default)) * 1px);
+}
+.pt-avf--own > .pt-avf-avatar {
+  /* Beats the inline size MkAvatar binds to its prop. */
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.pt-avf--fx {
+  isolation: isolate;
+}
+.pt-avf--fx > :not(.pt-avf-layer) {
+  z-index: 1;
+}
+
+.pt-avf-layer {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 160px;
+  height: 160px;
+  pointer-events: none;
+  transform: translate(-50%, -50%) scale(calc(var(--pt-avf-size, var(--pt-avf-default)) / 88));
+}
+.pt-avf-layer--top {
+  z-index: 2;
+}
+
+.pt-avf--reserve {
+  min-width: calc(var(--pt-avf-size, var(--pt-avf-default)) * 160px / 88);
+  min-height: calc(var(--pt-avf-size, var(--pt-avf-default)) * 160px / 88);
+}
+
+/* Reduced motion: each frame stays on one still image. */
+@media (prefers-reduced-motion: reduce) {
+  .pt-avf-layer,
+  .pt-avf-layer::before,
+  .pt-avf-layer::after,
+  .pt-avf-layer *,
+  .pt-avf-layer *::before,
+  .pt-avf-layer *::after {
+    animation-play-state: paused;
+  }
+
+  /* The ranking stars only show mid-orbit: they stop there. */
+  .pt-avf .pt-avf-layer .gc-fx-rhalo,
+  .pt-avf .pt-avf-layer .gc-fx-rstar {
+    animation-delay: -4s;
+  }
+}

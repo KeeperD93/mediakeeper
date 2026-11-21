@@ -2,51 +2,21 @@
   <div class="pt-settings-card">
     <h3 class="pt-settings-section-title">{{ $t('portal.settings.identity.section') }}</h3>
 
-    <!-- Avatar — reuses SideRankCard structure for tier ring + FX. -->
+    <!-- Avatar — the rank card's tier ring, with the frame being chosen. -->
     <div class="pt-settings-avatar-block">
-      <div class="pt-settings-avatar-preview gc-avatar-zone" :class="avatarFxClass">
-        <template v-if="avatarFxKey === 'dedication'">
-          <div class="gc-fx-comet-core" />
-          <div class="gc-fx-comet-trail" />
-          <div class="gc-fx-comet-head" />
-        </template>
-        <template v-else-if="avatarFxKey === 'special'">
-          <div class="gc-fx-holy-rays" />
-          <div class="gc-fx-holy-glow" />
-          <div class="gc-fx-holy-ring" />
-          <div class="gc-fx-rune" />
-          <div class="gc-fx-rune" />
-          <div class="gc-fx-rune" />
-          <div class="gc-fx-rune" />
-        </template>
-        <template v-else-if="avatarFxKey === 'community'">
-          <div class="gc-fx-nebula" />
-          <span v-for="i in 8" :key="'cstar' + i" class="gc-fx-star" />
-        </template>
-        <template v-else-if="avatarFxKey === 'ranking'">
-          <div v-for="i in 5" :key="'rhalo' + i" class="gc-fx-rhalo" :class="`gc-fx-rhalo--${i}`" />
-        </template>
-        <template v-else-if="avatarFxKey === 'meta'">
-          <div class="gc-fx-mandala gc-fx-mandala--dots" />
-          <div class="gc-fx-mandala gc-fx-mandala--outer" />
-          <div class="gc-fx-mandala gc-fx-mandala--mid" />
-          <div class="gc-fx-mandala gc-fx-mandala--inner" />
-        </template>
-
-        <div class="gc-avatar-ring">
-          <div class="gc-avatar-inner">
-            <MkAvatar
-              :name="form.display_name || ''"
-              :src="avatarPreviewUrl || null"
-              :size="88"
-              class="gc-avatar-mk"
-            />
+      <div class="pt-settings-avatar-preview gc-avatar-zone">
+        <AvatarFrame :size="88" :effect="avatarEffect" reserve>
+          <div class="gc-avatar-ring">
+            <div class="gc-avatar-inner">
+              <MkAvatar
+                :name="form.display_name || ''"
+                :src="avatarPreviewUrl || null"
+                :size="88"
+                class="gc-avatar-mk"
+              />
+            </div>
           </div>
-        </div>
-
-        <template v-if="avatarFxKey === 'ranking'">
-          <div v-for="i in 5" :key="'rstar' + i" class="gc-fx-rstar" :class="`gc-fx-rstar--${i}`" />
-        </template>
+        </AvatarFrame>
       </div>
       <div class="pt-settings-avatar-actions">
         <span class="pt-settings-hint">
@@ -162,7 +132,9 @@ import { useI18n } from 'vue-i18n'
 import { Trash2, Upload } from 'lucide-vue-next'
 
 import MkAvatar from '@/components/common/MkAvatar.vue'
+import AvatarFrame from '@/components/portal/common/AvatarFrame.vue'
 import { useToast } from '@/composables/useToast'
+import { DISPLAY_NAME_FLAGS } from '@/constants/displayName'
 import { TOAST_TYPE } from '@/constants/toast'
 
 const props = defineProps({
@@ -183,21 +155,9 @@ const fileRef = ref(null)
 const uploading = ref(false)
 const lastUploadedUrl = ref(null)
 
-const VALID_AVATAR_FX = new Set([
-  'watching',
-  'dedication',
-  'diversity',
-  'special',
-  'community',
-  'ranking',
-  'meta',
-])
-const avatarFxKey = computed(() => {
-  const raw = props.form?.avatar_effect ?? props.profileData?.avatar_effect
-  return VALID_AVATAR_FX.has(raw) ? raw : null
-})
-const avatarFxClass = computed(() =>
-  avatarFxKey.value ? `gc-avatar-fx--${avatarFxKey.value}` : '',
+// The frame being chosen, else the saved one; AvatarFrame ignores one not unlockable.
+const avatarEffect = computed(
+  () => props.form?.avatar_effect ?? props.profileData?.avatar_effect ?? null,
 )
 
 const usernameLockedHard = computed(() => {
@@ -232,44 +192,13 @@ const unameFlag = computed(() => {
       text: t('portal.settings.forceUsername.checking'),
     }
   }
-  if (c.reason === 'current') {
-    return {
-      show: true,
-      cls: 'pt-settings-uname-flag--warn',
-      text: t('portal.settings.identity.usernameCurrent'),
-    }
+  const flag = DISPLAY_NAME_FLAGS[c.reason]
+  if (!flag) return { show: false }
+  return {
+    show: true,
+    cls: `pt-settings-uname-flag--${flag.tone}`,
+    text: t(flag.key, { days: props.usernameState?.lock_days || 180 }),
   }
-  if (c.reason === 'free') {
-    return {
-      show: true,
-      cls: 'pt-settings-uname-flag--ok',
-      text: t('portal.settings.identity.usernameAvailable'),
-    }
-  }
-  if (c.reason === 'taken') {
-    return {
-      show: true,
-      cls: 'pt-settings-uname-flag--err',
-      text: t('portal.settings.identity.usernameTaken'),
-    }
-  }
-  if (c.reason === 'reserved') {
-    return {
-      show: true,
-      cls: 'pt-settings-uname-flag--err',
-      text: t('portal.settings.identity.usernameReserved'),
-    }
-  }
-  if (c.reason === 'locked') {
-    return {
-      show: true,
-      cls: 'pt-settings-uname-flag--err',
-      text: t('portal.settings.identity.usernameLockedShort', {
-        days: props.usernameState?.lock_days || 180,
-      }),
-    }
-  }
-  return { show: false }
 })
 
 function updateField(key, value) {

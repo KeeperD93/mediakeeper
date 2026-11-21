@@ -67,3 +67,17 @@ describe('useRequestStatus — chunking', () => {
     expect(getStatus(101)).toBeNull() // failed chunk's ids left unstamped to retry
   })
 })
+
+describe('useRequestStatus — markRequested', () => {
+  beforeEach(() => {
+    useRequestStatus().clearCache()
+  })
+
+  it("flags the viewer's own request instead of writing a name", () => {
+    const { markRequested, getStatus } = useRequestStatus()
+    markRequested(12345, { request_id: 7 })
+    const entry = getStatus(12345)
+    expect(entry.requested_by_self).toBe(true)
+    expect(entry.requested_by).toBeUndefined()
+  })
+})

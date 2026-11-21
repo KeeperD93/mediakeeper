@@ -69,6 +69,19 @@ async def test_upsert_fr_title_realigns_slug(db_session):
 
 
 @pytest.mark.asyncio
+async def test_saving_the_same_fr_title_keeps_the_slug(db_session):
+    # A starter slug is not its title's: the editor's auto-save must not move it.
+    article = await help_service.create_article(
+        db_session, category="general", title="Le calendrier", body_html="",
+    )
+    article.slug = "le-calendrier-et-les-evenements"
+    await help_service.upsert_translation(
+        db_session, article, lang="fr", title="Le calendrier", body_html="<p>v2</p>",
+    )
+    assert article.slug == "le-calendrier-et-les-evenements"
+
+
+@pytest.mark.asyncio
 async def test_soft_delete_then_restore(db_session):
     article = await help_service.create_article(
         db_session, category="general", title="A", body_html="",

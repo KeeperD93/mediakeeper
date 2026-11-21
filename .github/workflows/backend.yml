@@ -51,7 +51,8 @@ jobs:
         run: python backend/scripts/ruff_baseline.py
 
       - name: Run pytest with coverage
-        run: pytest -n auto --cov --cov-report=term-missing --cov-report=xml --cov-fail-under=50
+        # "auto" counts physical cores only: 2 workers on the runner's 4 CPUs.
+        run: pytest -n logical --cov --cov-report=term-missing --cov-report=xml --cov-fail-under=50
         env:
           PYTHONPATH: ${{ github.workspace }}
 

@@ -22,6 +22,7 @@ the natural ``Adjective Noun`` order. The two lists are index-aligned
 from __future__ import annotations
 
 import hashlib
+from collections.abc import Iterator
 
 _PSEUDO_SALT = "mediakeeper-portal-pseudo-words-v1"
 
@@ -71,3 +72,12 @@ def generate_pseudo(user_id: int, lang: str = "fr") -> str:
     adj = _ADJECTIVES[adj_idx][1 if en else 0]
     pair = f"{adj}-{noun}" if en else f"{noun}-{adj}"
     return f"{pair}-{number}"
+
+
+def pseudo_word_pairs() -> Iterator[str]:
+    """Every pair a provisional pseudo starts with, number left out:
+    ``Noun-Adjective`` in French, ``Adjective-Noun`` in English."""
+    for noun_fr, noun_en in _NOUNS:
+        for adj_fr, adj_en in _ADJECTIVES:
+            yield f"{noun_fr}-{adj_fr}"
+            yield f"{adj_en}-{noun_en}"

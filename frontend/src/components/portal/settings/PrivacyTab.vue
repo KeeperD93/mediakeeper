@@ -15,7 +15,7 @@
       {{ $t('common.loading') }}
     </div>
     <!-- Server already runs the text through bleach on admin write;
-         DOMPurify here is defence in depth (HelpCardList pattern). -->
+         it is scrubbed again here as defence in depth. -->
     <!-- eslint-disable vue/no-v-html -->
     <div
       v-else-if="purifiedHtml"
@@ -74,13 +74,13 @@ import { computed, onMounted, ref, watch } from 'vue'
 // kebab/PascalCase auto-mapping. Without the explicit local import the
 // runtime logs a "Failed to resolve component: i18n-t" warning.
 import { useI18n, I18nT } from 'vue-i18n'
-import DOMPurify from 'dompurify'
 import { Download, Trash2 } from 'lucide-vue-next'
 
 import { EXPORT_LIMIT, EXPORT_TOO_LARGE, useGdprUser } from '@/composables/portal/useGdprUser'
 import { usePortalAuth } from '@/composables/portal/usePortalAuth'
 import { useToast } from '@/composables/useToast'
 import { TOAST_TYPE } from '@/constants/toast'
+import { sanitizeHtml } from '@/utils/sanitizeHtml'
 import DeleteConfirmModal from './DeleteConfirmModal.vue'
 
 const { t, locale } = useI18n()
@@ -100,13 +100,7 @@ const submittingDeletion = ref(false)
 // notice — the message would be misleading.
 const isEmbyAccount = computed(() => profile.value?.source === 'emby')
 
-// Server already sanitises through bleach on the admin write path —
-// DOMPurify here is defence in depth, mirroring HelpCardList. If the
-// backend ever regresses, the rendered HTML stays scrubbed.
-const purifiedHtml = computed(() => {
-  if (!textHtml.value) return ''
-  return DOMPurify.sanitize(String(textHtml.value))
-})
+const purifiedHtml = computed(() => sanitizeHtml(textHtml.value))
 
 async function loadText() {
   loading.value = true

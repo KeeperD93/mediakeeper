@@ -14,9 +14,11 @@ This section intentionally has no date so it is not shown to users.
 - Debug tools — watch XP recalculation, with a preview and a backup.
 
 ### Changed
+- Branding — new logo and banner, app icons redone.
 - Dashboard — leaderboard widget matches the Leaderboard page.
 - Statistics — day streak from 5 min watched; music and audiobooks left out.
 - Portal — secret trophies: name and icon shown, description and progress hidden until unlocked.
+- Portal — "Today's digest" redesigned: news first, compact view, expiry notice, "For you".
 
 ### Fixed
 - XP bar — same percentage in today's digest and the profile.
@@ -42,6 +44,11 @@ This section intentionally has no date so it is not shown to users.
 - Bonus events — XP rounded to the nearest, halves up.
 - Debug tools — "Reset for everyone" takes back only the XP the trophy gave.
 - Debug tools — trophies counted in UTC: a failed backup is reported as incomplete.
+- Portal — "Requested by" shows the display name, no longer the sign-in name ("you" for your own requests).
+- Portal — Events: the display name replaces the sign-in name (guests, host, notifications).
+- Portal — Events: replying to an invitation from a deleted host no longer fails.
+- Users — renaming a member to a username already in use is refused.
+- Users — an administrator turned member no longer shows their sign-in name.
 
 ## [1.0.0-rc.10] - 2026-11-11
 

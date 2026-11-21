@@ -5,7 +5,6 @@
     :class="{ 'gc-lb-box--widget': widget, 'gc-lb-box--tabs': period }"
   >
     <router-link
-      v-if="!digest"
       :to="{ name: 'portal-leaderboard' }"
       class="gc-box-title gc-box-title--link"
       :class="{ 'gc-lb-widget-title': widget }"
@@ -91,12 +90,10 @@ import { localizedNumber } from '@/utils/localizedNumber'
 const props = defineProps({
   entries: { type: Array, default: () => [] },
   widget: { type: Boolean, default: false },
-  // The daily digest: its section already names the card, which shows no title.
-  digest: { type: Boolean, default: false },
   loading: { type: Boolean, default: false },
 })
 
-// Null on the admin widget and the daily digest: the month, with no choice of period.
+// Null on the admin widget: the month, with no choice of period.
 const period = defineModel('period', { type: String, default: null })
 
 const baseId = useId()

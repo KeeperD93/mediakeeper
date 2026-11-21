@@ -14,16 +14,27 @@ This section intentionally has no date so it is not shown to users.
 
 ## [Unreleased]
 
+### Added
+- Help — starter articles also in English.
+- First sign-in — step-by-step guide (username, profile, notifications, animated help).
+- Install the app — offered by the first sign-in guide and the avatar menu.
+
 ### Changed
+- Branding — new logo and banner, app icons redone.
 - Watch XP — 20 XP per hour of a title watched to the end.
 - Days in a row and Regular — from 5 min watched; music and audiobooks left out.
 - Secret trophies — name and icon shown, description and progress hidden until unlocked.
+- Today's digest — redesigned: news first, compact view, expiry notice, "For you", new version.
+- Usernames — reserved words, look-alikes and provisional-pseudo shapes refused, 3 characters (2 in Chinese or Korean).
 
 ### Fixed
+- Help — six guides rewritten: requests, quotas, username, XP, leaderboard, events.
 - XP bar — same percentage in today's digest and the profile.
 - Notifications — bar lasts as long as the message, full message on small phones.
 - Issues — ticket dates: colons placed right in English and French.
 - Today's digest — Top 3 of the month matches the leaderboard ("YOU" label).
+- Today's digest — streak and open tickets shown even at 0, no gap.
+- Today's digest — closes at once, blurred home page behind, no more cross.
 - Carousels, scrolling and counters — instant with "Reduce motion".
 - Pinned badges — two pins in quick succession no longer overwrite each other.
 - My profile — weekdays and durations in the app's language.
@@ -40,6 +51,16 @@ This section intentionally has no date so it is not shown to users.
 - Report form — description counter shows its real limit (1,500), sending stops before any cut.
 - Credits — the full stop follows the link directly.
 - Bonus events — XP rounded to the nearest, halves up.
+- Requests — "Requested by" shows the display name, no longer the sign-in name ("you" for your own requests).
+- Events — the display name replaces the sign-in name (guests, host, notifications).
+- Events — replying to an invitation from a deleted host no longer fails.
+- Usernames — a username the rules now refuse can be changed at once, without the six-month wait.
+- Today's digest — a new username, avatar, title or a private profile shows at once.
+- Usernames — "taken" spots accents, capitals and look-alikes; an existing duplicate or refused username is chosen again.
+- Usernames — trying a username no longer reveals an administrator's sign-in name.
+
+### Removed
+- "What's new" window after an update — replaced by today's digest.
 
 ## [1.0.0-rc.10] - 2026-11-11
 

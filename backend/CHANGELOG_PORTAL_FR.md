@@ -16,16 +16,27 @@ utilisateurs.
 
 ## [Unreleased]
 
+### Added
+- Aide — articles de départ aussi en anglais.
+- Première connexion — assistant pas à pas (pseudo, profil, notifications, aides animées).
+- Installer l'application — proposé par l'assistant et le menu de l'avatar.
+
 ### Changed
+- Identité visuelle — nouveau logo et nouvelle bannière, icônes de l'application refaites.
 - XP de visionnage — 20 XP par heure de titre vu en entier.
 - Jours d'affilée et Régulier — dès 5 min regardées ; musique et livres audio exclus.
 - Trophées secrets — nom et icône visibles, description et progression cachées jusqu'au déblocage.
+- Quoi de neuf aujourd'hui ? — refondu : actualités en tête, vue compacte, alerte d'expiration, « Pour vous », nouvelle version.
+- Pseudos — mots réservés, imitations et formes de pseudo provisoire refusés, 3 caractères (2 en chinois ou coréen).
 
 ### Fixed
+- Aide — six guides réécrits : demandes, quotas, pseudo, XP, classement, événements.
 - Barre d'XP — même pourcentage dans le résumé du jour et le profil.
 - Notifications — barre à la bonne durée, message entier sur petits téléphones.
 - Problèmes — dates du ticket : deux-points à la bonne place en français et en anglais.
 - Quoi de neuf aujourd'hui — Top 3 du mois aligné sur le classement (étiquette « VOUS »).
+- Quoi de neuf aujourd'hui ? — Série et Tickets ouverts affichés même à 0, sans trou.
+- Quoi de neuf aujourd'hui ? — se ferme aussitôt, accueil flouté derrière, plus de croix.
 - Carrousels, défilements et compteurs — instantanés avec « Réduire les animations ».
 - Badges épinglés — deux épinglages rapprochés ne s'écrasent plus.
 - Mon profil — jours de la semaine et durées dans la langue de l'application.
@@ -42,6 +53,16 @@ utilisateurs.
 - Signalement — compteur de la description sur sa vraie limite (1 500), envoi bloqué avant toute coupure.
 - Crédits — le point suit directement le lien.
 - Événements bonus — XP arrondie au plus proche, les moitiés vers le haut.
+- Demandes — « Demandé par » affiche le pseudo, plus le nom de connexion (« vous » pour vos demandes).
+- Événements — le pseudo remplace le nom de connexion (invités, créateur, notifications).
+- Événements — plus d'erreur en répondant à l'invitation d'un organisateur supprimé.
+- Pseudos — un pseudo devenu refusé se change aussitôt, sans attendre six mois.
+- Quoi de neuf aujourd'hui ? — nouveau pseudo, avatar, titre ou profil privé pris en compte aussitôt.
+- Pseudos — « déjà pris » repère accents, majuscules et sosies ; un doublon ou un pseudo refusé existant est à rechoisir.
+- Pseudos — tester un pseudo ne révèle plus le nom de connexion d'un administrateur.
+
+### Removed
+- Fenêtre « Nouveautés » après une mise à jour — remplacée par « Quoi de neuf aujourd'hui ? ».
 
 ## [1.0.0-rc.10] - 2026-11-11
 

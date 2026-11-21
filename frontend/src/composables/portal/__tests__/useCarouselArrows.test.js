@@ -10,12 +10,12 @@ import { useCarouselArrows } from '@/composables/portal/useCarouselArrows'
 
 const rect = (left, width) => ({ left, width, right: left + width })
 
-function mountCarousel() {
+function mountCarousel(options) {
   let api
   const wrapper = mount(
     defineComponent({
       setup() {
-        api = useCarouselArrows()
+        api = useCarouselArrows(null, options)
         return () => h('div', { ref: api.trackRef }, [h('span'), h('span')])
       },
     }),
@@ -52,6 +52,15 @@ describe('useCarouselArrows — scroll', () => {
 
     // Cards of 100 px, 12 px apart: four of them fit in 500 px.
     expect(track.scrollBy.mock.calls).toEqual([[{ left: 448 }], [{ left: -448 }]])
+    wrapper.unmount()
+  })
+
+  it('moves by the number of cards asked, whatever fits', () => {
+    const { wrapper, api, track } = mountCarousel({ perClick: 3 })
+
+    api.scroll(1)
+
+    expect(track.scrollBy).toHaveBeenCalledWith({ left: 336 })
     wrapper.unmount()
   })
 })

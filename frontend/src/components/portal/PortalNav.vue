@@ -3,7 +3,7 @@
     <div class="pt-nav-inner">
       <button class="pt-nav-brand" type="button" @click="navigateTo(PORTAL_TAB.HOME)">
         <img
-          src="/assets/icons/mediakeeper.png"
+          src="/assets/icons/mk-logo-128.png"
           :alt="$t('portal.nav.brand')"
           class="pt-brand-img"
         />
@@ -77,6 +77,7 @@
 
         <div ref="menuRef" class="pt-avatar-menu">
           <button
+            ref="avatarTriggerRef"
             class="pt-avatar-trigger"
             type="button"
             :title="$t('portal.avatar.menu')"
@@ -142,7 +143,7 @@
                 {{ $t('portal.avatar.help') }}
               </button>
 
-              <button class="pt-avatar-pop-item" type="button" @click="openWhatsNew">
+              <button class="pt-avatar-pop-item" type="button" @click="goToChangelog">
                 {{ $t('portal.avatar.whatsNew') }}
               </button>
 
@@ -153,6 +154,16 @@
                 @click="openFeedback"
               >
                 {{ $t('portal.avatar.feedback') }}
+              </button>
+
+              <!-- As at the end of the first-login wizard: only where it can be installed. -->
+              <button
+                v-if="installWay"
+                class="pt-avatar-pop-item"
+                type="button"
+                @click="installFromMenu"
+              >
+                {{ $t('portal.appInstall.title') }}
               </button>
 
               <button
@@ -194,6 +205,7 @@
       :can-moderate="hasBackofficeAccess"
       @close="feedbackOpen = false"
     />
+    <PortalInstallSteps :open="installStepsOpen" @close="installStepsOpen = false" />
   </nav>
 </template>
 
@@ -202,13 +214,16 @@ import { ref, nextTick } from 'vue'
 import NotificationBell from './NotificationBell.vue'
 import CalendarButton from './CalendarButton.vue'
 import PortalSearchBox from './PortalSearchBox.vue'
+import PortalInstallSteps from './PortalInstallSteps.vue'
 import MkAvatar from '@/components/common/MkAvatar.vue'
 import DonationOverlay from '@/components/common/DonationOverlay.vue'
 import FeedbackModal from '@/components/feedback/FeedbackModal.vue'
 import { ChevronDown, Heart, Home, Library, Search } from 'lucide-vue-next'
 import { usePortalNav } from './usePortalNav.js'
+import { useAppInstall } from '@/composables/portal/useAppInstall'
 import { usePortalAuth } from '@/composables/portal/usePortalAuth'
 import { PORTAL_TAB } from '@/constants/portal'
+import { INSTALL_WAY } from '@/constants/portalInstall'
 
 import '@/assets/styles/portal/nav-base.css'
 import '@/assets/styles/portal/nav-avatar.css'
@@ -222,7 +237,7 @@ const props = defineProps({
   donation: { type: Object, default: null },
 })
 
-const emit = defineEmits(['navigate', 'open-whats-new', 'open-daily-digest', 'open-help'])
+const emit = defineEmits(['navigate', 'open-daily-digest', 'open-help'])
 
 const {
   navRef,
@@ -240,20 +255,35 @@ const {
   goToSettings,
   toggleMenu,
   doLogout,
-  openWhatsNew,
+  goToChangelog,
   openDailyDigest,
   openHelp,
   goToLists,
 } = usePortalNav(props, emit)
 
 const calendarRef = ref(null)
+const avatarTriggerRef = ref(null)
 const donationOpen = ref(false)
 const feedbackOpen = ref(false)
+const installStepsOpen = ref(false)
 const { ui } = usePortalAuth()
+const { way: installWay, install } = useAppInstall()
 
 function openFeedback() {
   menuOpen.value = false
   feedbackOpen.value = true
+}
+
+// The browser's own window where it has one; else the steps, the focus coming back to the
+// avatar when they close (the menu line is gone by then).
+function installFromMenu() {
+  menuOpen.value = false
+  if (installWay.value === INSTALL_WAY.PROMPT) {
+    install()
+    return
+  }
+  avatarTriggerRef.value.focus()
+  installStepsOpen.value = true
 }
 
 // Mobile avatar-menu shortcut — the visible calendar button is hidden

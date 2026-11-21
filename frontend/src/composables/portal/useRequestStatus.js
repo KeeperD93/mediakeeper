@@ -3,13 +3,14 @@ import { useApi } from '@/composables/useApi'
 import { BATCH_STATUS_MAX_IDS, REQUEST_STATUS } from '@/constants/requests'
 
 // Global cache: tmdb_id -> { status, requested_at, requested_by, request_id, _ts }
+// (``requested_by_self`` instead of ``requested_by`` right after the viewer files a request)
 // Mirrors useAvailability so MediaCard can simply lookup both caches
 // without firing per-card requests.
 //
 // Why a TTL: an admin can toggle the `anonymize_requests` flag at any
 // moment. The backend strips `requested_by` from future responses, but
 // connected users would keep seeing the old cached entries (that still
-// include the username) until their next hard refresh. A short TTL
+// include the requester's name) until their next hard refresh. A short TTL
 // ensures the cache auto-refreshes within ~30s without requiring an
 // explicit page reload.
 const cache = reactive({})
@@ -118,7 +119,8 @@ export function useRequestStatus() {
     cache[String(tmdbId)] = {
       status: REQUEST_STATUS.PENDING,
       requested_at: new Date().toISOString(),
-      requested_by: payload.requested_by || 'you',
+      // Filed by the viewer: the tooltip says "you", not a name.
+      requested_by_self: true,
       request_id: payload.request_id || null,
       retry_count: payload.retry_count || 0,
       _ts: Date.now(),

@@ -4,7 +4,6 @@ import { useApi } from '@/composables/useApi'
 export function usePortalNews() {
   const { apiGet, apiPost, apiPut, apiDelete, loading, error } = useApi()
   const news = ref([])
-  const unreadNews = ref([])
   const hasMore = ref(false)
   const nextCursor = ref(null)
 
@@ -28,15 +27,6 @@ export function usePortalNews() {
     }
   }
 
-  async function fetchUnread() {
-    try {
-      const res = await apiGet('/api/portal/news/unread')
-      if (res) unreadNews.value = res.items || []
-    } catch {
-      unreadNews.value = []
-    }
-  }
-
   async function markRead(newsId, dismissed = false) {
     return await apiPost(`/api/portal/news/read/${newsId}?dismissed=${dismissed}`)
   }
@@ -55,11 +45,9 @@ export function usePortalNews() {
 
   return {
     news,
-    unreadNews,
     hasMore,
     nextCursor,
     fetchNews,
-    fetchUnread,
     markRead,
     createNews,
     updateNews,

@@ -8,6 +8,7 @@ from api.portal.deps import get_current_profile, get_request_lang
 from core.database import get_db
 from models.portal.profile import UserProfile
 from models.user import User
+from services.portal import daily_digest as dd_svc
 from services.portal._display_name import resolve_display_name
 from services.portal._rank_tiers import tier_for_level
 from services.portal.achievement_defs import ACHIEVEMENT_DEFS, TITLE_REWARDS
@@ -143,7 +144,14 @@ async def update_my_profile(
         unlocked_badges = await unlocked_achievement_ids(db, user.id)
         if not set(payload["selected_badges"]).issubset(unlocked_badges):
             raise HTTPException(status_code=403, detail="badge_not_unlocked")
+    before = {field: getattr(profile, field) for field in dd_svc.PODIUM_FIELDS}
     updated = await update_profile(db, profile, payload)
+    # The digest is cached for an hour: every reader's goes when the member changed
+    # what the others see, only theirs otherwise (language, genres…).
+    if any(getattr(updated, field) != value for field, value in before.items()):
+        dd_svc.clear_cache()
+    else:
+        dd_svc.invalidate_cache(user.id)
     return await serialize_profile_with_effective_lang(db, updated, user=user)
 
 

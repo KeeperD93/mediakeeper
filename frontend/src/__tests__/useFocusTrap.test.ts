@@ -159,3 +159,77 @@ describe('useFocusTrap', () => {
     expect(onEscape).not.toHaveBeenCalled()
   })
 })
+
+describe('useFocusTrap, focus out of the Tab order inside the panel', () => {
+  // A title given the focus (tabindex -1), controls, a note between them and one after.
+  function buildPanel() {
+    const Panel = defineComponent({
+      setup() {
+        const containerRef = ref<HTMLElement | null>(null)
+        useFocusTrap({ active: ref(true), containerRef })
+        return { containerRef }
+      },
+      render() {
+        return h('div', { ref: 'containerRef', tabindex: -1 }, [
+          h('h2', { tabindex: -1, 'data-testid': 'title' }, 'title'),
+          h('button', { 'data-testid': 'first' }, 'first'),
+          h('p', { tabindex: -1, 'data-testid': 'between' }, 'between'),
+          h('button', { 'data-testid': 'last' }, 'last'),
+          h('p', { tabindex: -1, 'data-testid': 'after' }, 'after'),
+        ])
+      },
+    })
+    return mount(Panel, { attachTo: document.body })
+  }
+
+  function tab(from: Element, shiftKey: boolean): KeyboardEvent {
+    ;(from as HTMLElement).focus()
+    const event = new KeyboardEvent('keydown', {
+      key: 'Tab',
+      shiftKey,
+      bubbles: true,
+      cancelable: true,
+    })
+    document.dispatchEvent(event)
+    return event
+  }
+
+  const el = (wrapper: ReturnType<typeof buildPanel>, id: string) =>
+    wrapper.find(`[data-testid="${id}"]`).element
+
+  beforeEach(() => {
+    document.body.innerHTML = ''
+  })
+
+  it('wraps Shift+Tab from a title before the first control to the last one', async () => {
+    const wrapper = buildPanel()
+    await flushPromises()
+
+    const event = tab(el(wrapper, 'title'), true)
+
+    expect(event.defaultPrevented).toBe(true)
+    expect(document.activeElement).toBe(el(wrapper, 'last'))
+    wrapper.unmount()
+  })
+
+  it('wraps Tab from an element after the last control to the first one', async () => {
+    const wrapper = buildPanel()
+    await flushPromises()
+
+    const event = tab(el(wrapper, 'after'), false)
+
+    expect(event.defaultPrevented).toBe(true)
+    expect(document.activeElement).toBe(el(wrapper, 'first'))
+    wrapper.unmount()
+  })
+
+  it('leaves the moves that stay inside to the browser', async () => {
+    const wrapper = buildPanel()
+    await flushPromises()
+
+    expect(tab(el(wrapper, 'title'), false).defaultPrevented).toBe(false)
+    expect(tab(el(wrapper, 'between'), true).defaultPrevented).toBe(false)
+    expect(tab(el(wrapper, 'between'), false).defaultPrevented).toBe(false)
+    wrapper.unmount()
+  })
+})

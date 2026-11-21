@@ -2354,6 +2354,7 @@
         "already_deleted": "This account is already deleted.",
         "not_deleted": "This account is not deleted.",
         "display_name_empty": "Display name cannot be empty.",
+        "display_name_taken": "This display name, or one that looks like it, is already used by another member.",
         "invalid_role": "Invalid role.",
         "invalid_months": "Invalid month count (1 to 60).",
         "no_target": "No target selected.",
@@ -2803,6 +2804,7 @@
         "tooltipAnonymous": "Already requested on {date}"
       },
       "tooltipRequestedBy": "Requested by {user} on {date}",
+      "tooltipRequestedByYou": "Requested by you on {date}",
       "tooltipApprovedOn": "Approved on {date}",
       "tooltipRejectedOn": "Rejected on {date}",
       "tooltipWatchedOn": "Watched on {date}",
@@ -3011,17 +3013,30 @@
       "lists": "Lists",
       "calendar": "Calendar"
     },
+    "appInstall": {
+      "title": "Install the app",
+      "intro": "Open MediaKeeper from its icon, like a real app.",
+      "button": "Install",
+      "ios": "Tap the Share button, then \"Add to Home Screen\".",
+      "iosNotify": "On iPhone and iPad, this is also what lets you receive notifications.",
+      "mac": "In Safari, open the File menu, then choose \"Add to Dock\".",
+      "firefoxAndroid": "In Firefox's menu (the three dots), choose \"Add app to Home screen\".",
+      "otherBrowser": "Firefox cannot install apps on a computer yet: open the portal in Chrome or Edge to install it."
+    },
     "changelog": {
       "title": "What's new",
       "subtitle": "All user-facing updates",
-      "whatsNew": "What's new",
       "empty": "No release notes yet."
     },
     "dailyDigest": {
       "title": "Today's digest",
-      "subtitle": "Your daily recap on Demandes — what's new, how you're doing, what's coming up.",
+      "subtitle": "Your daily recap: the news, your progress and what's new.",
       "empty": "Nothing new today — check back tomorrow!",
       "errorLoad": "Couldn't load today's digest.",
+      "viewSwitch": "Compact view",
+      "viewError": "Couldn't save the chosen view.",
+      "footer": "This window comes back tomorrow with something new.",
+      "footerShort": "Back tomorrow with something new.",
       "greeting": {
         "morning": "Good morning",
         "afternoon": "Good afternoon",
@@ -3033,42 +3048,415 @@
         "nightWithName": "Still up, {name}?"
       },
       "aria": {
-        "stats": "Today's stats",
-        "recentAdds": "Recent library additions",
-        "scrollLeft": "Scroll left",
-        "scrollRight": "Scroll right"
+        "stats": "Your figures of the day",
+        "scrollLeft": "Previous posters",
+        "scrollRight": "Next posters"
       },
       "sections": {
+        "news": "News",
+        "progress": "Your progress",
         "recentAdds": "New in the library",
+        "recentAddsShort": "New",
+        "forYou": "For you",
+        "upNext": "Up next",
         "events": "Upcoming events",
         "nextAchievement": "Next trophy",
         "top3": "Top 3 this month"
       },
-      "top3": {
-        "xpUnit": "XP",
-        "xpMonthTitle": "XP earned this month"
+      "news": {
+        "new": "New",
+        "pinned": "Pinned",
+        "readMore": "Read more",
+        "readLess": "Show less",
+        "moreCount": "+{n} more news item | +{n} more news items",
+        "hideMore": "Hide"
+      },
+      "release": {
+        "section": "New version",
+        "badge": "Version",
+        "title": "What changes for you",
+        "titleCompact": "New version: what changes for you",
+        "line": "New version {version} · {n} change for you | New version {version} · {n} changes for you",
+        "more": "+{n} other change | +{n} other changes",
+        "showAll": "See everything new",
+        "showAllCompact": "See the change | See the {n} changes",
+        "collapse": "Collapse what's new"
+      },
+      "expiry": {
+        "title": "Your account expires on {date}, {when}.",
+        "when": "today | tomorrow | in {n} days",
+        "hint": "To extend it, contact the administrator before that date.",
+        "lead": "Your account expires on {date}",
+        "whenCompact": "({when}).",
+        "hintCompact": "Contact the administrator to extend it."
       },
       "pills": {
         "rank": "Rank",
         "rankOf": "of {total}",
+        "rankCompact": "Rank of {total}",
         "quota": "Requests left",
         "quotaOf": "of {total}",
         "tickets": "Open tickets",
         "ticketsCaption": "to follow up",
+        "ticketsCaptionNone": "none to follow up",
+        "ticketsCompact": "Open tickets | Open ticket | Open tickets",
         "streak": "Streak",
-        "streakDays": "{n} days in a row"
+        "streakDays": "days in a row | day in a row | days in a row",
+        "streakCompact": "Days in a row | Day in a row | Days in a row"
       },
       "level": {
         "eyebrow": "Your level",
+        "ringUnit": "LVL",
+        "ringLabel": "Level {level}, {percent}% of the next level",
+        "ringLabelMaxed": "Level {level}, max level reached",
+        "xpYesterday": "+{n} XP yesterday",
         "toNext": "{xp} XP to reach level {level}",
+        "toNextShort": "{xp} XP before level {level}",
         "maxed": "Max level reached"
+      },
+      "achievement": {
+        "remaining": "{count} to go",
+        "remainingShort": "Next trophy · {count} to go"
+      },
+      "top3": {
+        "levelShort": "Lvl {level} · {title}",
+        "seeAll": "See the ranking",
+        "seeAllShort": "Ranking"
+      },
+      "posters": {
+        "series": "Series",
+        "seriesYear": "Series · {year}"
+      },
+      "forYou": {
+        "available": "\"{title}\" is available",
+        "availableSince": "Available {when}",
+        "approved": "Your request \"{title}\" is approved",
+        "approvedShort": "Request \"{title}\" approved",
+        "approvedHint": "It will reach the library soon",
+        "ticketReply": "New reply to your issue \"{title}\"",
+        "ticketReplyShort": "Reply to your issue \"{title}\"",
+        "see": "See",
+        "read": "Read"
       },
       "events": {
         "public": "Public",
-        "private": "Private"
+        "private": "Private",
+        "when": "{date} · {time}"
+      }
+    },
+    "wizard": {
+      "dialogLabel": "First sign-in guide",
+      "dialogLabelReset": "Choose a new username",
+      "bannerAlt": "MediaKeeper",
+      "progress": {
+        "label": "Guide progress",
+        "text": "Step {n} of {total}"
       },
-      "achievement": {
-        "remaining": "{count} to go"
+      "actions": {
+        "back": "Back",
+        "next": "Next",
+        "start": "Get started",
+        "last": "Finish",
+        "finish": "See today's digest",
+        "confirm": "Confirm",
+        "confirmReset": "Confirm and continue",
+        "keep": "Keep this username",
+        "saving": "Saving…"
+      },
+      "footHint": {
+        "welcome": "About 2 minutes",
+        "required": "Required step"
+      },
+      "saveFailed": "Your choices could not be saved. Check your connection, then try again.",
+      "paths": {
+        "preferences": "Settings › Preferences",
+        "visibility": "Settings › Visibility",
+        "identity": "Settings › Identity"
+      },
+      "where": {
+        "later": "You can change this later in {path}.",
+        "anytime": "To change at any time: {path}."
+      },
+      "steps": {
+        "welcome": {
+          "title": "Welcome to MediaKeeper",
+          "subNew": "The requests portal, and much more: lists, trophies, leaderboards, movie nights… We'll guide you step by step.",
+          "sub": "The portal has grown. A short tour, just once: check your settings and discover everything on offer."
+        },
+        "name": {
+          "eyebrow": "Your username",
+          "title": "What should we call you?",
+          "subNew": "This is the name other members will see. Until you pick one, they see a temporary name drawn at random: choose your own.",
+          "subExisting": "Here is your current username. Keep it with one click, or take the chance to change it.",
+          "subLocked": "Here is your current username. It was changed less than 6 months ago."
+        },
+        "reset": {
+          "eyebrow": "Username reset",
+          "title": "Choose a new username",
+          "sub": "An administrator reset your username \"{name}\". Choose another one to continue: your level, trophies, lists and requests stay the same."
+        },
+        "language": {
+          "eyebrow": "Language",
+          "title": "Which language do you prefer for the portal?",
+          "sub": "It applies to the portal, recommendations and trailers."
+        },
+        "visibility": {
+          "eyebrow": "Profile visibility",
+          "title": "Who can see your profile?",
+          "sub": "Your profile shows your level, trophies and favourite genres."
+        },
+        "features": {
+          "eyebrow": "The portal",
+          "title": "What you can do here",
+          "sub": "Much more than requests: here are the essentials at a glance."
+        },
+        "help": {
+          "eyebrow": "Help",
+          "title": "Need a hand?",
+          "sub": "Short guides, with pictures. You'll find them in your avatar menu, under Help."
+        },
+        "expiry": {
+          "eyebrow": "Your access",
+          "title": "How long does your account stay open?",
+          "sub": "The administrator can set an end date for your access. It's always in the same place."
+        },
+        "notifications": {
+          "eyebrow": "Optional",
+          "title": "Want to be notified?",
+          "sub": "The portal can let you know on this device as soon as something happens for you."
+        },
+        "genres": {
+          "eyebrow": "Optional",
+          "title": "What do you like to watch?",
+          "sub": "Pick a few genres: your recommendations take them into account starting today."
+        },
+        "avatar": {
+          "eyebrow": "Optional",
+          "title": "A picture for your profile?",
+          "sub": "It goes with your username on the leaderboard, in the chat and your profile."
+        },
+        "done": {
+          "eyebrow": "All set",
+          "title": "Here we go, {name}!",
+          "sub": "Check your choices: they are saved when you continue. Everything can be changed later in Settings."
+        }
+      },
+      "welcome": {
+        "planLabel": "Steps of the guide",
+        "plan": {
+          "name": "Your username",
+          "language": "The portal's language",
+          "visibility": "Public or private profile",
+          "features": "What you can do here",
+          "help": "Help, with pictures",
+          "expiry": "The end date of your access",
+          "notifications": "Notifications (optional)",
+          "genres": "Your favourite genres (optional)",
+          "avatar": "Your avatar (optional)"
+        },
+        "note": "Only the username is required; everything else can be changed later in Settings."
+      },
+      "name": {
+        "resetInfo": "Meanwhile, other members see a temporary name drawn at random.",
+        "warning": "Choose it carefully: this username is shown to every member (overall leaderboard, cinema room, comments). Once confirmed, you can't change it for 6 months.",
+        "label": "Username",
+        "placeholderNew": "Your username",
+        "placeholderReset": "Your new username",
+        "rules": "3 to 50 characters (2 are enough in Chinese or Korean). A username belongs to one person: \"Alice\" and \"alice\" count as the same.",
+        "prompt": "Type your username.",
+        "empty": "Choose a username to continue.",
+        "checking": "Checking…",
+        "checkFailed": "Couldn't check this name.",
+        "retry": "Try again",
+        "suggestions": "These usernames are free:",
+        "lockedAccount": "You changed your username less than 6 months ago: you can change it from {date}.",
+        "reason": {
+          "too_short": "3 characters minimum",
+          "previous": "This is your former username: an administrator reset it, choose a new one.",
+          "generated": "This is the temporary name drawn at random: choose your own.",
+          "current": "This is your current username: you can keep it.",
+          "reserved": "This username is reserved.",
+          "taken": "Already used by another member.",
+          "free": "Available",
+          "invalid": "This username has no visible letter, or contains hidden characters: choose another one.",
+          "locked": "You changed your username less than 6 months ago: you can choose another one starting today. | You changed your username less than 6 months ago: you can choose another one tomorrow. | You changed your username less than 6 months ago: you can choose another one in {n} days."
+        }
+      },
+      "language": {
+        "defaultHint": "Follows the language the administrator chose, currently {lang}.",
+        "defaultHintUnknown": "Follows the language the administrator chose.",
+        "ownHint": "The portal, recommendations and trailers switch to English.",
+        "now": {
+          "fr": "French",
+          "en": "English"
+        },
+        "plain": {
+          "fr": "French",
+          "en": "English"
+        },
+        "switchNote": "The portal switches to this language as soon as you continue."
+      },
+      "visibility": {
+        "public": "Public",
+        "publicHint": "Other members can open your profile, and you appear on the leaderboard.",
+        "recommended": "Default",
+        "private": "Private",
+        "privateHint": "Only you can see your profile. You don't appear on any leaderboard, and nobody can invite you to an event.",
+        "privateXp": "Your experience points keep counting: if you go public again, you get your place on the leaderboard back.",
+        "privateChat": "Your username stays visible where you write, in the chat for instance."
+      },
+      "features": {
+        "items": {
+          "request": {
+            "title": "Request a movie or a series",
+            "text": "Find it with the search at the top, or spot it on the home page, then \"Request\". You're notified as soon as it's available.",
+            "where": "Search or Home"
+          },
+          "profile": {
+            "title": "My profile",
+            "text": "Your level, your trophies, your pending requests and ideas to watch based on your tastes.",
+            "where": "My profile"
+          },
+          "ranking": {
+            "title": "Monthly leaderboard",
+            "text": "Watching, rating and taking part earn XP. Only public profiles are listed.",
+            "where": "My profile"
+          },
+          "lists": {
+            "title": "Lists",
+            "text": "Create private, public or shared lists, and browse other members' lists.",
+            "where": "Lists"
+          },
+          "issues": {
+            "title": "Issues",
+            "text": "Audio out of sync, missing subtitles? Report it and follow the answer.",
+            "where": "Issues"
+          },
+          "calendar": {
+            "title": "Calendar and movie nights",
+            "text": "Upcoming events. Plan a movie night and watch together in the cinema room.",
+            "where": "Calendar"
+          },
+          "fab": {
+            "title": "The \"+\" button",
+            "text": "It opens the chat, the Surprise (a title drawn for you) and event creation.",
+            "where": "Bottom right"
+          },
+          "notifications": {
+            "title": "Notifications",
+            "text": "Request available, answer to an issue, invitation: the bell lets you know.",
+            "where": "Bell, at the top"
+          }
+        },
+        "mapTitle": "Where to find them",
+        "desk": {
+          "tabs": "Tabs: Home, My profile, Issues",
+          "search": "\"Search\" field: to find a title and request it",
+          "icons": "Icons: lists, calendar, notifications",
+          "avatar": "Your avatar: Settings, Help, Today's digest",
+          "fab": "\"+\" button: bottom right"
+        },
+        "phone": {
+          "tabs": "Tabs at the bottom: Home, My profile, Lists, Issues",
+          "top": "At the top: the magnifying glass (search), notifications, your avatar",
+          "calendar": "Calendar: in your avatar menu",
+          "fab": "\"+\" button: bottom right"
+        }
+      },
+      "expiry": {
+        "pathLabel": "Path",
+        "crumbAvatar": "Your avatar, top right",
+        "crumbAccount": "Account",
+        "cardTitle": "Information",
+        "memberSince": "Member since",
+        "expiresOn": "Account expiry",
+        "level": "Current level",
+        "noLimit": "No limit",
+        "levelValue": "{level} · {xp} XP",
+        "reminder": "A month before the end, this reminder also shows at the top of \"Today's digest\".",
+        "none": "Your access has no end date for now. If the administrator sets one, it will show here, and a reminder will appear a month before in \"Today's digest\"."
+      },
+      "notifications": {
+        "usesTitle": "What they are for",
+        "uses": {
+          "requests": "A title you requested is available",
+          "issues": "Someone replies to an issue you reported",
+          "invitations": "You are invited to a movie night or an event",
+          "news": "News about Emby and MediaKeeper"
+        },
+        "enable": "Turn on notifications",
+        "enabled": "Notifications are on for this device.",
+        "denied": "Your browser blocks notifications for this site. You can allow them later in its settings.",
+        "insecure": "Notifications need a secure address (https): they are not possible with the portal's current address.",
+        "unsupported": "This browser does not offer notifications here. On iPhone or iPad, first add the portal to the home screen (Share, then \"Add to Home Screen\"), then open it from its icon.",
+        "confirmTitle": "Are you sure?",
+        "confirmText": "You won't get news about Emby, MediaKeeper, your requests and your invitations.",
+        "continueWithout": "Continue without",
+        "retry": "Try again"
+      },
+      "genres": {
+        "count": "No genre chosen | 1 genre chosen | {n} genres chosen",
+        "visible": "Shown on your profile if it is public."
+      },
+      "avatar": {
+        "state": {
+          "emby": "Picture synced from your Emby account.",
+          "custom": "Your current picture, chosen in Settings.",
+          "picked": "Your new picture. It is sent at the end of the guide."
+        },
+        "keep": {
+          "emby": "Keep the Emby picture",
+          "custom": "Keep my current picture"
+        },
+        "keepHint": {
+          "emby": "The one from your Emby account, updated automatically.",
+          "custom": "The one you chose in Settings › Identity."
+        },
+        "own": "Choose my picture",
+        "ownHint": {
+          "emby": "It replaces the Emby one. JPG, PNG, WebP or GIF, 5 MB maximum.",
+          "custom": "It replaces your current picture. JPG, PNG, WebP or GIF, 5 MB maximum."
+        },
+        "pick": "Choose a picture",
+        "replace": "Replace",
+        "problem": {
+          "type": "This file is not a JPG, PNG, WebP or GIF picture.",
+          "size": "This picture is over 5 MB: choose a lighter one."
+        },
+        "uploadFailed": "Your picture could not be sent. Try again in Settings › Identity."
+      },
+      "done": {
+        "rows": {
+          "name": "Username",
+          "language": "Language",
+          "visibility": "Profile",
+          "notifications": "Notifications",
+          "genres": "Favourite genres",
+          "avatar": "Avatar"
+        },
+        "edit": {
+          "name": "Change the username",
+          "language": "Change the language",
+          "visibility": "Change the profile visibility",
+          "notifications": "Change the notifications",
+          "genres": "Change the favourite genres",
+          "avatar": "Change the avatar"
+        },
+        "editText": "Change",
+        "values": {
+          "languageDefault": "Default ({lang})",
+          "public": "Public",
+          "private": "Private",
+          "notifyOn": "On",
+          "notifyOff": "Off",
+          "notifyUnavailable": "Not available on this device",
+          "genres": "None for now | 1 genre chosen | {n} genres chosen",
+          "avatarEmby": "Picture from your Emby account",
+          "avatarCustom": "Your current picture",
+          "avatarOwn": "Your picture"
+        },
+        "nextTitle": "What's next: \"Today's digest\"",
+        "nextText": "News, your progress and what's new in the library. This summary opens right away, then every day there is something new."
       }
     },
     "lists": {
@@ -3480,10 +3868,69 @@
         "table": "Insert table"
       }
     },
+    "wizardHelp": {
+      "demosLabel": "Choose a demo",
+      "demos": {
+        "request": "Make a request",
+        "ticket": "Report an issue",
+        "list": "Create a list"
+      },
+      "pause": "Pause",
+      "play": "Play",
+      "prevView": "Previous view",
+      "nextView": "Next view",
+      "viewCount": "View {n} of {total}",
+      "captionsLabel": {
+        "request": "Make a request, step by step",
+        "ticket": "Report an issue, step by step",
+        "list": "Create a list, step by step"
+      },
+      "captions": {
+        "request": {
+          "s1": "Home page: a featured title can be requested right away with \"Request\".",
+          "s2": "Otherwise, type its name in \"Search\" at the top and pick a suggestion.",
+          "s3": "In the results, open its page (with a mouse, \"Request\" also shows on the poster).",
+          "s4": "On the title's page, tap \"Request\".",
+          "s5": "In \"Make a request\", submit it. For a series, tick the seasons you want first.",
+          "s6": "Sent: the title turns to \"Requested\", and the bell lets you know when it's available."
+        },
+        "ticket": {
+          "s1": "Issues tab, then \"Report an issue\".",
+          "s2": "Pick the title from your library, the type of issue, describe it, then \"Save\".",
+          "s3": "The ticket shows in the list with its status; the team replies to you there."
+        },
+        "list": {
+          "s1": "In Lists, tap \"New list\".",
+          "s2": "Give it a name, choose who can see it, then \"Save\".",
+          "s3": "On a title's page, the \"Add to list\" bookmark files it in your list."
+        }
+      },
+      "screens": {
+        "movie": "Test Movie",
+        "sequel": "Test Movie 2",
+        "extras": "Test Movie: Behind the Scenes",
+        "lighthouse": "The Northern Lighthouse",
+        "gardens": "Winter Gardens",
+        "lisbon": "Midnight in Lisbon",
+        "orbit": "Orbit 9",
+        "overview": "A film crew gets lost in a town that does not exist on any map.",
+        "runtime": "1h 52m",
+        "language": "English",
+        "issue": "The sound is about 2 seconds out of sync.",
+        "listName": "Movie weekend"
+      },
+      "guides": {
+        "title": "Other guides",
+        "quotas": "Request quotas",
+        "xp": "How do I earn XP?",
+        "leaderboard": "The monthly leaderboard",
+        "calendar": "The calendar and creating events",
+        "error": "The guide could not be loaded.",
+        "retry": "Try again",
+        "missing": "This guide is no longer available. Find every guide in your avatar menu, under Help."
+      }
+    },
     "news": {
-      "whatsNew": "What's new?",
-      "gotIt": "Got it!",
-      "noNews": "No news",
       "titleLabel": "Title",
       "content": "Content",
       "typeLabel": "Type",
@@ -3846,6 +4293,9 @@
         "usernameLocked": "Editable on {date}",
         "usernameLockedShort": "Locked for {days} more day(s)",
         "usernameReserved": "Reserved username",
+        "usernameTooShort": "3 characters minimum",
+        "usernameGenerated": "Temporary username: choose your own",
+        "usernamePrevious": "Reset username: choose another one",
         "usernameTakenSuggestion": "Already taken. Suggestions:",
         "usernameImposedHint": "Provisional username. You can change it now without waiting.",
         "adminPreviewBanner": "Admin preview — your profile is not visible to other users.",
@@ -3897,17 +4347,7 @@
         "currentLevel": "Current level"
       },
       "forceUsername": {
-        "title": "Choose your username",
-        "subtitle": "Welcome! Pick the username that will represent you. You can change it again in 6 months.",
-        "publicNotice": "Choose carefully — this username is shown publicly to every other member (global leaderboard, cinema room, comments).",
-        "fieldLabel": "Username",
-        "save": "Confirm",
-        "saving": "Saving…",
-        "tooShort": "3 characters minimum",
-        "tooLong": "50 characters max",
-        "checking": "Checking…",
-        "available": "Available",
-        "taken": "Already taken"
+        "checking": "Checking…"
       },
       "share": {
         "copy": "Copy link",

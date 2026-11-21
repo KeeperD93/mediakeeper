@@ -26,11 +26,13 @@ from api.portal.requests import (
     _dedupe_keep_order,
 )
 from core.csv_safe import safe_csv_cell, safe_csv_row
+from core.i18n import DEFAULT_LOCALE
 from core.security import create_access_token, hash_password
 from models.portal.profile import UserProfile
 from models.portal.request import MediaRequest
 from models.portal.social import UserList, UserListItem
 from models.user import User
+from services.portal._pseudo_words import generate_pseudo
 from services.settings import set_setting
 
 
@@ -348,7 +350,7 @@ async def test_batch_status_dedupe_passes_ordered_ids_to_service(
     user = await _make_user(db_session, "orderspy")
     captured: dict = {}
 
-    async def _spy(db, ids, *, anonymize: bool = False):  # noqa: ARG001
+    async def _spy(db, ids, *, anonymize: bool = False, lang: str = "fr"):  # noqa: ARG001
         captured["ids"] = list(ids)
         return {}
 
@@ -422,7 +424,8 @@ async def test_batch_status_anonymize_keeps_reject_reason_for_admin(
     entry = resp.json()["results"]["901"]
     assert entry["status"] == "rejected"
     assert entry["reject_reason"] == "duplicate_of_42"
-    assert entry["requested_by"] == "requester2"
+    # The admin keeps the field, with the public name: never the sign-in name.
+    assert entry["requested_by"] == generate_pseudo(requester.id, DEFAULT_LOCALE)
 
 
 @pytest.mark.asyncio
@@ -441,4 +444,4 @@ async def test_batch_status_no_anonymize_keeps_reject_reason(
     assert resp.status_code == 200
     entry = resp.json()["results"]["902"]
     assert entry["reject_reason"] == "duplicate_of_42"
-    assert entry["requested_by"] == "requester3"
+    assert entry["requested_by"] == generate_pseudo(requester.id, DEFAULT_LOCALE)

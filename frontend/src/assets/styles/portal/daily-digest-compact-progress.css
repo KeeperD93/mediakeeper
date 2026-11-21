@@ -1,0 +1,219 @@
+/* Daily digest, compact view: « Your progress » in one card (DigestCompactProgress.vue).
+ * Level, next trophy, then a mini top 3 with the codes of the month's ranking: rank in
+ * gold, silver or bronze, tier ring, XP in blue, the viewer's row. Side by side from a
+ * window of 800 px. */
+
+.ddc-prog {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+}
+.ddc-prog-left {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.ddc-pi {
+  display: flex;
+  align-items: center;
+  gap: var(--portal-space-3);
+  min-width: 0;
+  padding: var(--portal-space-3) var(--portal-space-3-5);
+  border-top: var(--portal-border-width) solid var(--portal-border-subtle);
+}
+.ddc-pi:first-child {
+  border-top: none;
+}
+.ddc-ring {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--portal-radius-circle);
+  background: conic-gradient(
+    var(--portal-accent-400) 0 var(--dd-ring-pct),
+    var(--portal-surface-4) 0
+  );
+}
+.ddc-ring-in {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--portal-radius-circle);
+  background: var(--portal-digest-ring-bg);
+  font-family: var(--portal-font-display);
+  font-size: var(--portal-text-base);
+  font-weight: var(--portal-font-extrabold);
+}
+.ddc-ic {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--portal-radius-md);
+  color: var(--portal-color-warning);
+  background: rgb(var(--portal-color-warning-rgb), 0.16);
+}
+.ddc-pt {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--portal-space-2);
+  margin-bottom: var(--portal-space-1-5);
+  font-size: var(--portal-text-base);
+  font-weight: var(--portal-font-bold);
+}
+.ddc-pt small {
+  font-size: var(--portal-text-xs);
+  font-weight: var(--portal-font-bold);
+  white-space: nowrap;
+}
+.ddc-pt-xp {
+  color: var(--portal-color-success-light);
+}
+.ddc-pt-ach {
+  color: var(--portal-color-warning);
+}
+.dd-bar.ddc-bar {
+  height: 6px;
+}
+.ddc-pi-top {
+  align-items: stretch;
+}
+.ddc-seeall {
+  position: relative;
+  font-size: var(--portal-text-xs);
+  font-weight: var(--portal-font-medium);
+  color: var(--portal-accent-light);
+  text-decoration: none;
+}
+/* Invisible 44 px band for the finger; the rows below come later and win where it
+   reaches them. */
+.ddc-seeall::after {
+  content: '';
+  position: absolute;
+  inset-inline: 0;
+  top: 50%;
+  height: var(--portal-touch-target);
+  transform: translateY(-50%);
+}
+
+.ddc-lb {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.ddc-lbrow {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--portal-space-2);
+  min-height: 30px;
+  padding: var(--portal-space-0-5) var(--portal-space-2);
+  box-sizing: border-box;
+  border-radius: var(--portal-radius-btn);
+  color: var(--portal-text-primary-solid);
+  font-size: var(--portal-text-xs);
+  text-decoration: none;
+}
+.ddc-lbrow--1 {
+  background: linear-gradient(90deg, rgb(var(--portal-color-warning-rgb), 0.1), transparent);
+}
+.ddc-lbrow--2 {
+  background: linear-gradient(90deg, rgb(var(--portal-tier-silver-rgb), 0.08), transparent);
+}
+.ddc-lbrow--3 {
+  background: linear-gradient(90deg, rgb(var(--portal-tier-bronze-rgb), 0.08), transparent);
+}
+.ddc-lbrow--me {
+  margin-top: var(--portal-space-0-5);
+  border-left: var(--portal-border-width-accent) solid var(--portal-accent-500);
+  background: var(--portal-row-me-bg);
+}
+.ddc-lbpos {
+  min-width: 14px;
+  text-align: center;
+  font-family: var(--portal-font-display);
+  font-size: var(--portal-text-xs);
+  font-weight: var(--portal-font-black);
+  color: var(--portal-text-muted-solid);
+}
+.ddc-lbrow--1 .ddc-lbpos {
+  font-size: var(--portal-text-sm);
+  color: var(--portal-color-warning);
+  text-shadow: 0 0 8px rgb(var(--portal-color-warning-rgb), 0.5);
+}
+.ddc-lbrow--2 .ddc-lbpos {
+  color: var(--portal-tier-silver-c2);
+}
+.ddc-lbrow--3 .ddc-lbpos {
+  color: var(--portal-tier-bronze-c1);
+}
+.ddc-lbav {
+  --pt-avf-size: 22;
+}
+.ddc-lbn {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: var(--portal-font-regular);
+}
+.ddc-lb-pill {
+  margin-left: var(--portal-space-1-5);
+  padding: 0 var(--portal-space-1);
+  border-radius: var(--portal-radius-pill);
+  /* One step darker than the 500: white small caps keep a 4.5:1 contrast. */
+  background: var(--portal-accent-600);
+  font-size: var(--portal-text-4xs);
+  font-weight: var(--portal-font-bold);
+  line-height: var(--portal-lh-relaxed);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  vertical-align: middle;
+}
+.ddc-lbtr {
+  padding: 1px var(--portal-space-1-5);
+  border-radius: var(--portal-radius-pill);
+  background: rgb(var(--portal-color-warning-rgb), 0.18);
+  color: var(--portal-color-warning);
+  font-size: var(--portal-text-3xs);
+  font-weight: var(--portal-font-bold);
+}
+.ddc-mv {
+  font-family: var(--portal-font-display);
+  font-size: var(--portal-text-2xs);
+  font-weight: var(--portal-font-extrabold);
+}
+.ddc-lbxp {
+  white-space: nowrap;
+  font-family: var(--portal-font-display);
+  font-weight: var(--portal-font-bold);
+  color: var(--portal-color-info-light);
+}
+
+/* A finger needs a full touch target per row; a mouse keeps the tight list. */
+@media (hover: none) and (pointer: coarse) {
+  .ddc-lbrow {
+    min-height: var(--portal-touch-target);
+  }
+}
+
+@container dd (min-width: 800px) {
+  .ddc-prog {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .ddc-prog > :only-child {
+    grid-column: 1 / -1;
+  }
+  .ddc-pi-top {
+    border-top: none;
+    border-left: var(--portal-border-width) solid var(--portal-border-subtle);
+  }
+}

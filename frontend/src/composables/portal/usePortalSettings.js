@@ -5,8 +5,8 @@
  * - Snapshot the profile into a flat editable form.
  * - Track which fields are dirty + provide reset / save.
  * - Debounce live username availability checks against the backend.
- * - Surface backend errors (display_name_locked / display_name_taken)
- *   as i18n-translated toasts at the consumer level.
+ * - Surface backend errors (`display_name_<reason>`) as i18n-translated
+ *   toasts at the consumer level.
  *
  * The composable exports a per-instance state factory (no module-scope
  * sharing) — different mounts of /portal/settings should not bleed
@@ -71,7 +71,7 @@ export function usePortalSettings() {
   const usernameCheck = reactive({
     pending: false,
     available: null, // null=unknown, true/false otherwise
-    reason: null, // 'free' | 'taken' | 'locked' | 'current' | 'invalid'
+    reason: null, // a DISPLAY_NAME_REASON from the server, or 'error' when the check failed
     suggestions: [],
   })
 

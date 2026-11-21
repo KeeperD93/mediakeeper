@@ -1,4 +1,4 @@
-"""Slug helpers for the Help Center.
+"""Slug and plain-text helpers for the Help Center.
 
 The HTML sanitiser used to live here too. It moved to
 ``_html_sanitize.py`` so the GDPR opt-in surface can share the exact
@@ -7,6 +7,7 @@ from this module so older imports keep working.
 """
 from __future__ import annotations
 
+import html
 import re
 import unicodedata
 from typing import Optional
@@ -18,10 +19,22 @@ from models.portal.help import HelpArticle
 from services.portal._html_sanitize import sanitize_html
 
 
-__all__ = ["sanitize_html", "slugify", "resolve_unique_slug"]
+__all__ = ["sanitize_html", "slugify", "resolve_unique_slug", "seeded_as_is"]
 
 
 _SLUG_RE = re.compile(r"[^a-z0-9]+")
+
+
+def _shape(body: str | None) -> str:
+    """Tags, links and words of a body, its spacing and entity spelling aside."""
+    spaced = html.unescape(body or "").replace("<", " <").replace(">", "> ")
+    return " ".join(spaced.split())
+
+
+def seeded_as_is(stored: str | None, seed: str) -> bool:
+    """True while a stored body is still a starter text as the seed stored it: an
+    image, a link or a word the admin added makes it the admin's own."""
+    return _shape(stored) == _shape(sanitize_html(seed))
 
 
 def slugify(title: str, fallback: str = "article") -> str:

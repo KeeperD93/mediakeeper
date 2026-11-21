@@ -165,10 +165,13 @@ async def patch_identity(
         ip=client_ip(request),
         user_agent=client_ua(request),
     )
-    # Surface the anti-empty guard as a real HTTP 400 — the form needs a
-    # hard failure to trigger the error toast and keep the cleared field.
-    if isinstance(result, dict) and result.get("error") == "display_name_empty":
-        raise HTTPException(status_code=400, detail="display_name_empty")
+    # Surface the refusals as real HTTP errors — the form needs a hard failure
+    # to trigger the error toast and keep the field as typed.
+    error = result.get("error") if isinstance(result, dict) else None
+    if error == "display_name_empty":
+        raise HTTPException(status_code=400, detail=error)
+    if error == "display_name_taken":
+        raise HTTPException(status_code=409, detail=error)
     return result
 
 

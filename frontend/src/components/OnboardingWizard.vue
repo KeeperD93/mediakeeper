@@ -7,7 +7,7 @@
           <div class="ob-sidebar">
             <div class="ob-brand">
               <img
-                src="/assets/icons/mediakeeper.png"
+                src="/assets/icons/mk-logo-128.png"
                 class="ob-brand-logo"
                 alt=""
                 onerror="this.style.display = 'none'"
@@ -61,7 +61,7 @@
                     </div>
                     <div class="ob-welcome-center">
                       <img
-                        src="/assets/icons/mediakeeper.png"
+                        src="/assets/icons/mk-logo-128.png"
                         class="ob-welcome-logo"
                         alt=""
                         onerror="this.style.display = 'none'"

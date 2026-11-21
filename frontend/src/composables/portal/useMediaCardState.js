@@ -105,8 +105,9 @@ export function useMediaCardState(props) {
   const postitTooltip = computed(() => {
     const r = reqStatus.value
     if (!r) return ''
-    const who = r.requester_username || r.requester || r.requested_by || ''
     const date = r.requested_at ? formatDate(r.requested_at, locale.value) : ''
+    if (r.requested_by_self) return t('portal.card.tooltipRequestedByYou', { date })
+    const who = r.requester_username || r.requester || r.requested_by || ''
     if (!who && !date) return ''
     return t('portal.card.tooltipRequestedBy', { user: who, date })
   })

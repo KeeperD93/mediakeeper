@@ -2,7 +2,7 @@
   <aside class="mk-sidebar" :class="{ collapsed, 'mobile-open': mobileOpen }">
     <div class="sb-logo" @click="$router.push('/')">
       <img
-        src="/assets/icons/mediakeeper.png"
+        src="/assets/icons/mk-logo-128.png"
         alt="MediaKeeper"
         class="sb-logo-img"
         :class="{ 'sb-logo-sm': collapsed }"

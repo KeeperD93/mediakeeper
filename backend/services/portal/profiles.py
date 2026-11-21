@@ -1,22 +1,34 @@
 import logging
 from datetime import datetime, timezone
 
-from sqlalchemy import func, select
+from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from models.user import User
+from constants import display_name as dn
+from core.security import is_backoffice_admin
 from models.portal.profile import UserProfile
+from models.user import User
 from services.portal import strip_tags_and_trim
+from services.portal._pseudo_words import generate_pseudo
 from services.portal._rank_tiers import tier_for_level
+from services.portal.admin_users_constants import ROLE_ADMIN, ROLE_VIEWER
 from services.portal.avatars import resolve_avatar_url
+from services.portal.display_name_rules import (
+    clean_display_name,
+    is_display_name_taken,
+    judge_display_name,
+)
 from services.portal.profile_serializers import (
     DISPLAY_NAME_LOCK_DAYS as DISPLAY_NAME_LOCK_DAYS,
-    display_name_locked_until,
+)
+from services.portal.profile_serializers import (
     serialize_profile as serialize_profile,
+)
+from services.portal.profile_serializers import (
     serialize_public_profile as _serialize_public,
 )
 from services.settings import get_portal_default_language
-from services.portal.admin_users_constants import ROLE_ADMIN, ROLE_VIEWER
 
 logger = logging.getLogger("mediakeeper.portal.profiles")
 
@@ -56,17 +68,6 @@ async def resolve_admin_identity(db: AsyncSession, user_id: int) -> dict:
 
 MAX_DISPLAY_NAME_RESOLVE_ATTEMPTS = 999
 
-# Reserved display names. Compared case-insensitively. The admin role is
-# the only one allowed to keep "admin" — every other user is rejected
-# both on PUT /me and from the live availability check.
-RESERVED_DISPLAY_NAMES = frozenset({
-    "admin", "administrator", "administrateur", "root",
-})
-
-
-def is_reserved_display_name(name: str) -> bool:
-    return (name or "").strip().lower() in RESERVED_DISPLAY_NAMES
-
 
 async def get_or_create_profile(
     db: AsyncSession, user: User
@@ -79,21 +80,19 @@ async def get_or_create_profile(
     if profile:
         return profile
 
-    base = user.username
-    is_admin = user.username == "admin"
-    unique_name = await resolve_unique_display_name(db, base, exclude_user_id=user.id)
+    is_admin = is_backoffice_admin(user.username)
     profile = UserProfile(
         user_id=user.id,
-        display_name=unique_name,
+        # A member never stores the sign-in name: a provisional pseudo until they
+        # pick one. The admin account shows as « Administrateur » and never picks.
+        display_name=user.username if is_admin else generate_pseudo(user.id, "fr"),
         role=ROLE_ADMIN if is_admin else ROLE_VIEWER,
-        # The admin account never needs to pick a public username — it is
-        # invisible in the leaderboard and not consultable as a profile.
         display_name_must_set=not is_admin,
     )
     db.add(profile)
     await db.commit()
     await db.refresh(profile)
-    logger.info("[PROFILE] Created profile for user=%s name=%s", user.username, unique_name)
+    logger.info("[PROFILE] Created profile for user_id=%s", user.id)
     return profile
 
 
@@ -123,37 +122,18 @@ async def get_public_profile(
     return _serialize_public(profile, lang=lang)
 
 
-async def is_display_name_taken(
-    db: AsyncSession, candidate: str, *, exclude_user_id: int | None = None,
-) -> bool:
-    """Case-insensitive existence check, optionally ignoring one user.
-
-    Unlocked read: callers tolerate the check-then-insert race — uniqueness
-    is best-effort (see ``resolve_unique_display_name``).
-    """
-    if not candidate:
-        return False
-    stmt = select(UserProfile.user_id).where(
-        func.lower(UserProfile.display_name) == candidate.lower()
-    )
-    if exclude_user_id is not None:
-        stmt = stmt.where(UserProfile.user_id != exclude_user_id)
-    return (await db.execute(stmt)).scalar_one_or_none() is not None
-
-
 async def resolve_unique_display_name(
     db: AsyncSession, base: str, *, exclude_user_id: int | None = None,
 ) -> str:
-    """Return ``base`` if free, otherwise ``base2``, ``base3``... until free.
+    """Return ``base`` if no member chose it, nor a name that reads the same,
+    otherwise ``base2``, ``base3``... until free.
 
-    Best-effort only: the check-then-insert window is not serialized and
-    there is no DB-level uniqueness constraint on ``display_name`` (only
-    ``user_id`` is unique). Two concurrent provisionings of the same base
-    can both read "free" and store the same name. Tolerated by design — a
-    duplicate is cosmetic (``user_id`` stays the identity), and for
-    unconfirmed accounts the stored value is not even shown (the per-viewer
-    pseudo is regenerated live). The user-set path (``update_profile``)
-    additionally rejects an already-taken name with a 409.
+    The system picks these names: provisional pseudos for members who still
+    owe one, and the name of a new administrator. Neither holds a name key, so
+    two accounts may store the same one (``user_id`` stays the identity, and
+    the per-viewer pseudo is regenerated live for display). Only a name a
+    member chose is unique (``display_name_key``); ``update_profile`` refuses
+    a taken one with a 409.
     """
     candidate = (base or "").strip() or "user"
     if not await is_display_name_taken(db, candidate, exclude_user_id=exclude_user_id):
@@ -165,11 +145,6 @@ async def resolve_unique_display_name(
     raise RuntimeError("Cannot resolve unique display_name after many attempts")
 
 
-def is_display_name_locked(profile: UserProfile) -> bool:
-    until = display_name_locked_until(profile)
-    return bool(until and until > datetime.now(timezone.utc))
-
-
 async def update_profile(
     db: AsyncSession,
     profile: UserProfile,
@@ -179,14 +154,11 @@ async def update_profile(
 ) -> UserProfile:
     """Update profile fields from validated data dict.
 
-    Username rules:
-    - Same name (case-insensitive): silently ignored.
-    - Locked window (<6 months since last change, ``must_set`` already
-      cleared, ``admin_override`` is False): 403 ``display_name_locked``.
-    - Already taken by someone else (case-insensitive): 409
-      ``display_name_taken``. The endpoint surfaces suggestions via
-      ``/me/check-username``; we never silently rewrite a user's choice.
-    - First set clears ``must_set`` and stamps ``changed_at``.
+    A display name goes through ``judge_display_name``: kept as is when it is
+    the current one, saved when free, otherwise refused with the HTTP status of
+    ``REFUSAL_STATUS`` and ``display_name_<verdict>`` (the endpoint surfaces
+    suggestions via ``/me/check-username``; a user's choice is never silently
+    rewritten). A first set clears ``must_set`` and stamps ``changed_at``.
 
     The auto-resolve helper (``resolve_unique_display_name``) is reserved
     for the import path, where the system itself picks a name.
@@ -202,33 +174,20 @@ async def update_profile(
         if key not in allowed:
             continue
 
-        if key == "display_name" and isinstance(value, str):
-            cleaned = strip_tags_and_trim(value, max_len=50)
+        if key == "display_name":
+            # A name is replaced, never removed: null is ignored like an empty name.
+            cleaned = clean_display_name(value) if isinstance(value, str) else ""
             if not cleaned:
                 continue
-            current_lower = (profile.display_name or "").lower()
-            if cleaned.lower() == current_lower:
-                # Same name as the current one. If the first-login flag
-                # is still pending, treat this submission as an explicit
-                # confirmation and clear it — otherwise the modal would
-                # reappear on every login because the user "kept" their
-                # auto-imported Emby username.
-                if profile.display_name_must_set:
-                    profile.display_name_must_set = False
-                    profile.display_name_changed_at = datetime.now(timezone.utc)
+            verdict = await judge_display_name(
+                db, profile, cleaned, admin_override=admin_override,
+            )
+            if verdict == dn.CURRENT:
                 continue
-            if profile.role != ROLE_ADMIN and is_reserved_display_name(cleaned):
-                raise HTTPException(status_code=409, detail="display_name_reserved")
-            if (
-                not admin_override
-                and not profile.display_name_must_set
-                and is_display_name_locked(profile)
-            ):
-                raise HTTPException(status_code=403, detail="display_name_locked")
-            if await is_display_name_taken(
-                db, cleaned, exclude_user_id=profile.user_id,
-            ):
-                raise HTTPException(status_code=409, detail="display_name_taken")
+            if verdict != dn.FREE:
+                raise HTTPException(
+                    status_code=dn.REFUSAL_STATUS[verdict], detail=f"display_name_{verdict}",
+                )
             profile.display_name = cleaned
             profile.display_name_changed_at = datetime.now(timezone.utc)
             profile.display_name_must_set = False
@@ -240,7 +199,15 @@ async def update_profile(
         setattr(profile, key, value)
 
     db.add(profile)
-    await db.commit()
+    try:
+        await db.commit()
+    except IntegrityError as exc:
+        # Another member saved the same name between the check and this save:
+        # the unique name key keeps it to the first.
+        await db.rollback()
+        raise HTTPException(
+            status_code=dn.REFUSAL_STATUS[dn.TAKEN], detail=f"display_name_{dn.TAKEN}",
+        ) from exc
     await db.refresh(profile)
     return profile
 

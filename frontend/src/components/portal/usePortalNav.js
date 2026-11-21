@@ -102,9 +102,9 @@ export function usePortalNav(props, emit) {
     router.push({ name: 'portal-settings' })
   }
 
-  function openWhatsNew() {
+  function goToChangelog() {
     menuOpen.value = false
-    emit('open-whats-new')
+    router.push({ name: 'portal-changelog' })
   }
 
   function openDailyDigest() {
@@ -211,7 +211,7 @@ export function usePortalNav(props, emit) {
     goToSettings,
     toggleMenu,
     doLogout,
-    openWhatsNew,
+    goToChangelog,
     openDailyDigest,
     openHelp,
     goToLists,

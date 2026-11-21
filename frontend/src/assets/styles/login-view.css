@@ -212,11 +212,12 @@
   position: relative;
   z-index: 1;
 }
+/* Full width of the form below, corners rounded like its fields. */
 .login-hero-banner {
-  max-width: 350px;
   width: 100%;
   height: auto;
   object-fit: contain;
+  border-radius: var(--radius-input);
   margin: 0 auto 10px;
   display: block;
   filter: drop-shadow(0 0 20px rgb(var(--accent-rgb), 0.15));
@@ -442,9 +443,6 @@
   }
   .login-form-wrap {
     padding: 20px 24px;
-  }
-  .login-hero-banner {
-    max-width: 260px;
   }
 }
 

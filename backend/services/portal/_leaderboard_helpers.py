@@ -146,6 +146,7 @@ def build_entry(
             effective, row.user_id, lang, is_admin=bool(prof) and prof.role == ROLE_ADMIN
         ),
         "avatar_url": _resolve_avatar_url(prof) if prof else None,
+        "avatar_effect": prof.avatar_effect if prof else None,
         "level": p_level,
         "tier": tier_for_level(p_level),
         "title_key": title_for_level(p_level),

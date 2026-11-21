@@ -5,7 +5,7 @@
       <div class="ob-done-ring ob-done-ring-2" />
       <div class="ob-done-ring ob-done-ring-3" />
       <img
-        src="/assets/icons/mediakeeper.png"
+        src="/assets/icons/mk-logo-128.png"
         class="ob-done-logo"
         alt=""
         onerror="this.style.display = 'none'"

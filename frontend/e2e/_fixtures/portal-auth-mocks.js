@@ -23,6 +23,8 @@ export const DEFAULT_VIEWER_PROFILE = Object.freeze({
   chat_enabled: false,
   has_backoffice_access: false,
   display_name_must_set: false,
+  // The first-login wizard is done: the pages under test are not hidden behind it.
+  onboarding_pending: false,
   hide_adult: true,
   is_public: true,
   bio: '',
@@ -61,8 +63,7 @@ function pathHandler(name, pathname, body, status = 200) {
 
 /**
  * Handlers covering every /api/portal call PortalLayout fires at boot:
- * /auth/me, /news/unread, /changelog/check, /daily-digest, /events/rooms,
- * /notifications/count.
+ * /auth/me, /daily-digest, /events/rooms, /maintenance, /notifications/count.
  *
  * The chat websocket is NOT mocked — ``chat_enabled: false`` short-circuits
  * ``initGlobalChat`` before any /api/portal/chat call is made.
@@ -79,11 +80,6 @@ export function portalLayoutHandlers({
       unread_news_count: unreadNewsCount,
       ui: { ...ui },
       gdpr: { ...gdpr },
-    }),
-    pathHandler('portal-news-unread', '/api/portal/news/unread', { items: [] }),
-    pathHandler('portal-changelog-check', '/api/portal/changelog/check', {
-      has_new: false,
-      current_version: '0.0.0-e2e',
     }),
     pathHandler('portal-daily-digest', '/api/portal/daily-digest', {
       dismissed: true,

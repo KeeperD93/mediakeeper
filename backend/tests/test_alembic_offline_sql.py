@@ -1,5 +1,5 @@
-"""Offline SQL (``alembic upgrade A:B --sql``) of the migrations that read
-check constraints on PostgreSQL.
+"""Offline SQL (``alembic upgrade A:B --sql``) of the migrations that inspect
+the schema or read rows, rendered for PostgreSQL.
 
 Rendered in a child process: env.py registers an inspector for SQLAlchemy's
 mock connection, which another test module already registers under its own
@@ -53,8 +53,24 @@ def test_offline_sql_renders_069():
     assert "UPDATE user_profiles SET level = 1 WHERE level < 1" in sql
 
 
-def test_offline_sql_renders_070():
-    sql = _render("069_profile_level_floor:070_completion_exclusive_seconds")
+def test_offline_sql_renders_071_without_reading_the_articles():
+    sql = _render("070_profile_onboarding:071_help_seed_rewrite")
+    assert "SET version_num='071_help_seed_rewrite'" in sql
+    assert "help_article_translations" not in sql
+
+
+def test_offline_sql_renders_the_072_schema_steps():
+    sql = _render("071_help_seed_rewrite:072_display_name_keys")
+    assert "ALTER TABLE user_profiles ADD COLUMN display_name_key TEXT" in sql
+    assert "ALTER TABLE user_profiles ADD COLUMN display_name_skeleton TEXT" in sql
+    assert "DROP INDEX IF EXISTS ix_user_profiles_display_name_lower" in sql
+    assert "CREATE UNIQUE INDEX uq_user_profiles_display_name_key ON user_profiles (display_name_key)" in sql
+    assert "CREATE INDEX ix_user_profiles_display_name_skeleton ON user_profiles (display_name_skeleton)" in sql
+    assert "FROM user_profiles" not in sql
+
+
+def test_offline_sql_renders_073():
+    sql = _render("072_display_name_keys:073_completion_exclusive_seconds")
     assert "ALTER TABLE playback_completions ADD COLUMN exclusive_seconds INTEGER DEFAULT '0' NOT NULL" in sql
     assert (
         "UPDATE playback_completions SET exclusive_seconds=playback_completions.watched_seconds "

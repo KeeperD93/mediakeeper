@@ -1,0 +1,197 @@
+/* First-login wizard (PortalOnboardingWizard.vue): steps and their head, progress, notes
+ * and buttons; the window and its footer are in wizard-window.css. The hello is the
+ * daily digest's (dd- classes), so the digest can take its place. Classes start with
+ * wz-, a prefix nothing else uses. */
+
+/* Progress */
+.wz-top {
+  display: flex;
+  flex-direction: column;
+  gap: var(--portal-space-2);
+}
+.wz-prog {
+  display: flex;
+  gap: var(--portal-space-1-5);
+}
+.wz-seg {
+  flex: 1;
+  height: var(--portal-wizard-progress-height);
+  border-radius: var(--portal-radius-pill);
+  background: var(--portal-surface-4);
+}
+.wz-seg.is-done {
+  background: var(--portal-accent-500);
+}
+.wz-seg.is-current {
+  background: linear-gradient(90deg, var(--portal-accent-500), var(--portal-accent-200));
+  box-shadow: var(--portal-shadow-wizard-segment);
+}
+.wz-count {
+  margin: 0;
+  font-family: var(--portal-font-display);
+  font-size: var(--portal-text-xs);
+  font-weight: var(--portal-font-extrabold);
+  letter-spacing: var(--portal-tracking-eyebrow);
+  text-transform: uppercase;
+  color: var(--portal-text-muted-solid);
+}
+
+/* A step and its head: the digest's eyebrow, hello and subtitle */
+.wz-step {
+  display: flex;
+  flex-direction: column;
+  gap: var(--portal-space-5);
+  animation: wz-rise var(--portal-wizard-step-enter) var(--portal-ease-default) both;
+}
+.wz-head {
+  display: flex;
+  align-items: center;
+  gap: var(--portal-space-3-5);
+}
+.wz-hello {
+  outline: none;
+}
+.wz-head .dd-date {
+  margin-bottom: var(--portal-space-2-5);
+}
+.wz-step--welcome {
+  align-items: center;
+  gap: var(--portal-space-5);
+  padding-top: var(--portal-space-3);
+  text-align: center;
+}
+.wz-step--welcome .dd-sub {
+  margin-top: var(--portal-space-3);
+}
+.wz-banner {
+  display: block;
+  width: 100%;
+  max-width: var(--portal-wizard-banner-width);
+  height: auto;
+  margin-bottom: var(--portal-space-2-5);
+  border-radius: var(--portal-radius-lg);
+  box-shadow: var(--portal-shadow-wizard-banner);
+}
+.wz-banner--sm {
+  max-width: var(--portal-wizard-banner-width-sm);
+  margin-bottom: 0;
+  border-radius: var(--portal-radius-md);
+  box-shadow: var(--portal-shadow-wizard-banner-sm);
+}
+
+/* Notes: information (indigo), warning (amber), done (green) */
+.wz-note {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--portal-space-2-5);
+  padding: var(--portal-space-3) var(--portal-space-3-5);
+  border: var(--portal-border-width) solid rgb(var(--portal-accent-500-rgb), 0.3);
+  border-radius: var(--portal-radius-lg);
+  background: rgb(var(--portal-accent-500-rgb), 0.1);
+  font-size: var(--portal-text-sm);
+  line-height: var(--portal-lh-normal);
+  color: var(--portal-text-secondary-solid);
+}
+.wz-note > svg {
+  flex: none;
+  margin-top: var(--portal-space-0-5);
+  color: var(--portal-accent-light);
+}
+.wz-note p {
+  margin: 0;
+}
+.wz-note p + p {
+  margin-top: var(--portal-space-1);
+}
+.wz-note--warn {
+  border-color: rgb(var(--portal-color-warning-rgb), 0.32);
+  background: rgb(var(--portal-color-warning-rgb), 0.12);
+  color: var(--portal-color-warning-light);
+}
+.wz-note--warn > svg {
+  color: var(--portal-color-warning);
+}
+.wz-note--ok {
+  border-color: rgb(var(--portal-color-success-light-rgb), 0.32);
+  background: rgb(var(--portal-color-success-light-rgb), 0.1);
+  color: var(--portal-color-success-light);
+}
+.wz-note--ok > svg {
+  color: var(--portal-color-success-light);
+}
+.wz-where,
+.wz-time {
+  margin: 0;
+  font-size: var(--portal-text-sm);
+  color: var(--portal-text-muted-solid);
+}
+.wz-where b {
+  font-weight: var(--portal-font-medium);
+  color: var(--portal-text-secondary-solid);
+}
+.wz-cap {
+  margin: var(--portal-space-1-5) 0 0;
+  font-size: var(--portal-text-xs);
+  color: var(--portal-text-muted-solid);
+}
+.wz-error {
+  margin: 0;
+  font-size: var(--portal-text-sm);
+  font-weight: var(--portal-font-medium);
+  color: var(--portal-color-error-light);
+}
+
+/* Buttons: outlined (back, pick a file…) and text-only (edit, retry) */
+.wz-ghost {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--portal-space-1-5);
+  min-height: var(--portal-touch-target);
+  padding: var(--portal-space-2-5) var(--portal-space-4);
+  border: var(--portal-border-width) solid var(--portal-border-strong);
+  border-radius: var(--portal-radius-md);
+  background: transparent;
+  color: var(--portal-text-secondary-solid);
+  font: inherit;
+  font-size: var(--portal-text-base);
+  cursor: pointer;
+}
+.wz-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--portal-touch-target);
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--portal-accent-light);
+  font: inherit;
+  font-size: var(--portal-text-base);
+  font-weight: var(--portal-font-medium);
+  cursor: pointer;
+}
+.wz :is(a, button):focus-visible,
+.wz-opt:has(.wz-radio:focus-visible) {
+  outline: var(--portal-focus-ring);
+  outline-offset: var(--portal-focus-ring-offset);
+}
+.wz :is(.wz-ghost, .wz-link):disabled {
+  opacity: var(--portal-opacity-disabled);
+  cursor: not-allowed;
+}
+
+@keyframes wz-rise {
+  from {
+    opacity: 0;
+    transform: translateY(var(--portal-space-2-5));
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wz-step {
+    animation: none;
+  }
+}
