@@ -4063,7 +4063,8 @@
           "plan_changed": "The data changed since the simulation: run it again.",
           "already_running": "A recalculation is already running.",
           "backup_incomplete": "Incomplete backup: nothing was changed.",
-          "apply_failed": "The recalculation failed: nothing was changed."
+          "apply_failed": "The recalculation failed: nothing was changed.",
+          "apply_uncertain": "Uncertain result: run the simulation again to see what was applied."
         },
         "errorGeneric": "Action failed"
       },

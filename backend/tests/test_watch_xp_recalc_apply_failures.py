@@ -1,12 +1,14 @@
 """Applying the watch XP recalculation when something is wrong: a plan the admin has not
-seen, a backup missing a part or failing, an error while writing. Nothing of the plan is
-written."""
+seen, a backup missing a part or failing, an error while writing, a commit that fails to
+answer. Nothing of the plan is written, but maybe by that commit."""
 import logging
 from pathlib import Path
 
 import pytest
+from sqlalchemy.exc import OperationalError
 
 from services.backup.create import BackupResult
+from services.portal import daily_digest
 from services.portal.admin_users_constants import (
     ACTION_DEBUG_WATCH_XP_RECALC,
     ACTION_DEBUG_WATCH_XP_RECALC_PLAYER,
@@ -19,6 +21,7 @@ from tests._watch_xp_apply_helpers import (
     audit_rows,
     confirmation,
     fake_backups,
+    ledger_rows,
     snapshot,
     two_players,
 )
@@ -30,6 +33,11 @@ pytestmark = pytest.mark.asyncio
 @pytest.fixture
 def backups(monkeypatch):
     return fake_backups(monkeypatch)
+
+
+def _lost(what: str) -> OperationalError:
+    """What a statement raises when the connection drops under it."""
+    return OperationalError(what, None, ConnectionResetError("connection reset by peer"))
 
 
 async def test_a_plan_the_admin_has_not_seen_is_refused(client, db_session, backups):
@@ -139,4 +147,76 @@ async def test_a_failure_journal_that_fails_still_refuses_the_apply_as_failed(
     assert (resp.status_code, resp.json()["detail"]) == (409, "apply_failed")
     assert await snapshot(db) == before
     assert f"nothing written; backup {ARCHIVE}" in caplog.text
-    assert "failure journal not written" in caplog.text
+    assert "journal of the error not written" in caplog.text
+
+
+async def test_a_failure_whose_rollback_fails_is_still_refused_as_failed(
+    client, db_session, backups, monkeypatch, caplog,
+):
+    db = db_session
+    await two_players(client, db)
+    confirmed = await confirmation(client)
+    before = await snapshot(db)
+    record = _run.record_audit
+
+    async def player_write_lost(db, **kwargs):
+        if kwargs["action"] == ACTION_DEBUG_WATCH_XP_RECALC_PLAYER:
+            async def rollback_lost():
+                del db.rollback
+                raise _lost("ROLLBACK")
+
+            db.rollback = rollback_lost
+            raise _lost("INSERT")
+        return await record(db, **kwargs)
+
+    monkeypatch.setattr(_run, "record_audit", player_write_lost)
+    with caplog.at_level(logging.ERROR, logger=_run.logger.name):
+        resp = await client.post(APPLY, json=confirmed)
+
+    assert (resp.status_code, resp.json()["detail"]) == (409, "apply_failed")
+    assert await snapshot(db) == before
+    assert "journal of the error not written" in caplog.text
+
+
+def _commit_without_answer(monkeypatch, *, reached: bool) -> None:
+    """The commit of the apply fails to answer, after reaching the database or before."""
+    record = _run.record_audit
+
+    async def recording(db, **kwargs):
+        entry = await record(db, **kwargs)
+        if kwargs["action"] == ACTION_DEBUG_WATCH_XP_RECALC and "uncertain" not in kwargs["payload"]:
+            real_commit = db.commit  # the overall journal is the last write before the commit
+
+            async def lost_answer():
+                del db.commit
+                if reached:
+                    await real_commit()
+                raise _lost("COMMIT")
+
+            db.commit = lost_answer
+        return entry
+
+    monkeypatch.setattr(_run, "record_audit", recording)
+
+
+@pytest.mark.parametrize("reached", [True, False], ids=["written", "not_written"])
+async def test_a_commit_that_fails_to_answer_is_refused_as_uncertain(
+    client, db_session, backups, monkeypatch, caplog, reached,
+):
+    db = db_session
+    ids = await two_players(client, db)
+    confirmed = await confirmation(client)
+    before = await ledger_rows(db)
+    daily_digest._cache_set(ids["alice"], "2026-03-08", "fr", {"cached": True})
+    _commit_without_answer(monkeypatch, reached=reached)
+
+    with caplog.at_level(logging.ERROR, logger=_run.logger.name):
+        resp = await client.post(APPLY, json=confirmed)
+
+    assert (resp.status_code, resp.json()["detail"]) == (409, "apply_uncertain")
+    assert (await ledger_rows(db) != before) is reached
+    overall = [row.payload for row in (await audit_rows(db))[ACTION_DEBUG_WATCH_XP_RECALC]]
+    assert ["uncertain" in payload for payload in overall] == ([False, True] if reached else [True])
+    assert overall[-1] == {**confirmed, "backup": ARCHIVE, "uncertain": True}
+    assert f"commit outcome unknown; backup {ARCHIVE}" in caplog.text
+    assert daily_digest._digest_cache == {}

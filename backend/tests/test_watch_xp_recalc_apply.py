@@ -1,5 +1,6 @@
 """Applying the watch XP recalculation: the plan the admin saw, a full backup first, every
-player written in one transaction. What goes wrong has its own file."""
+player written in one transaction, one apply at a time and by an admin only. A plan that
+changed and the failures have their own file."""
 import asyncio
 
 import pytest

@@ -4063,7 +4063,8 @@
           "plan_changed": "Les données ont changé depuis la simulation : relance-la.",
           "already_running": "Un recalcul est déjà en cours.",
           "backup_incomplete": "Sauvegarde incomplète : rien n'a été modifié.",
-          "apply_failed": "Le recalcul a échoué : rien n'a été modifié."
+          "apply_failed": "Le recalcul a échoué : rien n'a été modifié.",
+          "apply_uncertain": "Résultat incertain : relance la simulation pour voir ce qui a été appliqué."
         },
         "errorGeneric": "L'action a échoué"
       },

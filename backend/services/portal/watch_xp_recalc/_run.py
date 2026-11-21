@@ -4,9 +4,10 @@ Simulating plans every player in a read-only transaction, then rolls it back. Ap
 plans the same way and refuses a plan the admin has not seen, backs up (a backup that
 fails or lacks a part refuses the apply), then writes every player in one transaction:
 the profiles of the scope locked in id order, the plan made again under the locks and
-checked once more, each player's rows replaced and journaled, one commit. An error while
-writing leaves nothing written; the log names the backup, and so does a failure journal
-unless writing it fails too.
+checked once more, each player's rows replaced and journaled, one commit. An error before
+the commit leaves nothing written; a commit that fails to answer may have written it all,
+and the apply is refused as uncertain. The log names the backup either way, and so does
+the journal unless writing it fails too.
 """
 import logging
 from collections.abc import AsyncIterator
@@ -19,6 +20,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from constants.watch_xp_recalc import (
     ALREADY_RUNNING,
     APPLY_FAILED,
+    APPLY_UNCERTAIN,
     BACKUP_INCOMPLETE,
     PLAN_CHANGED,
 )
@@ -47,7 +49,7 @@ BACKUP_LABEL = "watch_xp_recalc"
 
 
 class WatchXpRecalcRefused(CodedError):
-    """Nothing of the plan is written; ``code`` tells the client why."""
+    """``code`` tells the client why; nothing of the plan is written, unless the apply is uncertain."""
 
 
 @asynccontextmanager
@@ -110,6 +112,7 @@ async def _write_player(db: AsyncSession, plan: PlayerPlan, profile: UserProfile
 
 
 async def _write(db: AsyncSession, as_of: datetime, plan: str, backup: str, audit: dict) -> dict:
+    """Write every changed player and the overall journal; the caller commits."""
     ctx = await build_context(db, as_of)
     # Profiles before the ledger, in id order, like every XP writer: a gain made meanwhile
     # waits for the commit. An account created after this list is not written.
@@ -130,13 +133,13 @@ async def _write(db: AsyncSession, as_of: datetime, plan: str, backup: str, audi
         payload={"as_of": _iso(as_of), "plan": plan, "backup": backup, **applied},
         commit=False, **audit,
     )
-    await db.commit()
     return applied
 
 
-async def _journal_failure(db: AsyncSession, payload: dict, audit: dict) -> None:
-    """Take the writing back, then journal the failure. A lost connection fails both: the
-    apply is refused as failed all the same, and the log has already named the backup."""
+async def _journal_error(db: AsyncSession, payload: dict, audit: dict) -> None:
+    """Take the writing back, then journal what went wrong. On a lost connection either
+    step may fail: the apply is refused all the same, and the log has already named the
+    backup."""
     try:
         await db.rollback()
         await record_audit(
@@ -144,7 +147,7 @@ async def _journal_failure(db: AsyncSession, payload: dict, audit: dict) -> None
             commit=True, **audit,
         )
     except Exception:
-        logger.exception("[WATCH_XP_RECALC] failure journal not written")
+        logger.exception("[WATCH_XP_RECALC] journal of the error not written")
 
 
 async def apply_watch_xp_recalc(
@@ -175,6 +178,7 @@ async def apply_watch_xp_recalc(
             raise WatchXpRecalcRefused(BACKUP_INCOMPLETE)
 
         audit = {"admin_user_id": admin_user_id, "ip": ip, "user_agent": user_agent}
+        journal = {"as_of": _iso(ctx.as_of), "plan": plan, "backup": name}
         try:
             applied = await _write(db, ctx.as_of, plan, name, audit)
         except WatchXpRecalcRefused:
@@ -182,10 +186,17 @@ async def apply_watch_xp_recalc(
             raise
         except Exception as exc:
             logger.exception("[WATCH_XP_RECALC] apply failed, nothing written; backup %s", name)
-            await _journal_failure(
-                db, {"as_of": _iso(ctx.as_of), "plan": plan, "backup": name, "failed": True}, audit,
-            )
+            await _journal_error(db, {**journal, "failed": True}, audit)
             raise WatchXpRecalcRefused(APPLY_FAILED) from exc
+        try:
+            await db.commit()
+        except Exception as exc:
+            # A commit can reach the database and lose its answer: everything may be written,
+            # so the cached digests go as well.
+            logger.exception("[WATCH_XP_RECALC] commit outcome unknown; backup %s", name)
+            invalidate_all()
+            await _journal_error(db, {**journal, "uncertain": True}, audit)
+            raise WatchXpRecalcRefused(APPLY_UNCERTAIN) from exc
         invalidate_all()
         logger.info("[WATCH_XP_RECALC] applied: %s, backup %s", applied, name)
         return {"plan": plan, "backup": name, "applied": applied}
