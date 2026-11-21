@@ -118,9 +118,9 @@ const applying = ref(false)
 const busy = computed(() => simulating.value || applying.value)
 const appliedText = computed(() => applied.value && resultText(applied.value))
 
-// No answer, or a relay's in place of the server's (an apply outlasting its wait): the
-// apply may have run all the same.
-const RELAY_ERRORS = new Set(['http_502', 'http_503', 'http_504'])
+// No answer, or a relay's in place of the server's: its wait ran out (504, 524), or the
+// server's answer failed or came empty (502, 503, 520). The apply may have run all the same.
+const RELAY_ERRORS = new Set(['http_502', 'http_503', 'http_504', 'http_520', 'http_524'])
 const answerLost = err => err instanceof TypeError || RELAY_ERRORS.has(err?.message)
 
 function resultText(result) {

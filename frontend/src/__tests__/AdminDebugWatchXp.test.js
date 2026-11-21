@@ -177,6 +177,8 @@ describe('AdminDebugWatchXp', () => {
     ['a relay answers 502', new Error('http_502')],
     ['a relay answers 503', new Error('http_503')],
     ['a relay answers 504', new Error('http_504')],
+    ['a relay answers 520', new Error('http_520')],
+    ['a relay answers 524', new Error('http_524')],
   ])('takes the apply as uncertain when %s', async (_, failure) => {
     confirm.mockResolvedValue(true)
     applyWatchXp.mockRejectedValue(failure)
