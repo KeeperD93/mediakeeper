@@ -1,11 +1,12 @@
 """Simulate, then apply, a watch XP recalculation.
 
 Simulating plans every player in a read-only transaction, then rolls it back. Applying
-plans the same way and refuses a plan the admin has not seen, backs up, then writes
-every player in one transaction: the profiles of the scope locked in id order, the plan
-made again under the locks and checked once more, each player's rows replaced and
-journaled, one commit. Any error leaves nothing written and a failure journal that
-names the backup.
+plans the same way and refuses a plan the admin has not seen, backs up (a backup that
+fails or lacks a part refuses the apply), then writes every player in one transaction:
+the profiles of the scope locked in id order, the plan made again under the locks and
+checked once more, each player's rows replaced and journaled, one commit. An error while
+writing leaves nothing written; the log names the backup, and so does a failure journal
+unless writing it fails too.
 """
 import logging
 from collections.abc import AsyncIterator
@@ -46,7 +47,7 @@ BACKUP_LABEL = "watch_xp_recalc"
 
 
 class WatchXpRecalcRefused(CodedError):
-    """The apply writes nothing; ``code`` tells the client why."""
+    """Nothing of the plan is written; ``code`` tells the client why."""
 
 
 @asynccontextmanager
@@ -133,6 +134,19 @@ async def _write(db: AsyncSession, as_of: datetime, plan: str, backup: str, audi
     return applied
 
 
+async def _journal_failure(db: AsyncSession, payload: dict, audit: dict) -> None:
+    """Take the writing back, then journal the failure. A lost connection fails both: the
+    apply is refused as failed all the same, and the log has already named the backup."""
+    try:
+        await db.rollback()
+        await record_audit(
+            db, target_user_id=None, action=ACTION_DEBUG_WATCH_XP_RECALC, payload=payload,
+            commit=True, **audit,
+        )
+    except Exception:
+        logger.exception("[WATCH_XP_RECALC] failure journal not written")
+
+
 async def apply_watch_xp_recalc(
     db: AsyncSession, *, as_of: datetime, plan: str,
     admin_user_id: int, ip: str | None, user_agent: str | None,
@@ -149,7 +163,11 @@ async def apply_watch_xp_recalc(
         if not any(player.changed for player in seen.players):
             return {"plan": plan, "backup": None, "applied": {"players": 0, "rows_deleted": 0, "rows_inserted": 0}}
 
-        backup = await create_backup(db, label=BACKUP_LABEL)
+        try:
+            backup = await create_backup(db, label=BACKUP_LABEL)
+        except Exception as exc:
+            logger.exception("[WATCH_XP_RECALC] backup failed: nothing applied")
+            raise WatchXpRecalcRefused(BACKUP_INCOMPLETE) from exc
         name = backup.path.name
         logger.info("[WATCH_XP_RECALC] backup %s made before applying", name)
         if not backup.complete:
@@ -163,12 +181,9 @@ async def apply_watch_xp_recalc(
             await db.rollback()
             raise
         except Exception as exc:
-            await db.rollback()
             logger.exception("[WATCH_XP_RECALC] apply failed, nothing written; backup %s", name)
-            await record_audit(
-                db, target_user_id=None, action=ACTION_DEBUG_WATCH_XP_RECALC,
-                payload={"as_of": _iso(ctx.as_of), "plan": plan, "backup": name, "failed": True},
-                commit=True, **audit,
+            await _journal_failure(
+                db, {"as_of": _iso(ctx.as_of), "plan": plan, "backup": name, "failed": True}, audit,
             )
             raise WatchXpRecalcRefused(APPLY_FAILED) from exc
         invalidate_all()

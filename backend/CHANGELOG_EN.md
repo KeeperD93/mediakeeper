@@ -41,6 +41,7 @@ This section intentionally has no date so it is not shown to users.
 - Users — XP history: removals shown as "-20 XP", the XP actually taken, no line when XP stays the same.
 - Bonus events — XP rounded to the nearest, halves up.
 - Debug tools — "Reset for everyone" takes back only the XP the trophy gave.
+- Debug tools — trophies counted in UTC: a failed backup is reported as incomplete.
 
 ## [1.0.0-rc.10] - 2026-11-11
 
