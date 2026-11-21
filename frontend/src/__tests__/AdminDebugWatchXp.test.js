@@ -1,8 +1,8 @@
 /**
  * Portal admin → debug tools → watch XP recalculation: the simulation shows its facts,
  * each player's change, and nothing to do when nothing changes; applying asks first and
- * sends back the moment and the plan it showed; an uncertain apply drops the simulation
- * and reloads the players.
+ * sends back the moment and the plan it showed; an uncertain apply, or one whose answer is
+ * lost on the way, drops the simulation and reloads the players.
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
@@ -170,5 +170,51 @@ describe('AdminDebugWatchXp', () => {
     expect(wrapper.text()).not.toContain('Alice')
     const apply = button(wrapper, 'portal.admin.debug.watchXpApply')
     expect(apply.attributes('disabled')).toBeDefined()
+  })
+
+  it.each([
+    ['the connection drops', new TypeError('Failed to fetch')],
+    ['a relay answers 502', new Error('http_502')],
+    ['a relay answers 503', new Error('http_503')],
+    ['a relay answers 504', new Error('http_504')],
+  ])('takes the apply as uncertain when %s', async (_, failure) => {
+    confirm.mockResolvedValue(true)
+    applyWatchXp.mockRejectedValue(failure)
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    const wrapper = await simulated()
+    await button(wrapper, 'portal.admin.debug.watchXpApply').trigger('click')
+    await flushPromises()
+    expect(showToast).toHaveBeenCalledWith(
+      'portal.admin.debug.watchXpErrors.apply_uncertain',
+      TOAST_TYPE.ERR,
+    )
+    expect(wrapper.emitted('changed')).toHaveLength(1)
+    expect(wrapper.text()).not.toContain('Alice')
+  })
+
+  it('keeps an error the server answered as a failure', async () => {
+    confirm.mockResolvedValue(true)
+    applyWatchXp.mockRejectedValue(new Error('http_500'))
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    const wrapper = await simulated()
+    await button(wrapper, 'portal.admin.debug.watchXpApply').trigger('click')
+    await flushPromises()
+    expect(showToast).toHaveBeenCalledWith(
+      'portal.admin.debug.watchXpErrors.http_500',
+      TOAST_TYPE.ERR,
+    )
+    expect(wrapper.emitted('changed')).toBeUndefined()
+    expect(wrapper.text()).toContain('Alice')
+  })
+
+  it('says nothing on its way to the login page', async () => {
+    confirm.mockResolvedValue(true)
+    applyWatchXp.mockResolvedValue(null)
+    const wrapper = await simulated()
+    await button(wrapper, 'portal.admin.debug.watchXpApply').trigger('click')
+    await flushPromises()
+    expect(showToast).not.toHaveBeenCalled()
+    expect(wrapper.emitted('changed')).toBeUndefined()
+    expect(wrapper.text()).toContain('Alice')
   })
 })

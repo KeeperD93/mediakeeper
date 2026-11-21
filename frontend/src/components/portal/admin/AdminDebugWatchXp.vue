@@ -106,6 +106,11 @@ const applying = ref(false)
 const busy = computed(() => simulating.value || applying.value)
 const appliedText = computed(() => applied.value && resultText(applied.value))
 
+// No answer, or a relay's in place of the server's (an apply outlasting its wait): the
+// apply may have run all the same.
+const RELAY_ERRORS = new Set(['http_502', 'http_503', 'http_504'])
+const answerLost = err => err instanceof TypeError || RELAY_ERRORS.has(err?.message)
+
 function resultText(result) {
   return result.backup
     ? t('portal.admin.debug.watchXpApplied', {
@@ -174,13 +179,16 @@ async function apply() {
   if (!ok) return
   applying.value = true
   try {
-    applied.value = await debugApi.applyWatchXp(plan.as_of, plan.plan)
+    const result = await debugApi.applyWatchXp(plan.as_of, plan.plan)
+    if (!result) return // on its way to the login page: the session had ended
+    applied.value = result
     summary.value = null
-    showToast(resultText(applied.value), TOAST_TYPE.OK)
+    showToast(resultText(result), TOAST_TYPE.OK)
     emit('changed')
   } catch (err) {
     console.error('[AdminDebugWatchXp]', err)
-    if (err?.message === WATCH_XP_REFUSED.APPLY_UNCERTAIN) {
+    const code = answerLost(err) ? WATCH_XP_REFUSED.APPLY_UNCERTAIN : err?.message
+    if (code === WATCH_XP_REFUSED.APPLY_UNCERTAIN) {
       // Everything may be written: the old simulation goes, as the message asks for a new one.
       summary.value = null
       emit('changed')
@@ -188,7 +196,7 @@ async function apply() {
     showToast(
       resolveScopedError(
         'portal.admin.debug.watchXpErrors',
-        err?.message,
+        code,
         'portal.admin.debug.errorGeneric',
       ),
       TOAST_TYPE.ERR,
