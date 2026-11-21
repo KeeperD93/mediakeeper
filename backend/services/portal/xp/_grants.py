@@ -29,6 +29,7 @@ from models.portal.profile import UserProfile
 from models.portal.xp_ledger import XpLedger
 from models.user import User
 from services.portal.admin_users_constants import SOURCE_EMBY
+from services.portal.xp_boost import boosted_xp, get_active_multiplier
 
 from ._levels import MIN_LEVEL, level_from_xp
 
@@ -121,7 +122,6 @@ async def grant_xp(
         return None
 
     # --- Apply active XP boost multipliers (Christmas, Halloween, etc.) ---
-    from services.portal.xp_boost import boosted_xp, get_active_multiplier
     xp_amount = boosted_xp(base_xp, await get_active_multiplier(db, action))
 
     # --- Profile first, then the ledger: the caps are read under the lock ---
