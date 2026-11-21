@@ -5,7 +5,8 @@ import asyncio
 
 import pytest
 
-from services.portal import daily_digest
+from models.user import User
+from services.portal import daily_digest, daily_digest_sources
 from services.portal.admin_users_constants import (
     ACTION_DEBUG_WATCH_XP_RECALC,
     ACTION_DEBUG_WATCH_XP_RECALC_PLAYER,
@@ -78,6 +79,32 @@ async def test_apply_writes_the_rows_at_their_date_and_journals_each_player(clie
         "as_of": confirmed["as_of"], "plan": confirmed["plan"], "backup": ARCHIVE,
         "players": 2, "rows_deleted": 1, "rows_inserted": 2,
     }
+
+
+async def test_a_digest_built_across_the_apply_is_not_cached(client, db_session, backups, monkeypatch):
+    db = db_session
+    ids = await two_players(client, db)
+    confirmed = await confirmation(client)
+    monkeypatch.setattr(daily_digest, "_digest_cache", {})
+    reading, resume = asyncio.Event(), asyncio.Event()
+    closest = daily_digest_sources.closest_achievement
+
+    async def held(*args, **kwargs):
+        reading.set()
+        await asyncio.wait_for(resume.wait(), 10)
+        return await closest(*args, **kwargs)
+
+    # Alice's digest reads her profile, then waits on a source while the apply commits.
+    monkeypatch.setattr(daily_digest_sources, "closest_achievement", held)
+    digest = asyncio.create_task(daily_digest.build_digest(db, await db.get(User, ids["alice"])))
+    await asyncio.wait_for(reading.wait(), 10)
+    resp = await client.post(APPLY, json=confirmed)
+    resume.set()
+    built = await asyncio.wait_for(digest, 10)
+
+    assert resp.status_code == 200, resp.text
+    assert (built["level"]["xp"], (await profile_of(db, ids["alice"])).xp) == (282, 312)
+    assert daily_digest._digest_cache == {}
 
 
 async def test_a_second_run_finds_nothing_and_backs_nothing_up(client, db_session, backups):

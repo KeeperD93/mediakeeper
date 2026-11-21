@@ -28,13 +28,13 @@ from core.errors import CodedError
 from models.portal.profile import UserProfile
 from models.portal.xp_ledger import XpLedger
 from services.backup.create import create_backup
+from services.portal import daily_digest as dd_svc
 from services.portal.achievements_utils import _coerce_utc
 from services.portal.admin_users_audit import record_audit
 from services.portal.admin_users_constants import (
     ACTION_DEBUG_WATCH_XP_RECALC,
     ACTION_DEBUG_WATCH_XP_RECALC_PLAYER,
 )
-from services.portal.daily_digest import invalidate_all
 from services.portal.recalc_lock import RECALC_LOCK
 from services.portal.xp import level_from_xp, locked_profile
 
@@ -194,8 +194,9 @@ async def apply_watch_xp_recalc(
             try:
                 await db.commit()
             finally:
-                # Even failed or cancelled, the commit may have written: the cached digests go first.
-                invalidate_all()
+                # Even failed or cancelled, the commit may have written: the cached digests go
+                # first, and one built across the commit is not cached.
+                dd_svc.clear_cache()
         except Exception as exc:
             # A commit can reach the database and lose its answer: everything may be written.
             logger.exception("[WATCH_XP_RECALC] commit outcome unknown; backup %s", name)
