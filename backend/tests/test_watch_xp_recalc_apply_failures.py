@@ -244,11 +244,18 @@ async def test_a_commit_that_fails_to_answer_is_refused_as_uncertain(
     before = await ledger_rows(db)
     daily_digest._cache_set(ids["alice"], "2026-03-08", "fr", {"cached": True})
     _commit_without_answer(monkeypatch, reached=reached)
+    journal_error, seen = _run._journal_error, []
 
+    async def journal_seeing_the_cache(db, payload, audit):
+        seen.append(dict(daily_digest._digest_cache))
+        await journal_error(db, payload, audit)
+
+    monkeypatch.setattr(_run, "_journal_error", journal_seeing_the_cache)
     with caplog.at_level(logging.ERROR, logger=_run.logger.name):
         resp = await client.post(APPLY, json=confirmed)
 
     assert (resp.status_code, resp.json()["detail"]) == (409, "apply_uncertain")
+    assert seen == [{}]  # the digests went before the journal, which a lost connection may hold up
     assert (await ledger_rows(db) != before) is reached
     overall = [row.payload for row in (await audit_rows(db))[ACTION_DEBUG_WATCH_XP_RECALC]]
     assert ["uncertain" in payload for payload in overall] == ([False, True] if reached else [True])

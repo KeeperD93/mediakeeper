@@ -191,14 +191,15 @@ async def apply_watch_xp_recalc(
             await _journal_error(db, {**journal, "failed": True}, audit)
             raise WatchXpRecalcRefused(APPLY_FAILED) from exc
         try:
-            await db.commit()
+            try:
+                await db.commit()
+            finally:
+                # Even failed or cancelled, the commit may have written: the cached digests go first.
+                invalidate_all()
         except Exception as exc:
             # A commit can reach the database and lose its answer: everything may be written.
             logger.exception("[WATCH_XP_RECALC] commit outcome unknown; backup %s", name)
             await _journal_error(db, {**journal, "uncertain": True}, audit)
             raise WatchXpRecalcRefused(APPLY_UNCERTAIN) from exc
-        finally:
-            # Even a request cancelled during the commit may have written: the cached digests go.
-            invalidate_all()
         logger.info("[WATCH_XP_RECALC] applied: %s, backup %s", applied, name)
         return {"plan": plan, "backup": name, "applied": applied}
