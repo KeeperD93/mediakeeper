@@ -1,5 +1,6 @@
-"""Migration 070: another sitting of the same title still playing after the title
-counted (a second device on the same account) never makes the backfill pay more."""
+"""Migration 070: other sittings of the same title around the count, a second device on
+the same account still playing after it or a sitting added since, keep the backfill at
+the collector's share, and at or below it once a deleted sitting shows on the clock."""
 from datetime import timedelta
 
 from tests._migration_070_helpers import (
@@ -103,3 +104,22 @@ async def test_a_deleted_sitting_hidden_by_a_second_device_is_not_paid(db_sessio
     await admin_deletes(db, "S-Xa")
 
     assert (await backfilled(db))[done] <= live[done]
+
+
+async def test_a_sitting_added_while_the_tv_is_paused_adds_nothing(db_session):
+    db = db_session
+    await watch(db, T0, 1, 100, ("MOVIE-X", "S-A1", 100))  # 500 s alone, left there
+    await watch(db, T0 + timedelta(days=1), 100, 104, ("MOVIE-X", "S-A2", 104))  # 20 s more: it counts
+    # Day 5: the TV's first 410 s go to MOVIE-Z, listed first, so 100 s of its own.
+    await _timeline(db, T0 + timedelta(days=5), [
+        ("MOVIE-Z", "S-Z", "DEV-Z", _plays(0, 5, 410)),
+        ("MOVIE-X", "S-TV", "DEV-TV", _tv_paused_on_the_credits()),
+    ])
+    live = await live_values(db)
+    done = await done_of(db, "S-TV")
+    assert live[done] < PAID
+    # The first count goes with its 20 s sitting: the 500 s one now falls in the 30 days,
+    # hidden in the TV's pause.
+    await admin_deletes(db, "S-A2")
+
+    assert await backfilled(db) == {done: live[done]}
