@@ -163,17 +163,15 @@ async def test_a_row_the_database_refuses_is_refused_as_failed_before_the_commit
     before = await snapshot(db)
     record = _run.record_audit
 
-    async def twin_of_a_new_row(db, **kwargs):
+    async def twin_with_the_overall_journal(db, **kwargs):
         entry = await record(db, **kwargs)
-        if kwargs["action"] == ACTION_DEBUG_WATCH_XP_RECALC_PLAYER and kwargs["target_user_id"] == ids["bob"]:
-            # Bob is written last: his new rows still wait to be sent, and a twin breaks the unique key.
-            row = next(obj for obj in db.new if isinstance(obj, XpLedger) and obj.user_id == ids["bob"])
-            db.add(XpLedger(
-                user_id=row.user_id, action=row.action, reference=row.reference, xp=1, created_at=row.created_at,
-            ))
+        if kwargs["action"] == ACTION_DEBUG_WATCH_XP_RECALC and not kwargs["commit"]:
+            # The last write before the rows are sent, whoever is written last: the twin of
+            # Alice's sign-in, which the recalculation leaves alone, breaks the unique key.
+            db.add(XpLedger(user_id=ids["alice"], action="daily_login", reference="2026-03-07", xp=2, created_at=T))
         return entry
 
-    monkeypatch.setattr(_run, "record_audit", twin_of_a_new_row)
+    monkeypatch.setattr(_run, "record_audit", twin_with_the_overall_journal)
     with caplog.at_level(logging.ERROR, logger=_run.logger.name):
         resp = await client.post(APPLY, json=confirmed)
 
