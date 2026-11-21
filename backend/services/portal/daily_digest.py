@@ -70,6 +70,11 @@ def _cache_set(user_id: int, date_iso: str, lang: str, payload: dict) -> None:
     _digest_cache[(user_id, date_iso, lang)] = (time.time() + _CACHE_TTL_SEC, payload)
 
 
+def invalidate_all() -> None:
+    """Drop every cached payload: a recalculation changed the XP of many players."""
+    _digest_cache.clear()
+
+
 def invalidate_cache(user_id: int) -> None:
     """Drop cached payload for a user (used on dismiss so reopens don't
     keep serving stale content)."""

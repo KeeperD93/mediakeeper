@@ -4,7 +4,7 @@
 
     <AdminDebugBulkTools :achievements="achievements" @changed="loadUsers" />
     <AdminDebugZoneCorrection @changed="loadUsers" />
-    <AdminDebugWatchXp />
+    <AdminDebugWatchXp @changed="loadUsers" />
 
     <!-- User picker -->
     <section class="pt-debug-card">

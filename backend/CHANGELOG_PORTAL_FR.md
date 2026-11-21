@@ -17,6 +17,7 @@ utilisateurs.
 ## [Unreleased]
 
 ### Changed
+- XP de visionnage — 20 XP par heure de titre vu en entier.
 - Jours d'affilée et Régulier — dès 5 min regardées ; musique et livres audio exclus.
 - Trophées secrets — nom et icône visibles, description et progression cachées jusqu'au déblocage.
 

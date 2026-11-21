@@ -7,7 +7,6 @@ plan unless it takes a trophy the admin was not shown: a player is corrected ent
 not at all, and a second run finds nothing left. The audit row of each player keeps what
 undoing them would need.
 """
-import asyncio
 import logging
 from dataclasses import replace
 from datetime import datetime
@@ -27,6 +26,7 @@ from services.portal.admin_users_constants import (
     ACTION_DEBUG_ZONE_CORRECTION_PLAYER,
 )
 from services.portal.daily_digest import invalidate_cache
+from services.portal.recalc_lock import RECALC_LOCK
 from services.portal.xp import (
     ACHIEVEMENT_XP_ACTION,
     achievement_xp_reference,
@@ -40,8 +40,8 @@ from ._summary import summarize
 logger = logging.getLogger("mediakeeper.portal.zone_correction")
 
 BACKUP_LABEL = "zone_correction"
-# One web process serves the admin: a second apply waits for nothing, it is refused.
-_apply_lock = asyncio.Lock()
+# Shared with the watch XP recalculation: one of them at a time.
+_apply_lock = RECALC_LOCK
 
 
 class _PlanGrew(Exception):

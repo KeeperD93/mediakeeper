@@ -22,6 +22,7 @@ from models.portal.request import RequestBlacklist
 from models.settings import Setting
 from models.user import User
 from services.portal.admin_users_constants import (
+    ACTION_DEBUG_WATCH_XP_RECALC_PLAYER,
     ACTION_DEBUG_XP_GRANTED,
     ACTION_DEBUG_ZONE_CORRECTION_PLAYER,
     ACTION_USER_CREATED,
@@ -35,6 +36,7 @@ from services.settings import set_settings_map
 
 # What a row about the person copied from them or from their account; the row itself stays.
 _PERSONAL_AUDIT_KEYS: dict[str, frozenset[str]] = {
+    ACTION_DEBUG_WATCH_XP_RECALC_PLAYER: frozenset({"undo"}),
     ACTION_DEBUG_XP_GRANTED: frozenset({"note"}),
     ACTION_DEBUG_ZONE_CORRECTION_PLAYER: frozenset({"undo"}),
     ACTION_USER_CREATED: frozenset({"username"}),

@@ -1,15 +1,10 @@
 """The watch XP recalculation endpoints: admin only."""
 import pytest
 
-from tests._portal_profile_helpers import PORTAL_COOKIE, make_portal_user, portal_token
 from tests._watch_xp_helpers import T, account, watched
+from tests._watch_xp_recalc_helpers import sign_in_as
 
 SIMULATE = "/api/portal/admin/debug/watch-xp/simulate"
-
-
-async def sign_in_as(client, db_session, name: str, role: str) -> None:
-    user, _ = await make_portal_user(db_session, username=name, role=role)
-    client.cookies.set(PORTAL_COOKIE, portal_token(user.username))
 
 
 @pytest.mark.asyncio

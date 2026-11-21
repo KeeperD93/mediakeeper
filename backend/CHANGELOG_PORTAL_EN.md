@@ -15,6 +15,7 @@ This section intentionally has no date so it is not shown to users.
 ## [Unreleased]
 
 ### Changed
+- Watch XP — 20 XP per hour of a title watched to the end.
 - Days in a row and Regular — from 5 min watched; music and audiobooks left out.
 - Secret trophies — name and icon shown, description and progress hidden until unlocked.
 

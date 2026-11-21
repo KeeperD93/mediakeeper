@@ -2616,7 +2616,8 @@
           "level_set": "Level updated",
           "achievement_unlocked": "Trophy unlocked",
           "achievement_locked": "Trophy removed",
-          "zone_correction_player": "Trophies corrected (time zone)"
+          "zone_correction_player": "Trophies corrected (time zone)",
+          "watch_xp_recalc_player": "Watch XP recalculated"
         }
       }
     }
@@ -4054,6 +4055,16 @@
         "watchXpMonths": "Past months whose leader changes: {n}",
         "watchXpNothing": "Nothing to recalculate.",
         "watchXpRow": "XP {xp} → {xpAfter} · level {level} → {levelAfter}",
+        "watchXpApply": "Apply",
+        "watchXpApplying": "Applying…",
+        "watchXpConfirm": "Recalculate the watch XP of {players} players? A backup is made first; only it can undo this.",
+        "watchXpApplied": "Watch XP recalculated for {players} players. Backup: {name}",
+        "watchXpErrors": {
+          "plan_changed": "The data changed since the simulation: run it again.",
+          "already_running": "A recalculation is already running.",
+          "backup_incomplete": "Incomplete backup: nothing was changed.",
+          "apply_failed": "The recalculation failed: nothing was changed."
+        },
         "errorGeneric": "Action failed"
       },
       "blacklist": {

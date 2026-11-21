@@ -3,11 +3,23 @@
     <h3 class="pt-debug-title">{{ $t('portal.admin.debug.watchXpSection') }}</h3>
     <p class="pt-debug-sub">{{ $t('portal.admin.debug.watchXpHint') }}</p>
     <div class="pt-debug-row">
-      <button type="button" class="pt-debug-btn" :disabled="simulating" @click="simulate">
+      <button type="button" class="pt-debug-btn" :disabled="busy" @click="simulate">
         {{
           simulating
             ? $t('portal.admin.debug.watchXpSimulating')
             : $t('portal.admin.debug.watchXpSimulate')
+        }}
+      </button>
+      <button
+        type="button"
+        class="pt-debug-btn pt-debug-btn--danger"
+        :disabled="busy || !summary?.players_changed"
+        @click="apply"
+      >
+        {{
+          applying
+            ? $t('portal.admin.debug.watchXpApplying')
+            : $t('portal.admin.debug.watchXpApply')
         }}
       </button>
     </div>
@@ -61,6 +73,10 @@
         </div>
       </div>
     </div>
+
+    <ul v-if="applied" class="pt-debug-recheck-summary pt-debug-facts">
+      <li>{{ appliedText }}</li>
+    </ul>
   </section>
 </template>
 
@@ -69,16 +85,35 @@ import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import { usePortalAdminDebug } from '@/composables/portal/usePortalAdminDebug'
+import { resolveScopedError } from '@/composables/useApi'
+import { useConfirm } from '@/composables/useConfirm'
 import { useToast } from '@/composables/useToast'
 import { TOAST_TYPE } from '@/constants/toast'
 import { WATCH_XP_LOST, WATCH_XP_SKIP } from '@/constants/watchXpRecalc'
 
+// The XP of players changed: the parent reloads its user list.
+const emit = defineEmits(['changed'])
+
 const { showToast } = useToast()
 const { t } = useI18n()
+const mkConfirm = useConfirm()
 const debugApi = usePortalAdminDebug()
 
 const summary = ref(null)
+const applied = ref(null)
 const simulating = ref(false)
+const applying = ref(false)
+const busy = computed(() => simulating.value || applying.value)
+const appliedText = computed(() => applied.value && resultText(applied.value))
+
+function resultText(result) {
+  return result.backup
+    ? t('portal.admin.debug.watchXpApplied', {
+        players: result.applied.players,
+        name: result.backup,
+      })
+    : t('portal.admin.debug.watchXpNothing')
+}
 
 function eventList(events) {
   const shown = events.map(ev =>
@@ -116,6 +151,7 @@ const facts = computed(() => {
 
 async function simulate() {
   simulating.value = true
+  applied.value = null
   try {
     summary.value = await debugApi.simulateWatchXp()
   } catch (err) {
@@ -124,6 +160,36 @@ async function simulate() {
     showToast(t('portal.admin.debug.errorGeneric'), TOAST_TYPE.ERR)
   } finally {
     simulating.value = false
+  }
+}
+
+async function apply() {
+  const plan = summary.value
+  if (!plan?.players_changed) return
+  const ok = await mkConfirm({
+    title: t('common.confirmTitle.action'),
+    message: t('portal.admin.debug.watchXpConfirm', { players: plan.players_changed }),
+    variant: 'danger',
+  })
+  if (!ok) return
+  applying.value = true
+  try {
+    applied.value = await debugApi.applyWatchXp(plan.as_of, plan.plan)
+    summary.value = null
+    showToast(resultText(applied.value), TOAST_TYPE.OK)
+    emit('changed')
+  } catch (err) {
+    console.error('[AdminDebugWatchXp]', err)
+    showToast(
+      resolveScopedError(
+        'portal.admin.debug.watchXpErrors',
+        err?.message,
+        'portal.admin.debug.errorGeneric',
+      ),
+      TOAST_TYPE.ERR,
+    )
+  } finally {
+    applying.value = false
   }
 }
 </script>

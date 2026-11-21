@@ -15,3 +15,9 @@ SKIP_COOLDOWN: Final[str] = "cooldown"
 LOST_NO_STATS: Final[str] = "no_stats"
 LOST_NO_END: Final[str] = "no_end"
 LOST_NOT_DUE: Final[str] = "not_due"
+
+# Why an apply is refused; nothing is written in any case.
+PLAN_CHANGED: Final[str] = "plan_changed"
+ALREADY_RUNNING: Final[str] = "already_running"
+BACKUP_INCOMPLETE: Final[str] = "backup_incomplete"
+APPLY_FAILED: Final[str] = "apply_failed"

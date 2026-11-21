@@ -1,19 +1,31 @@
 /**
  * Portal admin → debug tools → watch XP recalculation: the simulation shows its facts,
- * each player's change, and nothing to do when nothing changes.
+ * each player's change, and nothing to do when nothing changes; applying asks first and
+ * sends back the moment and the plan it showed.
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
 
 const simulateWatchXp = vi.fn()
+const applyWatchXp = vi.fn()
+const confirm = vi.fn()
 const showToast = vi.fn()
 vi.mock('@/composables/portal/usePortalAdminDebug', () => ({
-  usePortalAdminDebug: () => ({ simulateWatchXp }),
+  usePortalAdminDebug: () => ({ simulateWatchXp, applyWatchXp }),
 }))
+vi.mock('@/composables/useConfirm', () => ({ useConfirm: () => confirm }))
 vi.mock('@/composables/useToast', () => ({ useToast: () => ({ showToast }) }))
+vi.mock('@/composables/useApi', () => ({
+  resolveScopedError: (scope, code) => `${scope}.${code}`,
+}))
 vi.mock('vue-i18n', () => ({
-  // An event of the list reads "name (titles, XP)"; any other key reads as itself.
-  useI18n: () => ({ t: (key, p) => (p ? `${p.name} (${p.titles}, ${p.xp})` : key) }),
+  // An event of the list reads "name (titles, XP)"; other parameters follow their key.
+  useI18n: () => ({
+    t: (key, p) => {
+      if (p?.titles !== undefined) return `${p.name} (${p.titles}, ${p.xp})`
+      return p ? `${key} ${JSON.stringify(p)}` : key
+    },
+  }),
 }))
 
 import AdminDebugWatchXp from '@/components/portal/admin/AdminDebugWatchXp.vue'
@@ -83,5 +95,61 @@ describe('AdminDebugWatchXp', () => {
     await button(wrapper, 'portal.admin.debug.watchXpSimulate').trigger('click')
     await flushPromises()
     expect(showToast).toHaveBeenCalledWith('portal.admin.debug.errorGeneric', TOAST_TYPE.ERR)
+  })
+
+  it('cannot apply before a simulation, nor when nothing changes', async () => {
+    const apply = wrapper => button(wrapper, 'portal.admin.debug.watchXpApply')
+    expect(apply(mount(AdminDebugWatchXp)).attributes('disabled')).toBeDefined()
+    const nothing = await simulated({ ...SUMMARY, players_changed: 0, rows: [] })
+    expect(apply(nothing).attributes('disabled')).toBeDefined()
+  })
+
+  it('sends back the moment and the plan it showed once confirmed', async () => {
+    confirm.mockResolvedValue(true)
+    applyWatchXp.mockResolvedValue({
+      plan: SUMMARY.plan,
+      backup: 'mediakeeper_backup_20260310_120000_watch_xp_recalc.zip',
+      applied: { players: 2, rows_deleted: 1, rows_inserted: 2 },
+    })
+    const wrapper = await simulated()
+    await button(wrapper, 'portal.admin.debug.watchXpApply').trigger('click')
+    await flushPromises()
+
+    expect(confirm).toHaveBeenCalledWith({
+      title: 'common.confirmTitle.action',
+      message: 'portal.admin.debug.watchXpConfirm {"players":2}',
+      variant: 'danger',
+    })
+    expect(applyWatchXp).toHaveBeenCalledWith(SUMMARY.as_of, SUMMARY.plan)
+    const done =
+      'portal.admin.debug.watchXpApplied ' +
+      '{"players":2,"name":"mediakeeper_backup_20260310_120000_watch_xp_recalc.zip"}'
+    expect(showToast).toHaveBeenCalledWith(done, TOAST_TYPE.OK)
+    expect(wrapper.text()).toContain(done)
+    expect(wrapper.emitted('changed')).toHaveLength(1)
+    expect(wrapper.text()).not.toContain('Alice') // the simulation it applied is gone
+  })
+
+  it('writes nothing when the admin backs out', async () => {
+    confirm.mockResolvedValue(false)
+    const wrapper = await simulated()
+    await button(wrapper, 'portal.admin.debug.watchXpApply').trigger('click')
+    await flushPromises()
+    expect(applyWatchXp).not.toHaveBeenCalled()
+    expect(wrapper.emitted('changed')).toBeUndefined()
+  })
+
+  it('names the reason of a refusal', async () => {
+    confirm.mockResolvedValue(true)
+    applyWatchXp.mockRejectedValue(new Error('plan_changed'))
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    const wrapper = await simulated()
+    await button(wrapper, 'portal.admin.debug.watchXpApply').trigger('click')
+    await flushPromises()
+    expect(showToast).toHaveBeenCalledWith(
+      'portal.admin.debug.watchXpErrors.plan_changed',
+      TOAST_TYPE.ERR,
+    )
+    expect(wrapper.emitted('changed')).toBeUndefined()
   })
 })

@@ -10,6 +10,9 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 
 ## [Unreleased]
 
+### Added
+- Outils de debug — recalcul de l'XP de visionnage, avec simulation et sauvegarde.
+
 ### Changed
 - Tableau de bord — widget du classement aligné sur la page Classement.
 - Statistiques — série de jours dès 5 min regardées ; musique et livres audio exclus.

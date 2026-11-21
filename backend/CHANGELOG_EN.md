@@ -10,6 +10,9 @@ This section intentionally has no date so it is not shown to users.
 
 ## [Unreleased]
 
+### Added
+- Debug tools — watch XP recalculation, with a preview and a backup.
+
 ### Changed
 - Dashboard — leaderboard widget matches the Leaderboard page.
 - Statistics — day streak from 5 min watched; music and audiobooks left out.

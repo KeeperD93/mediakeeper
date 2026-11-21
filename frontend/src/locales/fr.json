@@ -2616,7 +2616,8 @@
           "level_set": "Niveau modifié",
           "achievement_unlocked": "Trophée débloqué",
           "achievement_locked": "Trophée retiré",
-          "zone_correction_player": "Trophées corrigés (fuseau horaire)"
+          "zone_correction_player": "Trophées corrigés (fuseau horaire)",
+          "watch_xp_recalc_player": "XP de visionnage recalculée"
         }
       }
     }
@@ -4054,6 +4055,16 @@
         "watchXpMonths": "Mois passés dont le premier change : {n}",
         "watchXpNothing": "Rien à recalculer.",
         "watchXpRow": "XP {xp} → {xpAfter} · niveau {level} → {levelAfter}",
+        "watchXpApply": "Appliquer",
+        "watchXpApplying": "Application…",
+        "watchXpConfirm": "Recalculer l'XP de visionnage de {players} joueurs ? Une sauvegarde est faite avant ; seule elle permet de revenir en arrière.",
+        "watchXpApplied": "XP de visionnage recalculée pour {players} joueurs. Sauvegarde : {name}",
+        "watchXpErrors": {
+          "plan_changed": "Les données ont changé depuis la simulation : relance-la.",
+          "already_running": "Un recalcul est déjà en cours.",
+          "backup_incomplete": "Sauvegarde incomplète : rien n'a été modifié.",
+          "apply_failed": "Le recalcul a échoué : rien n'a été modifié."
+        },
         "errorGeneric": "L'action a échoué"
       },
       "blacklist": {

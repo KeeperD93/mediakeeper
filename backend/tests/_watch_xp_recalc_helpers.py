@@ -7,6 +7,12 @@ from models.playback_stats import PlaybackSession
 from models.portal.profile import UserProfile
 from models.portal.xp_ledger import XpLedger
 from services.portal.watch_xp_recalc import Plan, PlayerPlan, build_context, plan_all
+from tests._portal_profile_helpers import PORTAL_COOKIE, make_portal_user, portal_token
+
+
+async def sign_in_as(client, db, name: str, role: str) -> None:
+    user, _ = await make_portal_user(db, username=name, role=role)
+    client.cookies.set(PORTAL_COOKIE, portal_token(user.username))
 
 
 async def plan(db, as_of: datetime | None = None) -> Plan:

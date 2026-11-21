@@ -24,5 +24,7 @@ export function usePortalAdminDebug() {
     applyZoneCorrection: (timezone, plan) =>
       apiPost(`${BASE}/zone-correction/apply`, { timezone, plan }),
     simulateWatchXp: () => apiGet(`${BASE}/watch-xp/simulate`),
+    // The moment and the plan of the simulation the admin saw: the server refuses any other.
+    applyWatchXp: (asOf, plan) => apiPost(`${BASE}/watch-xp/apply`, { as_of: asOf, plan }),
   }
 }
