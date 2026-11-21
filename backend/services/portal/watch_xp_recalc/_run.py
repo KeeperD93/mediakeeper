@@ -27,6 +27,7 @@ from constants.watch_xp_recalc import (
 from core.errors import CodedError
 from models.portal.profile import UserProfile
 from models.portal.xp_ledger import XpLedger
+from models.user import User
 from services.backup.create import create_backup
 from services.portal import daily_digest as dd_svc
 from services.portal.achievements_utils import _coerce_utc
@@ -69,10 +70,16 @@ async def simulate_watch_xp_recalc(db: AsyncSession) -> dict:
         plan = await plan_all(db, ctx)
         months = await month_changes(db, ctx, plan)
         changed = [player.user_id for player in plan.players if player.changed]
-        names = dict((await db.execute(
-            select(UserProfile.user_id, UserProfile.display_name).where(UserProfile.user_id.in_(changed))
-        )).all())
-    return summarize(ctx, plan, months, names)
+        # The pseudo may still be a provisional one: the sign-in name tells the player.
+        people = {
+            user_id: (name, username)
+            for user_id, name, username in (await db.execute(
+                select(UserProfile.user_id, UserProfile.display_name, User.username)
+                .join(User, User.id == UserProfile.user_id)
+                .where(UserProfile.user_id.in_(changed))
+            )).all()
+        }
+    return summarize(ctx, plan, months, people)
 
 
 def _iso(moment: datetime | None) -> str | None:

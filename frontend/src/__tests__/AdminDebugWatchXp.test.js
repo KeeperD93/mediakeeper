@@ -55,7 +55,17 @@ const SUMMARY = {
   leaders_changed: ['2026-03'],
   competitor_new: {},
   competitor_unjustified: {},
-  rows: [{ user_id: 1, name: 'Alice', xp: 10, xp_after: 40, level: 1, level_after: 1 }],
+  rows: [
+    {
+      user_id: 1,
+      name: 'Alice',
+      username: 'alice',
+      xp: 10,
+      xp_after: 40,
+      level: 1,
+      level_after: 1,
+    },
+  ],
 }
 
 const button = (wrapper, label) => wrapper.findAll('button').find(b => b.text() === label)
@@ -80,7 +90,15 @@ describe('AdminDebugWatchXp', () => {
     expect(text).not.toContain('Elsewhere')
     expect(text).toContain('"n":1')
     expect(text).toContain('Alice')
+    expect(text).toContain('@alice')
     expect(text).toContain('"xp":10,"xpAfter":40')
+  })
+
+  it('leaves out the sign-in name of an account deleted since the plan was read', async () => {
+    const gone = { ...SUMMARY.rows[0], name: null, username: null }
+    const text = (await simulated({ ...SUMMARY, rows: [gone] })).text()
+    expect(text).toContain('"xp":10,"xpAfter":40')
+    expect(text).not.toContain('@')
   })
 
   it('says there is nothing to recalculate', async () => {

@@ -16,6 +16,8 @@ from services.portal.watch_xp_recalc import (
     plan_all,
     simulate_watch_xp_recalc,
 )
+from services.portal.watch_xp_recalc._months import month_changes
+from services.portal.watch_xp_recalc._summary import summarize
 from services.settings import set_setting
 from services.stats_collector.collect import pay_watch_xp
 from tests._watch_xp_helpers import T, account, watched
@@ -64,9 +66,21 @@ async def test_a_simulation_sums_up_the_plan_and_writes_nothing(db_session):
         ("Test Event", True, 1, 8),  # 23 instead of 15
         ("Test Event Off", False, 1, 22),  # 15 x 3 = 45 instead of 23
     ]
-    assert [(row["user_id"], row["name"], row["xp"], row["xp_after"]) for row in summary["rows"]] == [
-        (alice, "Alice", 10, 40), (bob, "Bob", 0, 23),
-    ]
+    assert [
+        (row["user_id"], row["name"], row["username"], row["xp"], row["xp_after"]) for row in summary["rows"]
+    ] == [(alice, "Alice", "alice", 10, 40), (bob, "Bob", "bob", 0, 23)]
+
+
+async def test_a_player_whose_account_went_after_the_plan_has_no_names(db_session):
+    db = db_session
+    await account(db, "alice")
+    await watched(db, "alice", at=T - HOUR)
+    ctx = await build_context(db)
+    plan = await plan_all(db, ctx)
+
+    summary = summarize(ctx, plan, await month_changes(db, ctx, plan), {})
+
+    assert [(row["name"], row["username"], row["xp_after"]) for row in summary["rows"]] == [(None, None, 40)]
 
 
 async def test_the_print_holds_the_rows_due_up_to_the_moment_and_the_scope(db_session):

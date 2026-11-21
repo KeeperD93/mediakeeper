@@ -8,7 +8,7 @@ from services.portal.xp_boost import event_applies, multiplier_at
 
 from ._context import BonusEvent, Context
 from ._months import MonthChanges
-from ._plan import Plan
+from ._plan import Plan, PlayerPlan
 
 
 def fingerprint(ctx: Context, plan: Plan) -> str:
@@ -42,7 +42,8 @@ def _event(ctx: Context, ev: BonusEvent, plan: Plan) -> dict:
     }
 
 
-def summarize(ctx: Context, plan: Plan, months: MonthChanges, names: dict[int, str]) -> dict:
+def summarize(ctx: Context, plan: Plan, months: MonthChanges, people: dict[int, tuple[str, str]]) -> dict:
+    """``people``: the pseudo and the sign-in name of each player who changes."""
     changed = [player for player in plan.players if player.changed]
     level_moves = [player.level_after - player.level for player in changed]
     return {
@@ -66,17 +67,20 @@ def summarize(ctx: Context, plan: Plan, months: MonthChanges, names: dict[int, s
         "leaders_changed": list(months.leaders_changed),
         "competitor_new": months.competitor_new,
         "competitor_unjustified": months.competitor_unjustified,
-        "rows": [
-            {
-                "user_id": player.user_id,
-                "name": names.get(player.user_id),
-                "xp": player.xp,
-                "xp_after": player.xp_after,
-                "level": player.level,
-                "level_after": player.level_after,
-                "deleted": len(player.deleted),
-                "inserted": len(player.inserted),
-            }
-            for player in changed
-        ],
+        # An account deleted since the plan was read has no names left.
+        "rows": [_row(player, *people.get(player.user_id, (None, None))) for player in changed],
+    }
+
+
+def _row(player: PlayerPlan, name: str | None, username: str | None) -> dict:
+    return {
+        "user_id": player.user_id,
+        "name": name,
+        "username": username,
+        "xp": player.xp,
+        "xp_after": player.xp_after,
+        "level": player.level,
+        "level_after": player.level_after,
+        "deleted": len(player.deleted),
+        "inserted": len(player.inserted),
     }

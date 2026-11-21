@@ -72,6 +72,7 @@
       <div v-for="row in summary.rows" :key="row.user_id" class="pt-debug-ach-row">
         <div class="pt-debug-ach-meta">
           <span class="pt-debug-ach-name">{{ row.name }}</span>
+          <span v-if="row.username" class="pt-debug-ach-tag">@{{ row.username }}</span>
           <span class="pt-debug-ach-tag">
             {{
               $t('portal.admin.debug.watchXpRow', {
