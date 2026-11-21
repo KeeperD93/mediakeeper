@@ -211,9 +211,10 @@ async def test_a_failure_whose_rollback_fails_is_still_refused_as_failed(
     assert "journal of the error may be missing" in caplog.text
 
 
-def _commit_without_answer(monkeypatch, *, reached: bool) -> None:
-    """The commit of the apply fails to answer, after reaching the database or before."""
-    record = _run.record_audit
+def _commit_without_answer(monkeypatch, *, reached: bool) -> list[dict]:
+    """The commit of the apply fails to answer, after reaching the database or before; returns
+    what the digest cache holds each time the commit is sent."""
+    record, at_commit = _run.record_audit, []
 
     async def recording(db, **kwargs):
         entry = await record(db, **kwargs)
@@ -222,6 +223,7 @@ def _commit_without_answer(monkeypatch, *, reached: bool) -> None:
 
             async def lost_answer():
                 del db.commit
+                at_commit.append(dict(daily_digest._digest_cache))
                 if reached:
                     await real_commit()
                 raise _lost("COMMIT")
@@ -230,6 +232,7 @@ def _commit_without_answer(monkeypatch, *, reached: bool) -> None:
         return entry
 
     monkeypatch.setattr(_run, "record_audit", recording)
+    return at_commit
 
 
 @pytest.mark.parametrize("reached", [True, False], ids=["written", "not_written"])
@@ -240,8 +243,9 @@ async def test_a_commit_that_fails_to_answer_is_refused_as_uncertain(
     ids = await two_players(client, db)
     confirmed = await confirmation(client)
     before = await ledger_rows(db)
+    monkeypatch.setattr(daily_digest, "_digest_cache", {})  # holds nothing but Alice's digest
     daily_digest._cache_set(ids["alice"], "2026-03-08", "fr", {"cached": True})
-    _commit_without_answer(monkeypatch, reached=reached)
+    at_commit = _commit_without_answer(monkeypatch, reached=reached)
     journal_error, seen = _run._journal_error, []
 
     async def journal_seeing_the_cache(db, payload, audit):
@@ -253,6 +257,7 @@ async def test_a_commit_that_fails_to_answer_is_refused_as_uncertain(
         resp = await client.post(APPLY, json=confirmed)
 
     assert (resp.status_code, resp.json()["detail"]) == (409, "apply_uncertain")
+    assert [len(cache) for cache in at_commit] == [1]  # Alice's digest stays until the commit is sent
     assert seen == [{}]  # the digests went before the journal, which a lost connection may hold up
     assert (await ledger_rows(db) != before) is reached
     overall = [row.payload for row in (await audit_rows(db))[ACTION_DEBUG_WATCH_XP_RECALC]]
