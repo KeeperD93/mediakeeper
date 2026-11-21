@@ -21,11 +21,11 @@ Backfilled once:
   since then, at most the time to its last poll. Below those bounds sittings
   were removed (one deleted, or left out of the window by merged statistics),
   and the most the sittings can have watched since is taken off. The share
-  stays at or below the collector's, unless sittings were both removed and
-  added, a removed sitting watched less than the time the others spent not
-  playing (it goes unnoticed), or a player went silent across the count and
-  caught up after (its clock is then too short): the share can then be too
-  high by at most what the removed sitting watched, or that catch-up.
+  stays at or below the collector's unless sittings were removed and were
+  also added, too short to show on the clock, or hidden by a player that went
+  silent across the count and caught up after (its clock is then too short):
+  the share can then be too high by at most what the removed sittings watched
+  next to another title.
 - Offline (``--sql``), only the column and the ``history`` step render: the
   ``live`` backfill reads the rows, and live completions keep 0 without it.
 

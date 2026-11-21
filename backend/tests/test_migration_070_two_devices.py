@@ -1,6 +1,7 @@
-"""Migration 070: other sittings of the same title around the count, a second device on
-the same account still playing after it or a sitting added since, keep the backfill at
-the collector's share, and at or below it once a deleted sitting shows on the clock."""
+"""Migration 070: other sittings of the same title around the count (a second device on
+the same account still playing after it, a sitting added since) never raise the backfill
+above the collector's share, and keep it there when what they watched since was watched
+alone; a deleted sitting that shows on the clock keeps it at or below."""
 from datetime import timedelta
 
 from tests._migration_070_helpers import (
@@ -106,7 +107,7 @@ async def test_a_deleted_sitting_hidden_by_a_second_device_is_not_paid(db_sessio
     assert (await backfilled(db))[done] <= live[done]
 
 
-async def test_a_sitting_added_while_the_tv_is_paused_adds_nothing(db_session):
+async def test_a_sitting_added_since_and_hidden_in_the_tv_pause_adds_nothing(db_session):
     db = db_session
     await watch(db, T0, 1, 100, ("MOVIE-X", "S-A1", 100))  # 500 s alone, left there
     await watch(db, T0 + timedelta(days=1), 100, 104, ("MOVIE-X", "S-A2", 104))  # 20 s more: it counts
