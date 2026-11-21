@@ -564,9 +564,6 @@
   "backend/services/portal/admin.py": {
     "I001": 3
   },
-  "backend/services/portal/admin_debug.py": {
-    "I001": 1
-  },
   "backend/services/portal/admin_engagement.py": {
     "I001": 1
   },
@@ -590,9 +587,6 @@
     "C901": 1,
     "I001": 1,
     "UP035": 1
-  },
-  "backend/services/portal/admin_users_feed.py": {
-    "I001": 1
   },
   "backend/services/portal/admin_users_lifecycle.py": {
     "C901": 1,
@@ -868,9 +862,6 @@
     "C901": 2,
     "I001": 1,
     "UP045": 11
-  },
-  "backend/services/portal/xp_boost.py": {
-    "I001": 1
   },
   "backend/services/scheduler/_handlers.py": {
     "I001": 1
