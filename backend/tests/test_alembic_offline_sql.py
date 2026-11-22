@@ -77,3 +77,9 @@ def test_offline_sql_renders_073():
         "WHERE playback_completions.source = 'history'"
     ) in sql
     assert "-- Offline SQL mode: the live completion backfill is online-only; live completions keep 0." in sql
+
+
+def test_offline_sql_renders_074_without_reading_the_articles():
+    sql = _render("073_completion_exclusive_seconds:074_help_xp_levels_rewrite")
+    assert "SET version_num='074_help_xp_levels_rewrite'" in sql
+    assert "help_article_translations" not in sql
