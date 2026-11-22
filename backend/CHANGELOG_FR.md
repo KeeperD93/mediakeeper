@@ -40,7 +40,7 @@ Cette section est volontairement sans date pour ne pas être affichée aux utili
 - À propos — le point suit directement chaque lien.
 - Portail — Crédits : le point suit directement le lien.
 - Signalement — compteur de la description sur sa vraie limite (1 500), envoi bloqué avant toute coupure.
-- Utilisateurs — historique XP : retraits en « -20 XP », l'XP vraiment retirée, aucune ligne si l'XP ne bouge pas.
+- Utilisateurs — historique XP : rangé par date, retraits en « -20 XP », l'XP vraiment retirée, aucune ligne si l'XP ne bouge pas.
 - Événements bonus — XP arrondie au plus proche, les moitiés vers le haut.
 - Outils de debug — « Réinitialiser pour tous » ne reprend que l'XP donnée par le trophée.
 - Outils de debug — trophées comptés en UTC : sauvegarde impossible signalée comme incomplète.

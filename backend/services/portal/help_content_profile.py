@@ -14,13 +14,12 @@ HELP_PROFILE: list[dict] = [
 <p>L'<strong>XP</strong> (points d'expérience) fait monter ton <strong>niveau</strong>, jusqu'au niveau 50. Ta barre d'XP et ton niveau sont sur <strong>« Mon profil »</strong>.</p>
 <p><strong>Ce qui rapporte de l'XP :</strong></p>
 <ul>
-  <li><strong>+10 XP</strong> par film regardé sur Emby jusqu'à au moins 85 % de sa durée.</li>
-  <li><strong>+3 XP</strong> par épisode regardé jusqu'à au moins 85 % de sa durée.</li>
+  <li><strong>+20 XP par heure</strong> de film ou d'épisode vu en entier : la fin atteinte et au moins les trois quarts de sa durée vraiment regardés. Un film de 2 h rapporte 40 XP, un épisode de 45 min 15 XP.</li>
   <li><strong>+2 XP</strong> quand tu te connectes au portail, une fois par jour.</li>
   <li><strong>+5 XP</strong> par nouvelle demande, jusqu'à 25 XP par jour.</li>
   <li><strong>Les trophées</strong> : chacun rapporte son XP une seule fois, quand tu le débloques. Le montant s'affiche dans <strong>« Voir tous les trophées »</strong>, sur <strong>« Mon profil »</strong>.</li>
 </ul>
-<p>Revoir le même film ou le même épisode dans les 24 heures ne rapporte rien de plus. Les autres actions (créer un événement ou une liste publique, écrire dans le chat…) ne donnent pas d'XP directement, mais font avancer certains trophées.</p>
+<p><strong>Ne rapportent rien :</strong> revoir le même titre dans les 24 heures, un titre laissé en pause ou passé en avance rapide, un titre lu en même temps qu'un autre sur ton compte. Un lecteur qui n'indique pas où il en est (certains lecteurs de fichiers) ne rapporte pas d'XP de visionnage. Les autres actions (créer un événement ou une liste publique, écrire dans le chat…) ne donnent pas d'XP, mais font avancer certains trophées.</p>
 <p><strong>Périodes bonus :</strong> l'administrateur peut lancer une période pendant laquelle l'XP gagnée est multipliée.</p>
 """.strip(),
         },
@@ -33,23 +32,25 @@ HELP_PROFILE: list[dict] = [
         "fr": {
             "title": "Les paliers et les grades",
             "body_html": """
-<p>Chaque niveau t'attribue un <strong>grade</strong>, et chaque grade ouvre un palier visuel : couleur de bordure, halo de la carte, particules autour de l'avatar, titre affiché à côté du pseudo.</p>
+<p>Chaque niveau t'attribue un <strong>grade</strong> et un <strong>titre</strong>. Le grade change le style de ta carte : couleur de bordure, halo, particules autour de l'avatar. Le titre s'affiche à côté de ton pseudo.</p>
 <table>
   <thead>
     <tr><th>Niveaux</th><th>Grade</th><th>Titre</th></tr>
   </thead>
   <tbody>
-    <tr><td>1 → 5</td><td>Bronze</td><td>Spectateur / Amateur</td></tr>
-    <tr><td>6 → 10</td><td>Argent</td><td>Régulier</td></tr>
-    <tr><td>11 → 19</td><td>Or</td><td>Passionné</td></tr>
+    <tr><td>1 → 2</td><td>Bronze</td><td>Spectateur</td></tr>
+    <tr><td>3 → 5</td><td>Bronze</td><td>Amateur</td></tr>
+    <tr><td>6 → 10</td><td>Argent</td><td>Habitué</td></tr>
+    <tr><td>11</td><td>Or</td><td>Habitué</td></tr>
+    <tr><td>12 → 19</td><td>Or</td><td>Passionné</td></tr>
     <tr><td>20 → 29</td><td>Platine</td><td>Expert</td></tr>
     <tr><td>30 → 39</td><td>Diamant</td><td>Maître</td></tr>
     <tr><td>40 → 49</td><td>Maître</td><td>Maître</td></tr>
     <tr><td>50</td><td>Légendaire</td><td>Légende</td></tr>
   </tbody>
 </table>
-<p>La progression suit une courbe de plus en plus exigeante : passer du niveau 1 au 2 demande peu d'XP, mais atteindre le niveau 50 (la <em>Légende</em>) prend des mois d'activité régulière.</p>
-<p>Le grade est <strong>permanent</strong> : tu ne peux pas le perdre. Seul un administrateur peut, en cas d'erreur, ajuster manuellement ton niveau depuis le panneau de débogage.</p>
+<p>Chaque niveau demande plus d'XP que le précédent. Le niveau 50, la <em>Légende</em>, demande 127 500 XP : plus d'un an, même pour un très gros spectateur.</p>
+<p>Ton niveau suit ton XP : il peut baisser si de l'XP t'est retirée, par exemple quand un trophée gagné par erreur est retiré.</p>
 """.strip(),
         },
     },

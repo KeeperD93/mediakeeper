@@ -30,7 +30,7 @@ utilisateurs.
 - Pseudos — mots réservés, imitations et formes de pseudo provisoire refusés, 3 caractères (2 en chinois ou coréen).
 
 ### Fixed
-- Aide — six guides réécrits : demandes, quotas, pseudo, XP, classement, événements.
+- Aide — sept guides réécrits : demandes, quotas, pseudo, XP, paliers, classement, événements.
 - Barre d'XP — même pourcentage dans le résumé du jour et le profil.
 - Notifications — barre à la bonne durée, message entier sur petits téléphones.
 - Problèmes — dates du ticket : deux-points à la bonne place en français et en anglais.
