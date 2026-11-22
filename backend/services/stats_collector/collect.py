@@ -12,7 +12,7 @@ from services.portal.gdpr_erased import is_erased, load_erased_identities
 from services.settings import get_active_media_source
 
 from ._cache import _normalize_library_name
-from ._closure import _grant_post_session_xp
+from ._closure import _after_rows_closed
 from ._completions import record_completions
 from ._held_hours import HeldHours
 from ._measure import (
@@ -36,8 +36,9 @@ from ._player_reports import (
 )
 from ._resolver import _session_library_name
 from ._resume_zones import refresh_resume_zones
+from ._watch_xp import pay_watch_xp
 
-__all__ = ["_grant_post_session_xp", "_process_pause_events", "collect_active_sessions"]
+__all__ = ["_after_rows_closed", "_process_pause_events", "collect_active_sessions", "pay_watch_xp"]
 
 logger = logging.getLogger("mediakeeper.stats.collector")
 
@@ -232,7 +233,7 @@ async def collect_active_sessions(db: AsyncSession, now: datetime | None = None)
         hold.add(row, now, seconds)
 
     await db.flush()
-    await record_completions(db, [row for row, _, _ in progress], now)
+    watched = await record_completions(db, [row for row, _, _ in progress], now)
 
     stale_query = select(PlaybackSession).where(PlaybackSession.is_active.is_(True))
     if active:
@@ -252,5 +253,9 @@ async def collect_active_sessions(db: AsyncSession, now: datetime | None = None)
     await db.commit()
     hold.commit(active.values())
 
-    if closed_sessions:
-        await _grant_post_session_xp(db, closed_sessions)
+    # Plain ids: a failed payment or trophy check rolls the session back and expires the rows.
+    watched_ids, closed_ids = [done.id for done in watched], [row.id for row in closed_sessions]
+    if watched_ids:
+        await pay_watch_xp(db, watched_ids)
+    if closed_ids:
+        await _after_rows_closed(db, closed_ids)

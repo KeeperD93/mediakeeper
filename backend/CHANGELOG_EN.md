@@ -10,6 +10,9 @@ This section intentionally has no date so it is not shown to users.
 
 ## [Unreleased]
 
+### Added
+- Debug tools — watch XP recalculation, with a preview and a backup.
+
 ### Changed
 - Branding — new logo and banner, app icons redone.
 - Dashboard — leaderboard widget matches the Leaderboard page.
@@ -37,11 +40,14 @@ This section intentionally has no date so it is not shown to users.
 - About — the full stop follows each link directly.
 - Portal — Credits: the full stop follows the link directly.
 - Report form — description counter shows its real limit (1,500), sending stops before any cut.
-- Users — XP history: removals shown as "-20 XP", no line when XP stays the same.
+- Users — XP history: in date order, removals shown as "-20 XP", the XP actually taken, no line when XP stays the same.
+- Bonus events — XP rounded to the nearest, halves up.
+- Debug tools — "Reset for everyone" takes back only the XP the trophy gave.
+- Debug tools — trophies counted in UTC: a failed backup is reported as incomplete.
 - Portal — "Requested by" shows the display name, no longer the sign-in name ("you" for your own requests).
 - Portal — Events: the display name replaces the sign-in name (guests, host, notifications).
 - Portal — Events: replying to an invitation from a deleted host no longer fails.
-- Users — renaming a member to a username already in use is refused.
+- Users — renaming a member to a display name already in use is refused.
 - Users — an administrator turned member no longer shows their sign-in name.
 
 ## [1.0.0-rc.10] - 2026-11-11

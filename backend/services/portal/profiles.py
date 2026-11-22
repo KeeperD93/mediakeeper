@@ -230,36 +230,3 @@ async def suggest_display_names(
             out.append(attempt)
         n += 1
     return out
-
-
-async def get_leaderboard(
-    db: AsyncSession, limit: int = 20, *, lang: str = "fr",
-) -> list[dict]:
-    """Top users by XP. Admin accounts are excluded by design."""
-    result = await db.execute(
-        select(UserProfile)
-        .where(
-            UserProfile.account_active == True,  # noqa: E712
-            UserProfile.is_public == True,  # noqa: E712
-            UserProfile.role != ROLE_ADMIN,
-        )
-        .order_by(UserProfile.xp.desc())
-        .limit(limit)
-    )
-    profiles = result.scalars().all()
-    return [_serialize_public(p, lang=lang) for p in profiles]
-
-
-async def add_xp(
-    db: AsyncSession, profile: UserProfile, amount: int
-) -> UserProfile:
-    """Add XP and level up if threshold reached."""
-    profile.xp += amount
-    new_level = 1 + profile.xp // 100
-    if new_level > profile.level:
-        profile.level = new_level
-        logger.info("[PROFILE] user_id=%s leveled up to %s", profile.user_id, new_level)
-    db.add(profile)
-    await db.commit()
-    await db.refresh(profile)
-    return profile

@@ -8,13 +8,13 @@ from __future__ import annotations
 
 from typing import Any
 
-from sqlalchemy import select, desc, func
+from sqlalchemy import and_, desc, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import aliased
 
 from core.pagination import build_cursor_response, decode_cursor
 from services.portal.achievement_defs import TIER_NAMES
 from services.portal.media_title_localize import localize_titles
-
 
 _RARITY_LABELS = {
     1: "common",
@@ -74,7 +74,11 @@ async def list_user_trophies(db: AsyncSession, user_id: int) -> dict[str, Any]:
 async def list_user_xp_ledger(
     db: AsyncSession, user_id: int, *, limit: int = 100, cursor: str | None = None
 ) -> dict[str, Any]:
-    """Latest-first XP grants for a user (keyset-paginated by id)."""
+    """Latest-first XP grants for a user, by date then id.
+
+    Rows can be written after their date (watch catch-up, recalculation), so
+    the id alone is not the date order. The cursor keeps the last id.
+    """
     from models.portal.xp_ledger import XpLedger
 
     total = int((await db.execute(
@@ -83,9 +87,16 @@ async def list_user_xp_ledger(
     q = select(XpLedger).where(XpLedger.user_id == user_id)
     decoded = decode_cursor(cursor) if cursor else None
     if decoded and decoded.get("id") is not None:
-        q = q.where(XpLedger.id < decoded["id"])
+        # Compare with the last row's stored date in SQL: SQLite keeps dates as
+        # text, and a bound datetime may not be written the same way.
+        last = aliased(XpLedger)
+        last_at = select(last.created_at).where(last.id == decoded["id"]).scalar_subquery()
+        q = q.where(or_(
+            XpLedger.created_at < last_at,
+            and_(XpLedger.created_at == last_at, XpLedger.id < decoded["id"]),
+        ))
     rows = (await db.execute(
-        q.order_by(XpLedger.id.desc()).limit(limit)
+        q.order_by(XpLedger.created_at.desc(), XpLedger.id.desc()).limit(limit)
     )).scalars().all()
     items = [
         {

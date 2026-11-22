@@ -1,4 +1,5 @@
 """Replay of Emby polls through the real collector, for the watch-time tests."""
+from contextlib import ExitStack
 from datetime import UTC, datetime, timedelta
 from unittest.mock import AsyncMock, patch
 
@@ -60,16 +61,23 @@ def library_saves_from(min_pct: float, min_duration_s: int = 120) -> None:
 
 
 async def poll(
-    db, at: datetime, *sessions: dict, stored: dict | None = None, grant: AsyncMock | None = None,
-    refresh: AsyncMock | None = None,
+    db, at: datetime, *sessions: dict, stored: dict | None = None, closed: AsyncMock | None = None,
+    refresh: AsyncMock | None = None, real_xp: bool = False,
 ) -> None:
+    """One poll; watch XP and the follow-up of closed rows are left out unless ``real_xp``."""
     source = {"source": "emby", "url": "http://emby.test", "api_key": "k"}
-    with patch("services.stats_collector.collect.get_active_media_source", new=AsyncMock(return_value=source)), \
-         patch("services.stats_collector.collect.get_raw_sessions", new=AsyncMock(return_value=list(sessions))), \
-         patch("services.stats_collector.collect.fetch_stored_positions", new=AsyncMock(return_value=stored or {})), \
-         patch("services.stats_collector.collect.refresh_resume_zones", new=refresh or AsyncMock()), \
-         patch("services.stats_collector.collect._session_library_name", new=AsyncMock(return_value="Films")), \
-         patch("services.stats_collector.collect._grant_post_session_xp", new=grant or AsyncMock()):
+    with ExitStack() as stack:
+        for target, value in (
+            ("get_active_media_source", source),
+            ("get_raw_sessions", list(sessions)),
+            ("fetch_stored_positions", stored or {}),
+            ("_session_library_name", "Films"),
+        ):
+            stack.enter_context(patch(f"services.stats_collector.collect.{target}", new=AsyncMock(return_value=value)))
+        stack.enter_context(patch("services.stats_collector.collect.refresh_resume_zones", new=refresh or AsyncMock()))
+        if not real_xp:
+            stack.enter_context(patch("services.stats_collector.collect.pay_watch_xp", new=AsyncMock()))
+            stack.enter_context(patch("services.stats_collector.collect._after_rows_closed", new=closed or AsyncMock()))
         await collect_active_sessions(db, now=at)
 
 

@@ -4,6 +4,7 @@ Nothing is stored: a past month always follows the current rules, the current
 exclusions and the current time zone, like the live leaderboard it must agree with.
 """
 from collections import defaultdict
+from collections.abc import Iterable
 from dataclasses import dataclass
 from datetime import UTC, datetime, tzinfo
 
@@ -48,20 +49,32 @@ async def finished_month_rankings(
     return await month_rankings(db, zone, month_start)
 
 
+async def ranking_rows(db: AsyncSession, before: datetime, excluded_ids: list[int]) -> list:
+    """The ledger rows a month ranking adds up, ``(id, user_id, created_at, xp)``: the
+    activity earned before ``before`` (UTC) by the players it may show."""
+    stmt = select(XpLedger.id, XpLedger.user_id, XpLedger.created_at, XpLedger.xp).where(
+        XpLedger.action.in_(ACTIVITY_XP_ACTIONS),
+        XpLedger.created_at < before,
+    )
+    if excluded_ids:
+        stmt = stmt.where(~XpLedger.user_id.in_(excluded_ids))
+    return (await db.execute(stmt)).all()
+
+
+def rank_months(
+    earned: Iterable[tuple[int, datetime, int]], zone: tzinfo,
+) -> dict[tuple[int, int], list[MonthlyEntry]]:
+    """Ranking of each month of ``zone`` from ``(user_id, created_at, xp)`` rows."""
+    totals: dict[tuple[int, int], dict[int, int]] = defaultdict(lambda: defaultdict(int))
+    for user_id, created_at, xp in earned:
+        moment = to_local(created_at, zone)
+        totals[(moment.year, moment.month)][user_id] += xp
+    return {month: _ranked(xp_by_user) for month, xp_by_user in totals.items()}
+
+
 async def month_rankings(
     db: AsyncSession, zone: tzinfo, before: datetime,
 ) -> dict[tuple[int, int], list[MonthlyEntry]]:
     """Ranking of each month of ``zone`` from the activity earned before ``before`` (UTC)."""
-    stmt = select(XpLedger.user_id, XpLedger.created_at, XpLedger.xp).where(
-        XpLedger.action.in_(ACTIVITY_XP_ACTIONS),
-        XpLedger.created_at < before,
-    )
-    excluded_ids = await excluded_from_leaderboard(db)
-    if excluded_ids:
-        stmt = stmt.where(~XpLedger.user_id.in_(excluded_ids))
-
-    totals: dict[tuple[int, int], dict[int, int]] = defaultdict(lambda: defaultdict(int))
-    for user_id, created_at, xp in (await db.execute(stmt)).all():
-        moment = to_local(created_at, zone)
-        totals[(moment.year, moment.month)][user_id] += xp
-    return {month: _ranked(xp_by_user) for month, xp_by_user in totals.items()}
+    rows = await ranking_rows(db, before, await excluded_from_leaderboard(db))
+    return rank_months(((row.user_id, row.created_at, row.xp) for row in rows), zone)

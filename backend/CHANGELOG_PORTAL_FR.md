@@ -23,13 +23,14 @@ utilisateurs.
 
 ### Changed
 - Identité visuelle — nouveau logo et nouvelle bannière, icônes de l'application refaites.
+- XP de visionnage — 20 XP par heure de titre vu en entier.
 - Jours d'affilée et Régulier — dès 5 min regardées ; musique et livres audio exclus.
 - Trophées secrets — nom et icône visibles, description et progression cachées jusqu'au déblocage.
 - Quoi de neuf aujourd'hui ? — refondu : actualités en tête, vue compacte, alerte d'expiration, « Pour vous », nouvelle version.
 - Pseudos — mots réservés, imitations et formes de pseudo provisoire refusés, 3 caractères (2 en chinois ou coréen).
 
 ### Fixed
-- Aide — six guides réécrits : demandes, quotas, pseudo, XP, classement, événements.
+- Aide — sept guides réécrits : demandes, quotas, pseudo, XP, paliers, classement, événements.
 - Barre d'XP — même pourcentage dans le résumé du jour et le profil.
 - Notifications — barre à la bonne durée, message entier sur petits téléphones.
 - Problèmes — dates du ticket : deux-points à la bonne place en français et en anglais.
@@ -51,6 +52,7 @@ utilisateurs.
 - Jours d'affilée — un appareil éteint au début d'un titre non vu ne compte plus.
 - Signalement — compteur de la description sur sa vraie limite (1 500), envoi bloqué avant toute coupure.
 - Crédits — le point suit directement le lien.
+- Événements bonus — XP arrondie au plus proche, les moitiés vers le haut.
 - Demandes — « Demandé par » affiche le pseudo, plus le nom de connexion (« vous » pour vos demandes).
 - Événements — le pseudo remplace le nom de connexion (invités, créateur, notifications).
 - Événements — plus d'erreur en répondant à l'invitation d'un organisateur supprimé.

@@ -1,6 +1,9 @@
 """XP boost event service — load active multipliers and apply to grants."""
 import logging
+from collections.abc import Iterable
 from datetime import datetime, timezone
+from decimal import ROUND_HALF_UP, Decimal
+
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -9,29 +12,45 @@ from models.portal.xp_boost import XpBoostEvent
 logger = logging.getLogger("mediakeeper.portal.xp_boost")
 
 
-async def get_active_multiplier(db: AsyncSession, action: str) -> float:
+def event_applies(ev: XpBoostEvent, action: str, at: datetime) -> bool:
+    """Whether ``ev`` covers ``at`` (aware) for ``action``, enabled or not."""
+    if not _parse_dt(ev.starts_at) <= at <= _parse_dt(ev.ends_at):
+        return False
+    return not ev.action_filter or action in {a.strip() for a in ev.action_filter.split(",") if a.strip()}
+
+
+def multiplier_at(events: Iterable[XpBoostEvent], action: str, at: datetime) -> float:
+    """Combined multiplier of the enabled ``events`` covering ``at`` (aware) for ``action``.
+
+    Overlapping events multiply together; 1.0 when none applies.
     """
-    Return the combined XP multiplier currently active for a given action.
-    Multiple overlapping events multiply together.
-    Returns 1.0 when no events are active.
-    """
-    now = datetime.now(timezone.utc)
+    # Decimal: in floats, 1.15 × 1.5 falls just under 1.725 and a half would round down.
+    multiplier = Decimal(1)
+    for ev in events:
+        if ev.enabled and event_applies(ev, action, at):
+            multiplier *= Decimal(str(ev.multiplier or 1.0))
+    return float(multiplier)
+
+
+def boosted_xp(xp: int, multiplier: float) -> int:
+    """``xp`` with a bonus multiplier applied, halves rounded up, as every grant writes it."""
+    if multiplier == 1.0:
+        return xp
+    # The multiplier as typed (2.3, not 2.29999…): 25 × 2.3 is 57.5 and pays 58.
+    return int((xp * Decimal(str(multiplier))).quantize(Decimal(1), rounding=ROUND_HALF_UP))
+
+
+async def get_active_multiplier(db: AsyncSession, action: str, at: datetime | None = None) -> float:
+    """Combined multiplier of the events active at ``at`` (aware, now by default) for ``action``."""
+    at = at or datetime.now(timezone.utc)
     rows = (await db.execute(
         select(XpBoostEvent).where(
             XpBoostEvent.enabled == True,  # noqa: E712
-            XpBoostEvent.starts_at <= now,
-            XpBoostEvent.ends_at >= now,
+            XpBoostEvent.starts_at <= at,
+            XpBoostEvent.ends_at >= at,
         )
     )).scalars().all()
-
-    multiplier = 1.0
-    for ev in rows:
-        if ev.action_filter:
-            allowed = {a.strip() for a in ev.action_filter.split(",") if a.strip()}
-            if action not in allowed:
-                continue
-        multiplier *= ev.multiplier or 1.0
-    return multiplier
+    return multiplier_at(rows, action, at)
 
 
 async def list_events(db: AsyncSession) -> list[dict]:

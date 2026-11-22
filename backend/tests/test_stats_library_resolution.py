@@ -293,7 +293,7 @@ async def test_collect_skips_intro_and_trailer_types(db_session):
         "services.stats_collector.collect._session_library_name",
         new=AsyncMock(side_effect=_lib),
     ), patch(
-        "services.stats_collector.collect._grant_post_session_xp", new=AsyncMock(),
+        "services.stats_collector.collect._after_rows_closed", new=AsyncMock(),
     ):
         await collect_active_sessions(db_session)
 

@@ -77,36 +77,37 @@ HELP_EN: dict[str, dict[str, str]] = {
 <p><strong>XP</strong> (experience points) raises your <strong>level</strong>, up to level 50. Your XP bar and your level are on <strong>“My profile”</strong>.</p>
 <p><strong>What earns XP:</strong></p>
 <ul>
-  <li><strong>+10 XP</strong> per movie watched on Emby through at least 85% of its length.</li>
-  <li><strong>+3 XP</strong> per episode watched through at least 85% of its length.</li>
+  <li><strong>+20 XP per hour</strong> of a movie or episode watched to the end: the end reached and at least three quarters of its length really watched. A 2-hour movie gives 40 XP, a 45-minute episode 15 XP.</li>
   <li><strong>+2 XP</strong> when you sign in to the portal, once a day.</li>
   <li><strong>+5 XP</strong> per new request, up to 25 XP a day.</li>
   <li><strong>Trophies</strong>: each one gives its XP only once, when you unlock it. The amount shows in <strong>“See all trophies”</strong>, on <strong>“My profile”</strong>.</li>
 </ul>
-<p>Watching the same movie or episode again within 24 hours gives nothing more. Other actions (creating an event or a public list, writing in the chat…) give no XP directly, but they move some trophies forward.</p>
+<p><strong>What gives nothing:</strong> watching the same title again within 24 hours, a title left paused or fast-forwarded, a title played at the same time as another one on your account. A player that does not report where it is (some file players) gives no watch XP. Other actions (creating an event or a public list, writing in the chat…) give no XP, but they move some trophies forward.</p>
 <p><strong>Bonus periods:</strong> the administrator can start a period during which the XP you earn is multiplied.</p>
 """.strip(),
     },
     "les-paliers-et-grades": {
         "title": "Tiers and ranks",
         "body_html": """
-<p>Each level gives you a <strong>rank</strong>, and each rank opens a visual tier: border color, card glow, particles around the avatar, title shown next to your username.</p>
+<p>Each level gives you a <strong>rank</strong> and a <strong>title</strong>. The rank changes the style of your card: border color, glow, particles around the avatar. The title shows next to your username.</p>
 <table>
   <thead>
     <tr><th>Levels</th><th>Rank</th><th>Title</th></tr>
   </thead>
   <tbody>
-    <tr><td>1 → 5</td><td>Bronze</td><td>Spectator / Amateur</td></tr>
+    <tr><td>1 → 2</td><td>Bronze</td><td>Spectator</td></tr>
+    <tr><td>3 → 5</td><td>Bronze</td><td>Amateur</td></tr>
     <tr><td>6 → 10</td><td>Silver</td><td>Regular</td></tr>
-    <tr><td>11 → 19</td><td>Gold</td><td>Passionate</td></tr>
+    <tr><td>11</td><td>Gold</td><td>Regular</td></tr>
+    <tr><td>12 → 19</td><td>Gold</td><td>Passionate</td></tr>
     <tr><td>20 → 29</td><td>Platinum</td><td>Expert</td></tr>
     <tr><td>30 → 39</td><td>Diamond</td><td>Master</td></tr>
     <tr><td>40 → 49</td><td>Master</td><td>Master</td></tr>
     <tr><td>50</td><td>Legendary</td><td>Legend</td></tr>
   </tbody>
 </table>
-<p>Progress follows an increasingly demanding curve: going from level 1 to 2 takes little XP, but reaching level 50 (the <em>Legend</em>) takes months of regular activity.</p>
-<p>Your rank is <strong>permanent</strong>: you cannot lose it. Only an administrator can adjust your level by hand from the debug panel, to fix a mistake.</p>
+<p>Each level takes more XP than the one before. Level 50, the <em>Legend</em>, takes 127,500 XP: more than a year, even for a very heavy viewer.</p>
+<p>Your level follows your XP: it can go down if XP is taken from you, for instance when a trophy earned by mistake is removed.</p>
 """.strip(),
     },
     "le-classement-mensuel": {

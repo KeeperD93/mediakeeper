@@ -11,6 +11,7 @@ from services.portal import gdpr_erased
 from services.portal.admin_users_audit import record_audit
 from services.portal.admin_users_constants import (
     ACTION_DEBUG_ACHIEVEMENT_UNLOCKED,
+    ACTION_DEBUG_WATCH_XP_RECALC_PLAYER,
     ACTION_DEBUG_XP_GRANTED,
     ACTION_DEBUG_ZONE_CORRECTION_PLAYER,
     ACTION_USER_CREATED,
@@ -45,6 +46,7 @@ NOTHING_PERSONAL = {
     constants.ACTION_DEBUG_ACHIEVEMENT_RESET_ALL,
     constants.ACTION_DEBUG_ACHIEVEMENT_RECHECK_ALL,
     constants.ACTION_DEBUG_ZONE_CORRECTION,
+    constants.ACTION_DEBUG_WATCH_XP_RECALC,
     constants.ACTION_SYSTEM_TIMEZONE_CHANGED,
     constants.ACTION_USER_RGPD_EXPORT,
     constants.ACTION_USER_SOFT_DELETED,
@@ -59,6 +61,11 @@ UNDO = {
     "decorations": {"title_id": "night_owl"},
     "ledger": [{"id": 1, "reference": "achievement:night_owl", "xp": 50, "created_at": None}],
 }
+# What a player watched, kept to undo a watch XP recalculation.
+WATCH_UNDO = {
+    "deleted": [{"action": "watch_movie", "reference": "MOVIE-9:2026-03-07", "xp": 10, "created_at": None}],
+    "inserted": ["MOVIE-1:c1"],
+}
 
 
 def _rows_about(name: str, guid: str) -> list[tuple[str, dict | None]]:
@@ -72,6 +79,7 @@ def _rows_about(name: str, guid: str) -> list[tuple[str, dict | None]]:
             "removed": ["night_owl"], "cascade": [], "xp_removed": 50,
             "xp": [100, 50], "level": [3, 2], "decorations": ["title_id"], "undo": UNDO,
         }),
+        (ACTION_DEBUG_WATCH_XP_RECALC_PLAYER, {"xp": [50, 80], "level": [2, 2], "undo": WATCH_UNDO}),
         (ACTION_DEBUG_ACHIEVEMENT_UNLOCKED, {"achievement_id": "night_owl"}),
     ]
 
@@ -110,6 +118,7 @@ async def test_the_trail_keeps_each_action_but_no_longer_who_they_were(db_sessio
             "removed": ["night_owl"], "cascade": [], "xp_removed": 50,
             "xp": [100, 50], "level": [3, 2], "decorations": ["title_id"],
         }),
+        (ACTION_DEBUG_WATCH_XP_RECALC_PLAYER, {"xp": [50, 80], "level": [2, 2]}),
         (ACTION_DEBUG_ACHIEVEMENT_UNLOCKED, {"achievement_id": "night_owl"}),
     ]
 
