@@ -91,8 +91,7 @@ describe('PortalOnboardingWizard, a name reset before the tour', () => {
     serverAnswers()
     const wrapper = await open(member({ ...RESET, display_name_changed_at: CHOSEN_AT }))
 
-    expect(wrapper.text()).toContain('Visite guidée')
-    expect(wrapper.text()).not.toContain('Première connexion')
+    expect(wrapper.get('.dd-sub').text()).toContain('Le portail s’enrichit')
     await next(wrapper)
 
     expect(input(wrapper).element.value).toBe('')
@@ -109,7 +108,7 @@ describe('PortalOnboardingWizard, a name reset before the tour', () => {
     serverAnswers()
     const wrapper = await open(member(RESET))
 
-    expect(wrapper.text()).toContain('Première connexion')
+    expect(wrapper.get('.dd-sub').text()).toContain('Le portail des demandes, et bien plus encore')
     await next(wrapper)
     expect(input(wrapper).attributes('placeholder')).toBe('Votre pseudo')
   })

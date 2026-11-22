@@ -53,7 +53,7 @@ def invalidate_cache(user_id: int) -> None:
 def clear_cache() -> None:
     """Drop every cached payload: something a member shows the others changed
     (name, visibility, avatar, avatar effect, title), and any reader's podium
-    may show them."""
+    may show them; or a recalculation rewrote the XP of many players."""
     global _cache_generation
     _cache_generation += 1
     _digest_cache.clear()

@@ -5,6 +5,7 @@ from api.portal.achievements import router as achievements_router
 from api.portal.activity import router as activity_router
 from api.portal.admin import router as admin_router
 from api.portal.admin_debug import router as admin_debug_router
+from api.portal.admin_debug_watch_xp import router as admin_debug_watch_xp_router
 from api.portal.admin_debug_zone import router as admin_debug_zone_router
 from api.portal.auth import router as auth_router
 from api.portal.availability import router as availability_router
@@ -62,6 +63,7 @@ router.include_router(events_router)
 router.include_router(admin_router)
 router.include_router(admin_debug_router)
 router.include_router(admin_debug_zone_router)
+router.include_router(admin_debug_watch_xp_router)
 router.include_router(discover_router)
 router.include_router(available_router)
 router.include_router(activity_router)

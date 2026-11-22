@@ -1,13 +1,13 @@
 """Simulate, then apply, the correction of the trophies the UTC clock gave wrongly.
 
 Simulating plans every player in a read-only transaction, then rolls it back. Applying
-plans the same way, refuses a plan the admin has not seen, backs up, then plans each
-player again in their own transaction, under the lock of their profile, and writes that
-plan unless it takes a trophy the admin was not shown: a player is corrected entirely or
-not at all, and a second run finds nothing left. The audit row of each player keeps what
-undoing them would need.
+plans the same way, refuses a plan the admin has not seen, backs up (a backup that fails
+or lacks a part refuses the apply), then plans each player again in their own
+transaction, under the lock of their profile, and writes that plan unless it takes a
+trophy the admin was not shown: a player is corrected entirely or not at all, and a
+second run finds nothing left. The audit row of each player keeps what undoing them
+would need.
 """
-import asyncio
 import logging
 from dataclasses import replace
 from datetime import datetime
@@ -27,6 +27,7 @@ from services.portal.admin_users_constants import (
     ACTION_DEBUG_ZONE_CORRECTION_PLAYER,
 )
 from services.portal.daily_digest import invalidate_cache
+from services.portal.recalc_lock import RECALC_LOCK
 from services.portal.xp import (
     ACHIEVEMENT_XP_ACTION,
     achievement_xp_reference,
@@ -40,8 +41,8 @@ from ._summary import summarize
 logger = logging.getLogger("mediakeeper.portal.zone_correction")
 
 BACKUP_LABEL = "zone_correction"
-# One web process serves the admin: a second apply waits for nothing, it is refused.
-_apply_lock = asyncio.Lock()
+# Shared with the watch XP recalculation: one of them at a time.
+_apply_lock = RECALC_LOCK
 
 
 class _PlanGrew(Exception):
@@ -179,7 +180,11 @@ async def apply_zone_correction(
             nothing = {"players": 0, "removed": 0, "xp_removed": 0, "failed": 0, "changed": 0}
             return {**summary, "backup": None, "applied": nothing}
 
-        backup = await create_backup(db, label=BACKUP_LABEL)
+        try:
+            backup = await create_backup(db, label=BACKUP_LABEL)
+        except Exception as exc:
+            logger.exception("[ZONE_CORRECTION] backup failed: nothing applied")
+            raise ZoneCorrectionRefused(BACKUP_INCOMPLETE) from exc
         if not backup.complete:
             logger.error("[ZONE_CORRECTION] backup %s lacks %s: nothing applied", backup.path.name, backup.failed)
             raise ZoneCorrectionRefused(BACKUP_INCOMPLETE)

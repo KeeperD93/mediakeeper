@@ -16,7 +16,8 @@
       </ul>
     </div>
 
-    <!-- On a phone: the top bar, the « + » button and the tabs at the bottom. -->
+    <!-- On a phone: the top bar and the tabs at the bottom; the « + » button is told in
+         words, as on a computer. -->
     <div class="wz-map-phone">
       <div class="wz-mphone" aria-hidden="true">
         <div class="wz-mbar">
@@ -29,7 +30,6 @@
           <span class="wz-mic"><Bell :size="16" /></span>
           <WizardAvatar size="md" :initial="wz.initial" :tier="wz.me.tier" />
         </div>
-        <span class="wz-mfab"><Plus :size="18" :stroke-width="2.4" /></span>
         <div class="wz-mbottom">
           <span
             v-for="tab in PHONE_TABS"
@@ -53,7 +53,7 @@
 
 <script setup>
 import { inject } from 'vue'
-import { Bell, House, Library, LifeBuoy, Plus, Search, User } from 'lucide-vue-next'
+import { Bell, House, Library, LifeBuoy, Search, User } from 'lucide-vue-next'
 import { ONBOARDING_WIZARD_KEY } from '@/composables/portal/useOnboardingWizard'
 import { BRAND_LOGO_SRC } from '@/constants/brand'
 import { DEMO_TAB } from '@/constants/portalWizardHelp'
@@ -61,7 +61,7 @@ import DemoTopBar from './help/DemoTopBar.vue'
 import WizardAvatar from './WizardAvatar.vue'
 
 const DESK_LEGEND = ['tabs', 'search', 'icons', 'avatar', 'fab']
-const PHONE_LEGEND = ['tabs', 'top', 'calendar']
+const PHONE_LEGEND = ['tabs', 'top', 'calendar', 'fab']
 // Same tabs as the bottom bar of a member (PortalBottomNav).
 const PHONE_TABS = [
   { label: 'portal.tabs.home', icon: House, on: true },

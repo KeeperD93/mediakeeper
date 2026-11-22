@@ -143,7 +143,8 @@ def test_leaves_an_article_the_admin_retouched_alone(alembic_db, retouch):
     assert _bodies(engine)[1] == body
 
 
-@pytest.mark.parametrize("slug", sorted(migration.REWRITES))
+# 074 rewrites the XP article again; its own test checks it starts from 071's text.
+@pytest.mark.parametrize("slug", sorted(set(migration.REWRITES) - {"comment-gagner-de-l-xp"}))
 def test_the_rewrite_is_the_current_starter_text(slug):
     seeded = next(entry for entry in HELP_SEED if entry["slug"] == slug)
     assert migration.REWRITES[slug][1].strip() == seeded["fr"]["body_html"]

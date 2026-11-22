@@ -2,7 +2,6 @@
   <Teleport to="body">
     <!-- No way out but the last button: no cross, no Escape, no click beside. -->
     <div class="dd-overlay wz-overlay">
-      <div class="dd-glow" aria-hidden="true" />
       <div
         ref="panelRef"
         class="dd-panel wz"
@@ -13,7 +12,8 @@
         tabindex="-1"
       >
         <span :id="titleId" class="sr-only">{{ $t(dialogLabelKey) }}</span>
-        <div class="wz-in">
+        <!-- The step scrolls; the footer under it never moves. -->
+        <div ref="bodyRef" class="wz-in">
           <WizardProgress v-if="wz.progress" :num="wz.progress.num" :total="wz.progress.total" />
 
           <section
@@ -39,7 +39,7 @@
                 :tier="wz.me.tier"
               />
               <div class="dd-grow">
-                <span class="dd-date">{{ wz.head.eyebrow }}</span>
+                <span v-if="wz.head.eyebrow" class="dd-date">{{ wz.head.eyebrow }}</span>
                 <h1 :id="headingId" ref="headingRef" class="dd-hello wz-hello" tabindex="-1">
                   {{ wz.head.title }}
                 </h1>
@@ -53,8 +53,8 @@
           <p v-if="wz.saveFailed" class="wz-error" role="alert">
             {{ $t('portal.wizard.saveFailed') }}
           </p>
-          <WizardFoot />
         </div>
+        <WizardFoot />
       </div>
     </div>
   </Teleport>
@@ -66,6 +66,7 @@ import '@/assets/styles/portal/daily-digest-shell.css'
 import '@/assets/styles/portal/daily-digest-common.css'
 import '@/assets/styles/portal/daily-digest-full.css'
 import '@/assets/styles/portal/wizard.css'
+import '@/assets/styles/portal/wizard-window.css'
 import '@/assets/styles/portal/wizard-fields.css'
 import '@/assets/styles/portal/wizard-steps.css'
 import '@/assets/styles/portal/wizard-navmap.css'
@@ -125,6 +126,7 @@ const titleId = useId()
 const headingId = useId()
 provide(ONBOARDING_HEADING_KEY, headingId)
 const panelRef = ref(null)
+const bodyRef = ref(null)
 const headingRef = ref(null)
 const still = usePrefersReducedMotion()
 
@@ -144,9 +146,13 @@ useFocusTrap({
 })
 useBodyScrollLock(open)
 
-// Each step is announced by its title: the focus lands on it.
+// Each step opens at its top and is announced by its title: the focus lands on it.
 watch(
   () => wz.step,
-  () => nextTick(() => headingRef.value?.focus()),
+  () =>
+    nextTick(() => {
+      bodyRef.value.scrollTop = 0
+      headingRef.value?.focus()
+    }),
 )
 </script>

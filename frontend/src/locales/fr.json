@@ -2617,7 +2617,8 @@
           "level_set": "Niveau modifié",
           "achievement_unlocked": "Trophée débloqué",
           "achievement_locked": "Trophée retiré",
-          "zone_correction_player": "Trophées corrigés (fuseau horaire)"
+          "zone_correction_player": "Trophées corrigés (fuseau horaire)",
+          "watch_xp_recalc_player": "XP de visionnage recalculée"
         }
       }
     }
@@ -3012,6 +3013,16 @@
       "lists": "Listes",
       "calendar": "Calendrier"
     },
+    "appInstall": {
+      "title": "Installer l’application",
+      "intro": "Ouvrez MediaKeeper depuis son icône, comme une vraie application.",
+      "button": "Installer",
+      "ios": "Touchez le bouton Partager, puis « Sur l’écran d’accueil ».",
+      "iosNotify": "Sur iPhone et iPad, c’est aussi ce qui permet de recevoir les notifications.",
+      "mac": "Dans Safari, ouvrez le menu Fichier, puis choisissez « Ajouter au Dock ».",
+      "firefoxAndroid": "Dans le menu de Firefox (les trois points), choisissez « Ajouter l’application à l’écran d’accueil ».",
+      "otherBrowser": "Firefox ne sait pas encore installer d’application sur ordinateur : ouvrez le portail dans Chrome ou Edge pour l’installer."
+    },
     "changelog": {
       "title": "Journal des nouveautés",
       "subtitle": "Toutes les évolutions visibles côté utilisateurs",
@@ -3195,8 +3206,6 @@
       },
       "steps": {
         "welcome": {
-          "eyebrowNew": "Première connexion",
-          "eyebrow": "Visite guidée",
           "title": "Bienvenue sur MediaKeeper",
           "subNew": "Le portail des demandes, et bien plus encore : listes, trophées, classement, soirées ciné… On vous guide pas à pas.",
           "sub": "Le portail s’enrichit. Une petite visite, une seule fois : vérifiez vos réglages et découvrez tout ce qui est disponible."
@@ -3377,7 +3386,8 @@
         "phone": {
           "tabs": "Onglets en bas : Accueil, Mon profil, Listes, Problèmes",
           "top": "En haut : la loupe (recherche), les notifications, votre avatar",
-          "calendar": "Calendrier : dans le menu de votre avatar"
+          "calendar": "Calendrier : dans le menu de votre avatar",
+          "fab": "Bouton « + » : en bas à droite"
         }
       },
       "expiry": {
@@ -4497,6 +4507,31 @@
           "plan_changed": "Les données ont changé depuis la simulation : simulez de nouveau.",
           "already_running": "Une correction est déjà en cours.",
           "backup_incomplete": "La sauvegarde est incomplète : rien n'a été modifié."
+        },
+        "watchXpSection": "Recalculer l'XP de visionnage",
+        "watchXpHint": "Refait l'XP gagnée en regardant, titre vu par titre vu, avec la règle actuelle : 20 XP par heure de titre, à la date où il a été vu. Connexions, demandes, trophées et gains admin ne bougent pas. Une sauvegarde est faite juste avant.",
+        "watchXpSimulate": "Simuler",
+        "watchXpSimulating": "Simulation…",
+        "watchXpPlayers": "{players} joueur concerné sur {total} : XP de visionnage {before} → {after} | {players} joueurs concernés sur {total} : XP de visionnage {before} → {after}",
+        "watchXpLevels": "Niveaux : {up} montent, {down} baissent (au plus {max})",
+        "watchXpLost": "{lost} joueur perd toute son XP de visionnage : {noEnd} sans titre fini, {stats} statistiques supprimées ou fusionnées | {lost} joueurs perdent toute leur XP de visionnage : {noEnd} sans titre fini, {stats} statistiques supprimées ou fusionnées",
+        "watchXpSkipped": "Titres vus non comptés : {noAccount} sans compte, {notEarning} compte qui ne gagne pas, {excluded} exclus, {cooldown} revus dans les 24 h, {parallel} lus en même temps qu'un autre, {beforeLedger} trop anciens",
+        "watchXpNamesakes": "{namesake} titre vu rattaché par le nom à un autre compte | {namesake} titres vus rattachés par le nom à un autre compte",
+        "watchXpEvents": "Bonus appliqués : {events} ; ignorés car désactivés : {ignored}",
+        "watchXpEvent": "{name} ({titles} titre(s), {xp} XP)",
+        "watchXpMonths": "Mois passés dont le premier change : {n}",
+        "watchXpNothing": "Rien à recalculer.",
+        "watchXpRow": "XP {xp} → {xpAfter} · niveau {level} → {levelAfter}",
+        "watchXpApply": "Appliquer",
+        "watchXpApplying": "Application…",
+        "watchXpConfirm": "Recalculer l'XP de visionnage de {players} joueur ? Une sauvegarde est faite avant ; seule elle permet de revenir en arrière. | Recalculer l'XP de visionnage de {players} joueurs ? Une sauvegarde est faite avant ; seule elle permet de revenir en arrière.",
+        "watchXpApplied": "XP de visionnage recalculée pour {players} joueur. Sauvegarde : {name} | XP de visionnage recalculée pour {players} joueurs. Sauvegarde : {name}",
+        "watchXpErrors": {
+          "plan_changed": "Les données ont changé depuis la simulation : relance-la.",
+          "already_running": "Un recalcul est déjà en cours.",
+          "backup_incomplete": "Sauvegarde incomplète : rien n'a été modifié.",
+          "apply_failed": "Le recalcul a échoué : rien n'a été modifié.",
+          "apply_uncertain": "Résultat incertain : relance la simulation pour voir ce qui a été appliqué."
         },
         "errorGeneric": "L'action a échoué"
       },

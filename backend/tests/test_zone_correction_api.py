@@ -184,6 +184,22 @@ async def test_nothing_is_written_without_a_full_backup(client, db_session, back
 
 
 @pytest.mark.asyncio
+async def test_a_backup_that_fails_refuses_the_apply_as_incomplete(client, db_session, monkeypatch, caplog):
+    alice = await alice_with_early_bird(client, db_session)
+
+    async def disk_full(db, label=""):
+        raise OSError(28, "No space left on device")
+
+    monkeypatch.setattr(_run, "create_backup", disk_full)
+    with caplog.at_level(logging.ERROR, logger=_run.logger.name):
+        resp = await client.post(APPLY, json=await confirmation(client))
+    assert (resp.status_code, resp.json()["detail"]) == (409, "backup_incomplete")
+    assert await unlocked(db_session, alice) == {EARLY}
+    assert (await profile_of(db_session, alice)).xp == 110
+    assert "backup failed: nothing applied" in caplog.text
+
+
+@pytest.mark.asyncio
 async def test_a_second_apply_is_refused_while_one_runs(client, db_session, backups):
     await alice_with_early_bird(client, db_session)
     confirmed = await confirmation(client)

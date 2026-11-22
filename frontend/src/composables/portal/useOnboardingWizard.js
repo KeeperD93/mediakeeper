@@ -196,16 +196,12 @@ export function useOnboardingWizard(mode, onDone) {
       ? resetSub()
       : t(`${W}.steps.name.${NAME_SUB[account.value]}`)
 
-  // Eyebrow, title and subtitle of the step's head.
+  // Eyebrow, title and subtitle of the step's head; the welcome goes without an eyebrow.
   const head = computed(() => {
     const key = `${W}.steps.${step.value}`
-    const fresh = account.value === WIZARD_ACCOUNT.NEW
     if (step.value === S.WELCOME) {
-      return {
-        eyebrow: t(`${key}.${fresh ? 'eyebrowNew' : 'eyebrow'}`),
-        title: t(`${key}.title`),
-        sub: t(`${key}.${fresh ? 'subNew' : 'sub'}`),
-      }
+      const fresh = account.value === WIZARD_ACCOUNT.NEW
+      return { title: t(`${key}.title`), sub: t(`${key}.${fresh ? 'subNew' : 'sub'}`) }
     }
     if (!full) {
       return {

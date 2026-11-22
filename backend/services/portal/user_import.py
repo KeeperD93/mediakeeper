@@ -31,7 +31,7 @@ from services.portal.xp import EARNING_ACCOUNT
 logger = logging.getLogger("mediakeeper.portal.user_import")
 
 
-async def _find_existing_emby_user(
+async def find_account_for_emby_user(
     db: AsyncSession, *, emby_username: str, emby_user_id: str | None,
 ) -> User | None:
     """Resolve an account already provisioned for this Emby identity,
@@ -80,7 +80,7 @@ async def ensure_user_for_emby_session(
     if not emby_username:
         return None
 
-    existing = await _find_existing_emby_user(
+    existing = await find_account_for_emby_user(
         db, emby_username=emby_username, emby_user_id=emby_user_id,
     )
     if existing:

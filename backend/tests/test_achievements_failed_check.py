@@ -24,7 +24,7 @@ from services.portal.admin_users_constants import ACTION_DEBUG_ACHIEVEMENT_RECHE
 from services.portal.lists import create_list, update_list
 from services.portal.lists_items import add_items
 from services.portal.requests_fulfill import fulfill_open_requests
-from services.stats_collector.collect import _grant_post_session_xp
+from services.stats_collector.collect import _after_rows_closed
 from tests._portal_profile_helpers import PORTAL_COOKIE, make_portal_user, portal_token
 
 RECHECK = "/api/portal/admin/debug/recheck-all-achievements"
@@ -164,17 +164,13 @@ async def test_a_trophy_earned_again_after_a_reset_survives_a_failed_check(db_se
 
 
 @pytest.mark.asyncio
-async def test_the_next_player_still_earns_watch_xp(db_session, checks_fail):
+async def test_the_next_player_is_still_checked(db_session, checks_fail):
     ids = await _ids(db_session, "alice", "bob")
     plays = [await _closed_play(db_session, "alice", "movie-1"), await _closed_play(db_session, "bob", "movie-2")]
 
-    await _grant_post_session_xp(db_session, plays)
+    await _after_rows_closed(db_session, [play.id for play in plays])
 
     assert checks_fail == ids
-    xp = dict((await db_session.execute(
-        select(UserProfile.user_id, UserProfile.xp).where(UserProfile.user_id.in_(ids))
-    )).all())
-    assert xp[ids[0]] == xp[ids[1]] > 0
 
 
 @pytest.mark.asyncio

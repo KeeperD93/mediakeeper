@@ -226,7 +226,7 @@ async def test_ensure_user_savepoint_swallows_concurrent_provision(db_session, m
     async def _pretend_absent(_db, *, emby_username, emby_user_id):
         return None
 
-    monkeypatch.setattr(ui_mod, "_find_existing_emby_user", _pretend_absent)
+    monkeypatch.setattr(ui_mod, "find_account_for_emby_user", _pretend_absent)
 
     result = await ensure_user_for_emby_session(
         db_session, emby_username="racer", emby_user_id="EMBY-RACE",

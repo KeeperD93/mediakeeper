@@ -1,5 +1,7 @@
 """XP boost event service — active multipliers for grants, running events for the daily digest."""
+from collections.abc import Iterable
 from datetime import datetime, timezone, tzinfo
+from decimal import ROUND_HALF_UP, Decimal
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -26,19 +28,39 @@ def _limited_to(ev: XpBoostEvent) -> list[str] | None:
     return list(dict.fromkeys(a.strip() for a in ev.action_filter.split(",") if a.strip()))
 
 
-async def get_active_multiplier(db: AsyncSession, action: str) -> float:
+def event_applies(ev: XpBoostEvent, action: str, at: datetime) -> bool:
+    """Whether ``ev`` covers ``at`` (aware) for ``action``, enabled or not."""
+    if not _parse_dt(ev.starts_at) <= at <= _parse_dt(ev.ends_at):
+        return False
+    actions = _limited_to(ev)
+    return actions is None or action in actions
+
+
+def multiplier_at(events: Iterable[XpBoostEvent], action: str, at: datetime) -> float:
+    """Combined multiplier of the enabled ``events`` covering ``at`` (aware) for ``action``.
+
+    Overlapping events multiply together; 1.0 when none applies.
     """
-    Return the combined XP multiplier currently active for a given action.
-    Multiple overlapping events multiply together.
-    Returns 1.0 when no events are active.
-    """
-    multiplier = 1.0
-    for ev in await _running_events(db, datetime.now(timezone.utc)):
-        actions = _limited_to(ev)
-        if actions is not None and action not in actions:
-            continue
-        multiplier *= ev.multiplier or 1.0
-    return multiplier
+    # Decimal: in floats, 1.15 × 1.5 falls just under 1.725 and a half would round down.
+    multiplier = Decimal(1)
+    for ev in events:
+        if ev.enabled and event_applies(ev, action, at):
+            multiplier *= Decimal(str(ev.multiplier or 1.0))
+    return float(multiplier)
+
+
+def boosted_xp(xp: int, multiplier: float) -> int:
+    """``xp`` with a bonus multiplier applied, halves rounded up, as every grant writes it."""
+    if multiplier == 1.0:
+        return xp
+    # The multiplier as typed (2.3, not 2.29999…): 25 × 2.3 is 57.5 and pays 58.
+    return int((xp * Decimal(str(multiplier))).quantize(Decimal(1), rounding=ROUND_HALF_UP))
+
+
+async def get_active_multiplier(db: AsyncSession, action: str, at: datetime | None = None) -> float:
+    """Combined multiplier of the events active at ``at`` (aware, now by default) for ``action``."""
+    at = at or datetime.now(timezone.utc)
+    return multiplier_at(await _running_events(db, at), action, at)
 
 
 async def active_boosts(db: AsyncSession, now: datetime, zone: tzinfo) -> list[dict]:

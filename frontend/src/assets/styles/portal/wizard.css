@@ -1,28 +1,7 @@
-/* First-login wizard (PortalOnboardingWizard.vue): inner frame, steps and their head,
- * progress, notes, buttons and the sticky footer. The window itself, the hello and the
- * main button are the daily digest's (dd- classes), so the digest can take its place.
- * Phone first; the window's own width (container dd) widens it at 480, 640 and 768 px.
- * Classes start with wz-, a prefix nothing else uses. */
-
-.wz {
-  --wz-pad-x: var(--portal-space-5);
-  --wz-pad-top: var(--portal-space-5);
-  --wz-pad-bottom: var(--portal-space-6);
-  --wz-foot-pad-top: var(--portal-space-3-5);
-  --wz-foot-pad-bottom: var(--portal-space-4-5);
-}
-/* No gap under the window: the footer sticks to the screen's bottom edge, the iPhone's
-   home bar kept clear by the footer itself. */
-.wz-overlay.dd-overlay {
-  padding-bottom: 0;
-}
-
-.wz-in {
-  display: flex;
-  flex-direction: column;
-  gap: var(--portal-space-6);
-  padding: var(--wz-pad-top) var(--wz-pad-x) var(--wz-pad-bottom);
-}
+/* First-login wizard (PortalOnboardingWizard.vue): steps and their head, progress, notes
+ * and buttons; the window and its footer are in wizard-window.css. The hello is the
+ * daily digest's (dd- classes), so the digest can take its place. Classes start with
+ * wz-, a prefix nothing else uses. */
 
 /* Progress */
 .wz-top {
@@ -77,9 +56,12 @@
 }
 .wz-step--welcome {
   align-items: center;
-  gap: var(--portal-space-1-5);
+  gap: var(--portal-space-5);
   padding-top: var(--portal-space-3);
   text-align: center;
+}
+.wz-step--welcome .dd-sub {
+  margin-top: var(--portal-space-3);
 }
 .wz-banner {
   display: block;
@@ -195,79 +177,6 @@
 .wz :is(.wz-ghost, .wz-link):disabled {
   opacity: var(--portal-opacity-disabled);
   cursor: not-allowed;
-}
-
-/* Footer: back, a hint, the main button, kept at the bottom while the step scrolls */
-.wz-foot {
-  position: sticky;
-  bottom: 0;
-  z-index: 2;
-  display: flex;
-  align-items: center;
-  gap: var(--portal-space-2-5);
-  margin: 0 calc(-1 * var(--wz-pad-x)) calc(-1 * var(--wz-pad-bottom));
-  padding: var(--wz-foot-pad-top) var(--wz-pad-x)
-    calc(var(--wz-foot-pad-bottom) + env(safe-area-inset-bottom, 0px));
-  border-top: var(--portal-border-width) solid var(--portal-border-subtle);
-  border-radius: 0 0 var(--portal-radius-2xl) var(--portal-radius-2xl);
-  background: var(--portal-digest-bg);
-}
-.wz-foot .wz-ghost {
-  flex: none;
-}
-.wz-foot-hint {
-  flex: 1;
-  margin: 0;
-  font-size: var(--portal-text-xs);
-  color: var(--portal-text-muted-solid);
-}
-.wz-next {
-  flex: 1;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--portal-space-2);
-  margin-left: auto;
-}
-.wz-next:disabled {
-  opacity: var(--portal-opacity-disabled);
-  box-shadow: none;
-  cursor: not-allowed;
-}
-
-@container dd (min-width: 480px) {
-  .wz {
-    --wz-pad-top: var(--portal-space-6);
-    --wz-pad-x: var(--portal-space-7);
-    --wz-pad-bottom: var(--portal-space-7);
-  }
-  .wz {
-    --wz-foot-pad-top: var(--portal-space-4);
-    --wz-foot-pad-bottom: var(--portal-space-5);
-  }
-}
-@container dd (min-width: 640px) {
-  .wz {
-    --wz-pad-top: var(--portal-space-7);
-    --wz-pad-x: var(--portal-space-9);
-    --wz-pad-bottom: var(--portal-space-8);
-  }
-  .wz-in {
-    gap: var(--portal-space-7);
-  }
-  .wz {
-    --wz-foot-pad-top: var(--portal-space-4-5);
-    --wz-foot-pad-bottom: var(--portal-space-5-5);
-  }
-  .wz-next {
-    flex: none;
-    min-width: var(--portal-wizard-cta-min-width);
-  }
-}
-@container dd (min-width: 768px) {
-  .wz {
-    --wz-pad-x: var(--portal-space-12);
-  }
 }
 
 @keyframes wz-rise {

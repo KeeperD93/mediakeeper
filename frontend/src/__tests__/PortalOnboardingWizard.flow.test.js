@@ -66,7 +66,8 @@ describe('PortalOnboardingWizard, the window', () => {
       'Assistant de première connexion',
     )
     expect(heading(wrapper)).toBe('Bienvenue sur MediaKeeper')
-    expect(wrapper.text()).toContain('Première connexion')
+    expect(wrapper.find('.dd-date').exists()).toBe(false)
+    expect(wrapper.get('.dd-sub').text()).toContain('Le portail des demandes, et bien plus encore')
     await vi.advanceTimersByTimeAsync(0)
     expect(document.activeElement).toBe(wrapper.get('h1').element)
     expect(backButton(wrapper).exists()).toBe(false)
@@ -93,6 +94,7 @@ describe('PortalOnboardingWizard, the window', () => {
     const bar = wrapper.get('[role="progressbar"]')
     expect(bar.attributes()).toMatchObject({ 'aria-valuenow': '1', 'aria-valuemax': '9' })
     expect(wrapper.get('.wz-count').text()).toBe('Étape 1 sur 9')
+    expect(wrapper.get('.dd-date').text()).toBe('Votre pseudo')
     expect(plain(document.activeElement.textContent.trim())).toBe(
       'Comment devons-nous vous appeler ?',
     )
@@ -277,6 +279,7 @@ describe('PortalOnboardingWizard, a name reset by an administrator', () => {
     const wrapper = await open(member({ ...NEW, display_name: 'Alice_42' }), 'reset')
 
     expect(heading(wrapper)).toBe('Choisissez un nouveau pseudo')
+    expect(wrapper.get('.dd-date').text()).toBe('Pseudo réinitialisé')
     expect(plain(wrapper.text())).toContain('« Alice_42 »')
     expect(wrapper.find('[role="progressbar"]').exists()).toBe(false)
     expect(wrapper.find('.wz-banner--sm').exists()).toBe(true)

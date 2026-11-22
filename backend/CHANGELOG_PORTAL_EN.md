@@ -18,16 +18,18 @@ This section intentionally has no date so it is not shown to users.
 - Help — starter articles also in English.
 - First sign-in — step-by-step guide (username, profile, notifications, animated help).
 - Today's digest — running XP boosts: multiplier, end and actions that count.
+- Install the app — offered by the first sign-in guide and the avatar menu.
 
 ### Changed
 - Branding — new logo and banner, app icons redone.
+- Watch XP — 20 XP per hour of a title watched to the end.
 - Days in a row and Regular — from 5 min watched; music and audiobooks left out.
 - Secret trophies — name and icon shown, description and progress hidden until unlocked.
 - Today's digest — redesigned: news first, sorted by type, compact view, expiry notice, "For you", new version.
 - Usernames — reserved words, look-alikes and provisional-pseudo shapes refused, 3 characters (2 in Chinese or Korean).
 
 ### Fixed
-- Help — six guides rewritten: requests, quotas, username, XP, leaderboard, events.
+- Help — seven guides rewritten: requests, quotas, username, XP, ranks, leaderboard, events.
 - XP bar — same percentage in today's digest and the profile.
 - Notifications — bar lasts as long as the message, full message on small phones.
 - Issues — ticket dates: colons placed right in English and French.
@@ -49,6 +51,7 @@ This section intentionally has no date so it is not shown to users.
 - Days in a row — a device switched off at the start of an unwatched title no longer counts.
 - Report form — description counter shows its real limit (1,500), sending stops before any cut.
 - Credits — the full stop follows the link directly.
+- Bonus events — XP rounded to the nearest, halves up.
 - Requests — "Requested by" shows the display name, no longer the sign-in name ("you" for your own requests).
 - Events — the display name replaces the sign-in name (guests, host, notifications).
 - Events — replying to an invitation from a deleted host no longer fails.

@@ -151,6 +151,9 @@ class PlaybackCompletion(Base):
     library_name    = Column(String(200), nullable=True)
     runtime_seconds = Column(Integer, nullable=False)
     watched_seconds = Column(Integer, nullable=False)
+    # The share of ``watched_seconds`` the user watched alone (no other title
+    # playing at the same time), fixed when the title counts as watched.
+    exclusive_seconds = Column(Integer, nullable=False, default=0, server_default="0")
     completed_at    = Column(DateTime(timezone=True), nullable=False)
     source          = Column(String(16), nullable=False, default="live", server_default="live")
 

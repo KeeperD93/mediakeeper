@@ -2,9 +2,9 @@
 
 These helpers bypass the anti-abuse rules of ``grant_xp`` (daily caps,
 unique-action dedup, watch percentage) so an administrator can repair
-state, reward early adopters, or test trophy logic. Every XP change
-records a row in ``XpLedger`` (for audit) and recomputes the level
-from the total XP so the cached ``UserProfile.level`` never drifts.
+state, reward early adopters, or test trophy logic. Every change of XP
+records in ``XpLedger`` the gap it really made (for audit) and recomputes
+the level from the total XP so the cached ``UserProfile.level`` never drifts.
 """
 from __future__ import annotations
 
@@ -12,11 +12,10 @@ import logging
 import uuid
 from datetime import datetime, timezone
 
-from sqlalchemy import delete, select
+from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from models.portal.achievement import Achievement, UserAchievement
-from models.portal.profile import UserProfile
 from models.portal.xp_ledger import XpLedger
 from services.portal.admin_users_audit import record_audit
 from services.portal.admin_users_constants import (
@@ -26,17 +25,19 @@ from services.portal.admin_users_constants import (
     ACTION_DEBUG_LEVEL_SET,
     ACTION_DEBUG_XP_GRANTED,
 )
-from services.portal.xp import MAX_LEVEL, MIN_LEVEL, level_floor_xp, level_from_xp
+from services.portal.xp import (
+    ACHIEVEMENT_XP_ACTION,
+    MAX_LEVEL,
+    MIN_LEVEL,
+    achievement_xp_reference,
+    level_floor_xp,
+    level_from_xp,
+    locked_profile,
+)
 
 logger = logging.getLogger("mediakeeper.portal.admin_debug")
 
 ADMIN_GRANT_ACTION = "admin_grant"
-
-
-async def _get_profile(db: AsyncSession, user_id: int) -> UserProfile | None:
-    return (await db.execute(
-        select(UserProfile).where(UserProfile.user_id == user_id)
-    )).scalar_one_or_none()
 
 
 async def admin_grant_xp(
@@ -51,25 +52,28 @@ async def admin_grant_xp(
     Returns ``{xp, level, leveled_up}`` or ``None`` if the profile is
     missing.
     """
-    profile = await _get_profile(db, user_id)
+    profile = await locked_profile(db, user_id)
     if not profile:
         return None
 
     delta = int(amount)
     if delta == 0:
+        await db.commit()  # releases the lock
         return {"xp": profile.xp or 0, "level": profile.level or MIN_LEVEL, "leveled_up": False}
 
-    ref_suffix = (note or uuid.uuid4().hex)[:48]
-    entry = XpLedger(
-        user_id=user_id,
-        action=ADMIN_GRANT_ACTION,
-        reference=f"{datetime.now(timezone.utc).timestamp()}:{ref_suffix}",
-        xp=delta,
-    )
-    db.add(entry)
+    before = profile.xp or 0
+    after = max(0, before + delta)
+    if after != before:  # a removal below 0 takes, and records, only what the player had
+        ref_suffix = (note or uuid.uuid4().hex)[:48]
+        db.add(XpLedger(
+            user_id=user_id,
+            action=ADMIN_GRANT_ACTION,
+            reference=f"{datetime.now(timezone.utc).timestamp()}:{ref_suffix}",
+            xp=after - before,
+        ))
 
     previous_level = profile.level or MIN_LEVEL
-    profile.xp = max(0, (profile.xp or 0) + delta)
+    profile.xp = after
     profile.level = level_from_xp(profile.xp)
     db.add(profile)
     await record_audit(
@@ -100,7 +104,7 @@ async def admin_set_level(
     """Force the user to a specific level. ``profile.xp`` is set to the
     XP at which that level starts (``level_floor_xp``, 0 for level 1),
     up or down, so the level bar starts empty (full at ``MAX_LEVEL``)."""
-    profile = await _get_profile(db, user_id)
+    profile = await locked_profile(db, user_id)
     if not profile:
         return None
 
@@ -224,54 +228,48 @@ async def admin_reset_achievement_for_all(
 ) -> dict | None:
     """Reset a specific achievement for **every** user.
 
-    Drops every ``UserAchievement`` row for ``achievement_id`` and refunds
-    the matching ``achievement_unlocked`` XP grants from ``XpLedger``.
-    Each affected profile's ``xp`` / ``level`` is recomputed from the
-    sum of remaining ledger entries so the cached values stay coherent.
-
-    Used to scrub trophies that were unlocked because of a counter bug —
-    after a recheck-all, only users who genuinely qualify will get them
-    back.
+    Drops its ``UserAchievement`` rows and its ``achievement_unlocked``
+    ledger rows. Each player loses exactly the XP those rows gave, never
+    below 0: XP from before the ledger stays. Used to scrub trophies that
+    were unlocked because of a counter bug — after a recheck-all, only
+    users who genuinely qualify will get them back.
     """
     achievement = await db.get(Achievement, achievement_id)
     if not achievement:
         return None
 
-    ua_rows = (await db.execute(
-        select(UserAchievement.user_id).where(
-            UserAchievement.achievement_id == achievement_id,
-            UserAchievement.unlocked == True,  # noqa: E712
-        )
-    )).scalars().all()
-    affected_user_ids = list({uid for uid in ua_rows if uid is not None})
-
-    deleted_ua = await db.execute(
-        delete(UserAchievement).where(
-            UserAchievement.achievement_id == achievement_id,
-        )
+    rewarded = (
+        XpLedger.action == ACHIEVEMENT_XP_ACTION,
+        XpLedger.reference == achievement_xp_reference(achievement_id),
     )
-    deleted_ledger = await db.execute(
-        delete(XpLedger).where(
-            XpLedger.action == "achievement_unlocked",
-            XpLedger.reference == f"ach:{achievement_id}",
-        )
-    )
+    # Trophy rows first and locked, as the trophy check takes them: an unlock
+    # in flight ends before the list is read, and lands in it.
+    rows = (await db.execute(
+        select(UserAchievement.user_id, UserAchievement.unlocked.is_(True))
+        .where(UserAchievement.achievement_id == achievement_id)
+        .with_for_update()
+    )).all()
+    owners = set((await db.execute(select(XpLedger.user_id).where(*rewarded))).scalars())
+    affected = sorted({uid for uid, held in rows if held} | owners)
+    # Profiles before the ledger, in id order, like every other XP writer.
+    profiles = [await locked_profile(db, uid) for uid in affected]
+    taken = dict((await db.execute(
+        select(XpLedger.user_id, func.sum(XpLedger.xp))
+        .where(*rewarded, XpLedger.user_id.in_(affected))
+        .group_by(XpLedger.user_id)
+    )).all())
+    # Only the players read above: one unlocking right now keeps the trophy and its XP.
+    deleted_ua = await db.execute(delete(UserAchievement).where(
+        UserAchievement.achievement_id == achievement_id,
+        UserAchievement.user_id.in_(sorted({uid for uid, _ in rows} | owners)),
+    ))
+    deleted_ledger = await db.execute(delete(XpLedger).where(*rewarded, XpLedger.user_id.in_(affected)))
 
-    # Recompute xp/level for every affected profile from the surviving
-    # ledger sum — the simplest authoritative source of truth.
-    from sqlalchemy import func
     rebuilt = 0
-    for uid in affected_user_ids:
-        total = (await db.execute(
-            select(func.coalesce(func.sum(XpLedger.xp), 0))
-            .where(XpLedger.user_id == uid)
-        )).scalar_one()
-        profile = await _get_profile(db, uid)
-        if profile:
-            profile.xp = max(0, int(total or 0))
-            profile.level = level_from_xp(profile.xp)
-            db.add(profile)
-            rebuilt += 1
+    for profile in filter(None, profiles):
+        profile.xp = max(0, (profile.xp or 0) - int(taken.get(profile.user_id) or 0))
+        profile.level = level_from_xp(profile.xp)
+        rebuilt += 1
 
     # Multi-user mutation → no single target_user_id; the counts in the
     # payload bound the blast radius for after-the-fact review.

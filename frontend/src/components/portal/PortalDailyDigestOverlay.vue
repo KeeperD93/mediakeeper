@@ -3,7 +3,6 @@
     <!-- Fades in, but leaves at once: a fade-out waits for the page behind to finish
          rendering before the window lets go of clicks. -->
     <div v-if="visible" class="dd-overlay" @click.self="dismissToday">
-      <div class="dd-glow" aria-hidden="true" />
       <div
         ref="panelRef"
         class="dd-panel"

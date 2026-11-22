@@ -25,7 +25,7 @@ from services.portal.gdpr_erased import (
 )
 from services.portal.user_import import ensure_user_for_emby_session
 from services.settings import get_all_settings, set_setting
-from services.stats_collector.collect import _grant_post_session_xp
+from services.stats_collector.collect import _after_rows_closed
 from tests._gdpr_erased_helpers import GUID, gdpr_on, member, purged
 
 pytestmark = pytest.mark.asyncio
@@ -62,7 +62,7 @@ async def test_an_erased_person_who_keeps_watching_gets_no_account_and_earns_not
     check = AsyncMock(return_value=[])
 
     with patch("services.portal.achievements.check_all_achievements", new=check):
-        await _grant_post_session_xp(db_session, [play])
+        await _after_rows_closed(db_session, [play.id])
 
     assert await _names(db_session) == []
     check.assert_not_awaited()

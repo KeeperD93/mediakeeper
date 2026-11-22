@@ -1,7 +1,6 @@
 /* First-login wizard, features step (WizardNavMap.vue): where things are. From 640 px of
  * window, the top bar of the help demos (DemoTopBar) at its real size, scaled down
- * (--wz-s); below, a phone with its top bar, « + » button and bottom tabs. Classes
- * start with wz-. */
+ * (--wz-s); below, a phone with its top bar and bottom tabs. Classes start with wz-. */
 
 .wz-map {
   padding: var(--portal-space-3-5) var(--portal-space-4) var(--portal-space-4);
@@ -31,7 +30,7 @@
   transform-origin: 0 0;
 }
 
-/* Phone: top bar, « + », bottom tabs */
+/* Phone: top bar and bottom tabs */
 .wz-mphone {
   display: flex;
   flex-direction: column;
@@ -76,18 +75,6 @@
 }
 .wz-mphone .wz-av--md {
   --wz-av-size: var(--portal-wizard-phone-avatar);
-}
-.wz-mfab {
-  align-self: flex-end;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: var(--portal-wizard-phone-fab);
-  height: var(--portal-wizard-phone-fab);
-  border-radius: var(--portal-radius-circle);
-  background: linear-gradient(135deg, var(--portal-accent-500), var(--portal-accent));
-  box-shadow: var(--portal-shadow-accent);
-  color: var(--portal-text-primary-solid);
 }
 .wz-mbottom {
   display: grid;
