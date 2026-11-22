@@ -46,61 +46,70 @@
       </div>
     </article>
 
-    <div v-if="others.length || releaseRow" class="ddc-box ddc-morelist">
-      <div v-if="releaseRow" class="dd-release-row">
-        <button
-          type="button"
-          class="ddc-row ddc-row-item"
-          :aria-expanded="openId === RELEASE_ROW ? 'true' : 'false'"
-          @click="toggleRow(RELEASE_ROW)"
-        >
-          <span
-            v-if="releaseRow.isNew"
-            class="dd-new-mini"
-            role="img"
-            :aria-label="$t('portal.dailyDigest.news.new')"
-          />
-          <span class="dd-badge dd-badge--release">
-            {{ $t('portal.dailyDigest.release.badge') }}
-          </span>
-          <span class="ddc-row-title">
-            {{
-              $t(
-                'portal.dailyDigest.release.line',
-                { version: releaseRow.version, n: releaseRow.totalLabel },
-                releaseRow.total,
-              )
-            }}
-          </span>
-          <span class="ddc-when">{{ releaseRow.date }}</span>
-        </button>
-        <div v-if="openId === RELEASE_ROW" class="ddc-rowbody">
-          <DigestReleaseGroups :groups="releaseRow.groups" />
+    <div v-if="rows.length" class="ddc-box ddc-morelist">
+      <template v-for="row in shownRows" :key="row.key">
+        <div v-if="row.kind === DIGEST_ROW_KIND.RELEASE" class="dd-release-row">
+          <button
+            type="button"
+            class="ddc-row ddc-row-item"
+            :aria-expanded="openId === row.key ? 'true' : 'false'"
+            @click="toggleRow(row)"
+          >
+            <span
+              v-if="row.view.isNew"
+              class="dd-new-mini"
+              role="img"
+              :aria-label="$t('portal.dailyDigest.news.new')"
+            />
+            <span class="dd-badge dd-badge--release">
+              {{ $t('portal.dailyDigest.release.badge') }}
+            </span>
+            <span class="ddc-row-title">
+              {{
+                $t(
+                  'portal.dailyDigest.release.line',
+                  { version: row.view.version, n: row.view.totalLabel },
+                  row.view.total,
+                )
+              }}
+            </span>
+            <span class="ddc-when">{{ row.view.date }}</span>
+          </button>
+          <div v-if="openId === row.key" class="ddc-rowbody">
+            <DigestReleaseGroups :groups="row.view.groups" />
+          </div>
         </div>
-      </div>
-      <template v-for="item in shownOthers" :key="item.id">
-        <button
-          type="button"
-          class="ddc-row ddc-row-item"
-          :aria-expanded="openId === item.id ? 'true' : 'false'"
-          @click="toggleRow(item.id)"
-        >
-          <span
-            v-if="item.isNew"
-            class="dd-new-mini"
-            role="img"
-            :aria-label="$t('portal.dailyDigest.news.new')"
-          />
-          <span class="dd-badge" :class="item.badgeClass">{{ $t(item.typeKey) }}</span>
-          <span class="ddc-row-title">{{ item.title }}</span>
-          <span class="ddc-when">{{ item.date }}</span>
-        </button>
-        <div v-if="openId === item.id" class="ddc-rowbody">
-          <p v-for="(text, i) in item.paragraphs" :key="i">{{ text }}</p>
-        </div>
+        <DigestBoostRow
+          v-else-if="row.kind === DIGEST_ROW_KIND.BOOST"
+          :boost="row.view"
+          :open="openId === row.key"
+          compact
+          @toggle="toggleRow(row)"
+        />
+        <template v-else>
+          <button
+            type="button"
+            class="ddc-row ddc-row-item"
+            :aria-expanded="openId === row.key ? 'true' : 'false'"
+            @click="toggleRow(row)"
+          >
+            <span
+              v-if="row.view.isNew"
+              class="dd-new-mini"
+              role="img"
+              :aria-label="$t('portal.dailyDigest.news.new')"
+            />
+            <span class="dd-badge" :class="row.view.badgeClass">{{ $t(row.view.typeKey) }}</span>
+            <span class="ddc-row-title">{{ row.view.title }}</span>
+            <span class="ddc-when">{{ row.view.date }}</span>
+          </button>
+          <div v-if="openId === row.key" class="ddc-rowbody">
+            <p v-for="(text, i) in row.view.paragraphs" :key="i">{{ text }}</p>
+          </div>
+        </template>
       </template>
       <button
-        v-if="readOthers.length"
+        v-if="readCount"
         type="button"
         class="ddc-row ddc-row-more"
         :aria-expanded="moreOpen ? 'true' : 'false'"
@@ -109,7 +118,7 @@
         {{
           moreOpen
             ? $t('portal.dailyDigest.news.hideMore')
-            : $t('portal.dailyDigest.news.moreCount', { n: readOthers.length }, readOthers.length)
+            : $t('portal.dailyDigest.news.moreCount', { n: readCount }, readCount)
         }}
       </button>
     </div>
@@ -119,40 +128,36 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { Megaphone } from 'lucide-vue-next'
-import { newsView, releaseView } from '@/utils/portal/dailyDigest'
+import { DIGEST_ROW_KIND } from '@/constants/dailyDigest'
+import { newsLayout } from '@/utils/portal/dailyDigest'
+import DigestBoostRow from './DigestBoostRow.vue'
 import DigestReleaseGroups from './DigestReleaseGroups.vue'
 import '@/assets/styles/portal/daily-digest-compact-news.css'
 import '@/assets/styles/portal/daily-digest-release-list.css'
 
 const props = defineProps({
-  // Pinned first, then newest: the first one gets the card.
+  // Pinned first, then newest; newsLayout picks the card and orders the rows by kind.
   news: { type: Array, required: true },
-  // The new Portal version, as a row heading the other items.
+  // The new Portal version, as a row of the list.
   release: { type: Object, default: null },
+  // The XP boosts running now, a row each, always in sight.
+  boosts: { type: Array, default: () => [] },
 })
 const emit = defineEmits(['read', 'seen', 'open-release'])
 
-// The version's row shares the « one open at a time » of the news rows.
-const RELEASE_ROW = 'release'
-
-const views = computed(() => props.news.map(newsView))
-const main = computed(() => views.value[0])
-const others = computed(() => views.value.slice(1))
-const releaseRow = computed(() => (props.release ? releaseView(props.release) : null))
+const layout = computed(() => newsLayout(props.news, props.release, props.boosts))
+const main = computed(() => layout.value.main)
+const rows = computed(() => layout.value.rows)
 
 // Unread at opening stay in view; reading one must not hide it behind « +N ».
-const unreadAtOpen = new Set(
-  props.news
-    .slice(1)
-    .filter(item => item.is_new)
-    .map(item => item.id),
-)
-const readOthers = computed(() => others.value.filter(item => !unreadAtOpen.has(item.id)))
+const unreadAtOpen = new Set(props.news.filter(item => item.is_new).map(item => item.id))
+const isRead = row => row.kind === DIGEST_ROW_KIND.NEWS && !unreadAtOpen.has(row.key)
+const readCount = computed(() => rows.value.filter(isRead).length)
 const moreOpen = ref(false)
-const shownOthers = computed(() => [
-  ...others.value.filter(item => unreadAtOpen.has(item.id)),
-  ...(moreOpen.value ? readOthers.value : []),
-])
+// « +N » shows the read items in their place in the list.
+const shownRows = computed(() =>
+  moreOpen.value ? rows.value : rows.value.filter(row => !isRead(row)),
+)
 
 const mainOpen = ref(false)
 const openId = ref(null)
@@ -167,11 +172,11 @@ function toggleMain() {
 }
 
 // One row open at a time, under itself; a click anywhere on it closes it.
-function toggleRow(id) {
-  openId.value = openId.value === id ? null : id
-  if (openId.value !== id) return
-  if (id === RELEASE_ROW) emit('open-release')
-  else emit('read', id)
+function toggleRow(row) {
+  openId.value = openId.value === row.key ? null : row.key
+  if (openId.value !== row.key) return
+  if (row.kind === DIGEST_ROW_KIND.RELEASE) emit('open-release')
+  else if (row.kind === DIGEST_ROW_KIND.NEWS) emit('read', row.key)
 }
 
 // The first paragraph stops at two lines: « Read more » shows when it is cut.

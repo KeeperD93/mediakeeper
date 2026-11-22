@@ -11,7 +11,7 @@ from sqlalchemy.exc import OperationalError
 
 from models.portal.xp_ledger import XpLedger
 from services.backup.create import BackupResult
-from services.portal import daily_digest
+from services.portal import daily_digest_cache as digest_cache
 from services.portal.admin_users_constants import (
     ACTION_DEBUG_WATCH_XP_RECALC,
     ACTION_DEBUG_WATCH_XP_RECALC_PLAYER,
@@ -223,7 +223,7 @@ def _commit_without_answer(monkeypatch, *, reached: bool) -> list[dict]:
 
             async def lost_answer():
                 del db.commit
-                at_commit.append(dict(daily_digest._digest_cache))
+                at_commit.append(dict(digest_cache._digest_cache))
                 if reached:
                     await real_commit()
                 raise _lost("COMMIT")
@@ -243,13 +243,13 @@ async def test_a_commit_that_fails_to_answer_is_refused_as_uncertain(
     ids = await two_players(client, db)
     confirmed = await confirmation(client)
     before = await ledger_rows(db)
-    monkeypatch.setattr(daily_digest, "_digest_cache", {})  # holds nothing but Alice's digest
-    daily_digest._cache_set(ids["alice"], "2026-03-08", "fr", {"cached": True})
+    monkeypatch.setattr(digest_cache, "_digest_cache", {})  # holds nothing but Alice's digest
+    digest_cache.put(ids["alice"], "2026-03-08", "fr", {"cached": True})
     at_commit = _commit_without_answer(monkeypatch, reached=reached)
     journal_error, seen = _run._journal_error, []
 
     async def journal_seeing_the_cache(db, payload, audit):
-        seen.append(dict(daily_digest._digest_cache))
+        seen.append(dict(digest_cache._digest_cache))
         await journal_error(db, payload, audit)
 
     monkeypatch.setattr(_run, "_journal_error", journal_seeing_the_cache)
@@ -264,7 +264,7 @@ async def test_a_commit_that_fails_to_answer_is_refused_as_uncertain(
     assert ["uncertain" in payload for payload in overall] == ([False, True] if reached else [True])
     assert overall[-1] == {**confirmed, "backup": ARCHIVE, "uncertain": True}
     assert f"commit outcome unknown; backup {ARCHIVE}" in caplog.text
-    assert daily_digest._digest_cache == {}
+    assert digest_cache._digest_cache == {}
 
 
 async def test_a_request_cancelled_during_its_commit_drops_the_cached_digests(
@@ -274,8 +274,8 @@ async def test_a_request_cancelled_during_its_commit_drops_the_cached_digests(
     ids = await two_players(client, db)
     confirmed = await confirmation(client)
     before = await ledger_rows(db)
-    monkeypatch.setattr(daily_digest, "_digest_cache", {})  # left as it was, whatever the outcome
-    daily_digest._cache_set(ids["alice"], "2026-03-08", "fr", {"cached": True})
+    monkeypatch.setattr(digest_cache, "_digest_cache", {})  # left as it was, whatever the outcome
+    digest_cache.put(ids["alice"], "2026-03-08", "fr", {"cached": True})
     record, committed = _run.record_audit, asyncio.Event()
 
     async def recording(db, **kwargs):
@@ -300,5 +300,5 @@ async def test_a_request_cancelled_during_its_commit_drops_the_cached_digests(
         await asyncio.wait_for(request, 10)
 
     assert await ledger_rows(db) != before
-    assert daily_digest._digest_cache == {}
+    assert digest_cache._digest_cache == {}
     assert not RECALC_LOCK.locked()

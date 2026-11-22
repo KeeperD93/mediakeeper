@@ -1,4 +1,4 @@
-/* Daily digest: the new Portal version as a row heading the news list (DigestNews.vue,
+/* Daily digest: the new Portal version as a row of the news list (DigestNews.vue,
  * DigestCompactNews.vue), and every change of the version by section
  * (DigestReleaseGroups.vue). A click anywhere on the row opens or closes it. */
 
@@ -30,8 +30,15 @@
     rgb(var(--portal-color-cinema-rgb), 0.02)
   );
 }
+/* Its button is the row's first child: the line above it goes on the row. */
+.dd-release-row:not(:first-child) {
+  border-top: var(--portal-border-width) solid var(--portal-border-subtle);
+}
 .dd-release-row:first-child {
   border-radius: var(--dd-release-row-radius) var(--dd-release-row-radius) 0 0;
+}
+.dd-release-row:last-child {
+  border-radius: 0 0 var(--dd-release-row-radius) var(--dd-release-row-radius);
 }
 .dd-release-row:only-child {
   border-radius: var(--dd-release-row-radius);

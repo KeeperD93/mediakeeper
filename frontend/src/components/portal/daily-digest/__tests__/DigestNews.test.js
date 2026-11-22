@@ -1,7 +1,8 @@
 /**
  * News of the daily digest, both views: « Read more » opens the main item in place,
- * one other item opens at a time, and the compact view keeps unread items in sight
- * while the read ones wait behind « +N ».
+ * one other item opens at a time, the list goes pinned, announcements, maintenance,
+ * the version, events, and the compact view keeps unread items in sight while the
+ * read ones wait behind « +N ».
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
@@ -22,6 +23,9 @@ const news = (id, extra = {}) => ({
 })
 
 const LONG = 'First paragraph.\n\nSecond paragraph.\n\nThird paragraph.'
+
+const release = { version: '1.2.3', date: '2026-11-13', is_new: false, categories: {} }
+const RELEASE = 'release'
 
 let wrapper
 
@@ -92,12 +96,55 @@ describe('DigestNews.vue (full view)', () => {
     expect(wrapper.find('.dd-badge--pin').exists()).toBe(true)
     const badges = wrapper.findAll('.dd-more-row .dd-badge')
     expect(badges.map(badge => badge.classes().join(' '))).toEqual([
+      'dd-badge',
       'dd-badge dd-badge--warn',
       'dd-badge dd-badge--event',
-      'dd-badge',
     ])
-    expect(badges[2].text()).toBe('portal.news.types.other')
+    expect(badges[0].text()).toBe('portal.news.types.other')
     expect(wrapper.findAll('.dd-new-mini')).toHaveLength(1)
+  })
+
+  const rowNames = () =>
+    wrapper
+      .findAll('.dd-more-item')
+      .map(item =>
+        item.classes().includes('dd-more-item--release')
+          ? RELEASE
+          : item.find('.dd-more-title').text(),
+      )
+
+  it('lists pinned, announcements, maintenance, the version, then events', () => {
+    // The server's order: pinned first, then newest.
+    wrapper = mount(DigestNews, {
+      props: {
+        news: [
+          news(6, { type: 'event', pinned: true }),
+          news(5, { type: 'event' }),
+          news(4, { type: 'maintenance' }),
+          news(3, { type: 'other' }),
+          news(2, { type: 'additions' }),
+          news(1, { type: 'announcement' }),
+        ],
+        release,
+      },
+    })
+    expect(wrapper.find('.dd-news-title').text()).toBe('Test news 6')
+    expect(rowNames()).toEqual([
+      'Test news 3',
+      'Test news 2',
+      'Test news 1',
+      'Test news 4',
+      RELEASE,
+      'Test news 5',
+    ])
+  })
+
+  it('gives the card to an announcement over a newer maintenance', () => {
+    wrapper = mount(DigestNews, {
+      props: { news: [news(3, { type: 'event' }), news(2, { type: 'maintenance' }), news(1)] },
+    })
+    expect(wrapper.find('.dd-news-title').text()).toBe('Test news 1')
+    expect(rowNames()).toEqual(['Test news 2', 'Test news 3'])
   })
 })
 
@@ -143,6 +190,27 @@ describe('DigestCompactNews.vue (compact view)', () => {
     expect(titles()).toEqual(['Test news 2'])
     expect(wrapper.find('.ddc-rowbody').exists()).toBe(true)
     expect(wrapper.emitted('read')).toEqual([[2]])
+  })
+
+  it('follows the list order, and shows read items in their place', async () => {
+    wrapper = mount(DigestCompactNews, {
+      props: {
+        news: [news(3, { type: 'event', is_new: true }), news(2, { type: 'maintenance' }), news(1)],
+        release,
+      },
+    })
+    const names = () =>
+      wrapper
+        .findAll('.ddc-row-item')
+        .map(row =>
+          row.element.closest('.dd-release-row') ? RELEASE : row.find('.ddc-row-title').text(),
+        )
+    expect(wrapper.find('.ddc-news-title').text()).toBe('Test news 1')
+    expect(names()).toEqual([RELEASE, 'Test news 3'])
+
+    await wrapper.find('.ddc-row-more').trigger('click')
+
+    expect(names()).toEqual(['Test news 2', RELEASE, 'Test news 3'])
   })
 
   it('opens the rest of the main item in place', async () => {

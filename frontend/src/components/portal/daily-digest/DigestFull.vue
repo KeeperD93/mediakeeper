@@ -8,15 +8,19 @@
       v-if="digest.news?.length"
       :news="digest.news"
       :release="digest.release"
+      :boosts="digest.xp_boosts"
       @read="$emit('read-news', $event)"
       @seen="$emit('seen-news', $event)"
       @open-release="$emit('open-release')"
     />
-    <DigestRelease
-      v-else-if="digest.release"
-      :release="digest.release"
-      @open="$emit('open-release')"
-    />
+    <template v-else>
+      <DigestRelease
+        v-if="digest.release"
+        :release="digest.release"
+        @open="$emit('open-release')"
+      />
+      <DigestBoosts v-if="digest.xp_boosts?.length" :boosts="digest.xp_boosts" />
+    </template>
 
     <DigestStats v-if="statCards.length" :cards="statCards" />
 
@@ -56,6 +60,7 @@
 <script setup>
 import { computed, toRef } from 'vue'
 import { useDailyDigestPresenters } from '@/composables/portal/useDailyDigestPresenters'
+import DigestBoosts from './DigestBoosts.vue'
 import DigestEvents from './DigestEvents.vue'
 import DigestExpiry from './DigestExpiry.vue'
 import DigestForYou from './DigestForYou.vue'

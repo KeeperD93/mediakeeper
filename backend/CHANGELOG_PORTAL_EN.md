@@ -17,6 +17,7 @@ This section intentionally has no date so it is not shown to users.
 ### Added
 - Help — starter articles also in English.
 - First sign-in — step-by-step guide (username, profile, notifications, animated help).
+- Today's digest — running XP boosts: multiplier, end and actions that count.
 - Install the app — offered by the first sign-in guide and the avatar menu.
 
 ### Changed
@@ -24,7 +25,7 @@ This section intentionally has no date so it is not shown to users.
 - Watch XP — 20 XP per hour of a title watched to the end.
 - Days in a row and Regular — from 5 min watched; music and audiobooks left out.
 - Secret trophies — name and icon shown, description and progress hidden until unlocked.
-- Today's digest — redesigned: news first, compact view, expiry notice, "For you", new version.
+- Today's digest — redesigned: news first, sorted by type, compact view, expiry notice, "For you", new version.
 - Usernames — reserved words, look-alikes and provisional-pseudo shapes refused, 3 characters (2 in Chinese or Korean).
 
 ### Fixed

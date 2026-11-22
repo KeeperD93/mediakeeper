@@ -7,6 +7,7 @@ import pytest
 
 from models.user import User
 from services.portal import daily_digest, daily_digest_sources
+from services.portal import daily_digest_cache as digest_cache
 from services.portal.admin_users_constants import (
     ACTION_DEBUG_WATCH_XP_RECALC,
     ACTION_DEBUG_WATCH_XP_RECALC_PLAYER,
@@ -40,7 +41,7 @@ async def test_apply_writes_the_rows_at_their_date_and_journals_each_player(clie
     db = db_session
     ids = await two_players(client, db)
     alice, bob = ids["alice"], ids["bob"]
-    daily_digest._cache_set(alice, "2026-03-08", "fr", {"cached": True})
+    digest_cache.put(alice, "2026-03-08", "fr", {"cached": True})
     confirmed = await confirmation(client)
 
     resp = await client.post(APPLY, json=confirmed)
@@ -58,7 +59,7 @@ async def test_apply_writes_the_rows_at_their_date_and_journals_each_player(clie
     }
     # XP: before, less what went, plus what came; the 270 from before the ledger stay.
     assert [((p := await profile_of(db, user_id)).xp, p.level) for user_id in (alice, bob)] == [(312, 2), (15, 1)]
-    assert daily_digest._digest_cache == {}
+    assert digest_cache._digest_cache == {}
 
     audits = await audit_rows(db)
     players = {row.target_user_id: row.payload for row in audits[ACTION_DEBUG_WATCH_XP_RECALC_PLAYER]}
@@ -85,7 +86,7 @@ async def test_a_digest_built_across_the_apply_is_not_cached(client, db_session,
     db = db_session
     ids = await two_players(client, db)
     confirmed = await confirmation(client)
-    monkeypatch.setattr(daily_digest, "_digest_cache", {})
+    monkeypatch.setattr(digest_cache, "_digest_cache", {})
     reading, resume = asyncio.Event(), asyncio.Event()
     closest = daily_digest_sources.closest_achievement
 
@@ -104,7 +105,7 @@ async def test_a_digest_built_across_the_apply_is_not_cached(client, db_session,
 
     assert resp.status_code == 200, resp.text
     assert (built["level"]["xp"], (await profile_of(db, ids["alice"])).xp) == (282, 312)
-    assert daily_digest._digest_cache == {}
+    assert digest_cache._digest_cache == {}
 
 
 async def test_a_second_run_finds_nothing_and_backs_nothing_up(client, db_session, backups):

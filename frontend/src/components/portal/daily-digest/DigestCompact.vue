@@ -22,16 +22,20 @@
       v-if="digest.news?.length"
       :news="digest.news"
       :release="digest.release"
+      :boosts="digest.xp_boosts"
       @read="$emit('read-news', $event)"
       @seen="$emit('seen-news', $event)"
       @open-release="$emit('open-release')"
     />
-    <DigestRelease
-      v-else-if="digest.release"
-      :release="digest.release"
-      compact
-      @open="$emit('open-release')"
-    />
+    <template v-else>
+      <DigestRelease
+        v-if="digest.release"
+        :release="digest.release"
+        compact
+        @open="$emit('open-release')"
+      />
+      <DigestBoosts v-if="digest.xp_boosts?.length" :boosts="digest.xp_boosts" compact />
+    </template>
 
     <DigestStats v-if="statCards.length" :cards="statCards" compact />
 
@@ -71,6 +75,7 @@
 import { toRef } from 'vue'
 import AvatarFrame from '@/components/portal/common/AvatarFrame.vue'
 import { useDailyDigestPresenters } from '@/composables/portal/useDailyDigestPresenters'
+import DigestBoosts from './DigestBoosts.vue'
 import DigestCompactNews from './DigestCompactNews.vue'
 import DigestCompactProgress from './DigestCompactProgress.vue'
 import DigestExpiry from './DigestExpiry.vue'

@@ -9,6 +9,7 @@ from core.security import create_access_token, hash_password
 from models.user import User
 from models.portal.profile import UserProfile
 from services.portal import daily_digest as dd_svc
+from services.portal import daily_digest_cache as digest_cache
 from services.portal import daily_digest_sources as dd_sources
 from services.settings import get_user_preferences, upsert_user_preferences
 
@@ -60,7 +61,6 @@ def _stub_all_digest_sources():
 async def test_digest_empty_when_no_data(client, db_session):
     """With every source empty, digest.empty must be true and dismissed false."""
     await _seed_viewer(client, db_session)
-    dd_svc._digest_cache.clear()
 
     stubs = _stub_all_digest_sources()
     for s in stubs:
@@ -81,7 +81,6 @@ async def test_digest_empty_when_no_data(client, db_session):
 async def test_digest_not_empty_when_content(client, db_session):
     """A streak alone should be enough to flip empty=false."""
     await _seed_viewer(client, db_session)
-    dd_svc._digest_cache.clear()
 
     stubs = _stub_all_digest_sources()
     # Override streak to 3 consecutive days
@@ -103,7 +102,6 @@ async def test_digest_not_empty_when_content(client, db_session):
 async def test_dismiss_then_get_reports_dismissed(client, db_session):
     """POST /dismiss must flip dismissed=true for the rest of the day."""
     user = await _seed_viewer(client, db_session)
-    dd_svc._digest_cache.clear()
 
     resp = await client.post("/api/portal/daily-digest/dismiss")
     assert resp.status_code == 200
@@ -129,7 +127,6 @@ async def test_dismiss_then_get_reports_dismissed(client, db_session):
 async def test_cache_hit_avoids_rebuild(client, db_session):
     """A second call within the TTL must not re-invoke the aggregators."""
     await _seed_viewer(client, db_session)
-    dd_svc._digest_cache.clear()
 
     recent_stub = AsyncMock(return_value=[])
     stubs = _stub_all_digest_sources()
@@ -151,7 +148,6 @@ async def test_cache_hit_avoids_rebuild(client, db_session):
 async def test_force_bypasses_cache(client, db_session):
     """?force=true rebuilds even when cached."""
     await _seed_viewer(client, db_session)
-    dd_svc._digest_cache.clear()
 
     recent_stub = AsyncMock(return_value=[])
     stubs = _stub_all_digest_sources()
@@ -181,7 +177,6 @@ async def test_endpoints_require_auth(client):
 async def test_dismiss_stores_dismissed_at_instant(client, db_session):
     """Dismiss records the precise instant so the 24h grace can be timed."""
     user = await _seed_viewer(client, db_session, username="viewer_digest_at")
-    dd_svc._digest_cache.clear()
     await client.post("/api/portal/daily-digest/dismiss")
     stored = json.loads((await get_user_preferences(db_session, user.id)).preferences)
     assert "portal_daily_digest_dismissed_at" in stored
@@ -242,17 +237,16 @@ async def test_dismiss_commits_elapsed_watermark(db_session):
 
 
 def test_clear_cache_drops_every_payload():
-    dd_svc._digest_cache[(1, "2026-11-13", "fr")] = (9e12, {})
-    dd_svc._digest_cache[(2, "2026-11-13", "en")] = (9e12, {})
+    digest_cache._digest_cache[(1, "2026-11-13", "fr")] = (9e12, {})
+    digest_cache._digest_cache[(2, "2026-11-13", "en")] = (9e12, {})
     dd_svc.clear_cache()
-    assert dd_svc._digest_cache == {}
+    assert digest_cache._digest_cache == {}
 
 
 @pytest.mark.asyncio
 async def test_a_digest_built_across_a_drop_is_not_cached(client, db_session):
     """A rename saved while a digest is built must not be hidden by that digest."""
     await _seed_viewer(client, db_session)
-    dd_svc._digest_cache.clear()
 
     async def renamed_meanwhile(*_args, **_kwargs):
         dd_svc.clear_cache()  # another request saved a name during this build
@@ -268,4 +262,4 @@ async def test_a_digest_built_across_a_drop_is_not_cached(client, db_session):
         for s in stubs:
             s.stop()
 
-    assert dd_svc._digest_cache == {}
+    assert digest_cache._digest_cache == {}

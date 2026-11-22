@@ -1,6 +1,6 @@
 /**
  * The new Portal version in the daily digest: without news, a card that shows its first
- * changes; with news, a row heading their list. A click anywhere opens every change in
+ * changes; with news, a row of their list. A click anywhere opens every change in
  * place, another one closes it, and only an opening tells the window.
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -130,7 +130,7 @@ describe('DigestRelease.vue (card, no news)', () => {
   })
 })
 
-describe('the version row heading the news', () => {
+describe('the version row in the news list', () => {
   beforeEach(() => {
     vi.stubGlobal(
       'ResizeObserver',
@@ -145,7 +145,7 @@ describe('the version row heading the news', () => {
     vi.unstubAllGlobals()
   })
 
-  it('heads the list even under a single news item, and opens in place', async () => {
+  it('shows in the list even under a single news item, and opens in place', async () => {
     wrapper = mount(DigestNews, { props: { news: [news(1)], release: release() } })
     const row = wrapper.find('.dd-more-item--release .dd-more-row')
     expect(row.find('.dd-more-title').text()).toBe(
@@ -168,16 +168,18 @@ describe('the version row heading the news', () => {
   it('shares « one open at a time » with the other news rows', async () => {
     wrapper = mount(DigestNews, { props: { news: [news(1), news(2)], release: release() } })
     const rows = wrapper.findAll('.dd-more-row')
+    // An announcement comes before the version.
+    expect(rows[1].element.closest('.dd-more-item--release')).not.toBeNull()
 
-    await rows[0].trigger('click')
     await rows[1].trigger('click')
+    await rows[0].trigger('click')
 
     expect(wrapper.find('.dd-release-list').exists()).toBe(false)
     expect(wrapper.findAll('.dd-more-body')).toHaveLength(1)
     expect(wrapper.emitted('read')).toEqual([[2]])
   })
 
-  it('heads the compact list too, and opens in place', async () => {
+  it('shows in the compact list too, and opens in place', async () => {
     wrapper = mount(DigestCompactNews, { props: { news: [news(1)], release: release() } })
     const row = wrapper.find('.dd-release-row .ddc-row-item')
 

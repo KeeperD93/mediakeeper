@@ -1,22 +1,39 @@
-"""XP boost event service — load active multipliers and apply to grants."""
-import logging
+"""XP boost event service — active multipliers for grants, running events for the daily digest."""
 from collections.abc import Iterable
-from datetime import datetime, timezone
+from datetime import datetime, timezone, tzinfo
 from decimal import ROUND_HALF_UP, Decimal
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from models.portal.xp_boost import XpBoostEvent
+from services.instance_time import to_local
 
-logger = logging.getLogger("mediakeeper.portal.xp_boost")
+
+async def _running_events(db: AsyncSession, now: datetime) -> list[XpBoostEvent]:
+    """Enabled events whose window holds ``now``, the first to end first."""
+    return (await db.execute(
+        select(XpBoostEvent).where(
+            XpBoostEvent.enabled == True,  # noqa: E712
+            XpBoostEvent.starts_at <= now,
+            XpBoostEvent.ends_at >= now,
+        ).order_by(XpBoostEvent.ends_at, XpBoostEvent.id)
+    )).scalars().all()
+
+
+def _limited_to(ev: XpBoostEvent) -> list[str] | None:
+    """The actions an event is limited to, in the admin's order; None when it has no filter."""
+    if not ev.action_filter:
+        return None
+    return list(dict.fromkeys(a.strip() for a in ev.action_filter.split(",") if a.strip()))
 
 
 def event_applies(ev: XpBoostEvent, action: str, at: datetime) -> bool:
     """Whether ``ev`` covers ``at`` (aware) for ``action``, enabled or not."""
     if not _parse_dt(ev.starts_at) <= at <= _parse_dt(ev.ends_at):
         return False
-    return not ev.action_filter or action in {a.strip() for a in ev.action_filter.split(",") if a.strip()}
+    actions = _limited_to(ev)
+    return actions is None or action in actions
 
 
 def multiplier_at(events: Iterable[XpBoostEvent], action: str, at: datetime) -> float:
@@ -43,14 +60,29 @@ def boosted_xp(xp: int, multiplier: float) -> int:
 async def get_active_multiplier(db: AsyncSession, action: str, at: datetime | None = None) -> float:
     """Combined multiplier of the events active at ``at`` (aware, now by default) for ``action``."""
     at = at or datetime.now(timezone.utc)
-    rows = (await db.execute(
-        select(XpBoostEvent).where(
-            XpBoostEvent.enabled == True,  # noqa: E712
-            XpBoostEvent.starts_at <= at,
-            XpBoostEvent.ends_at >= at,
-        )
-    )).scalars().all()
-    return multiplier_at(rows, action, at)
+    return multiplier_at(await _running_events(db, at), action, at)
+
+
+async def active_boosts(db: AsyncSession, now: datetime, zone: tzinfo) -> list[dict]:
+    """The events running at ``now`` as the daily digest lists them. ``ends_local`` is
+    the end on the clock of ``zone``, without offset, shown as is to every viewer;
+    an empty ``actions`` means every action counts."""
+    boosts = []
+    for ev in await _running_events(db, now):
+        actions = _limited_to(ev)
+        if actions == []:
+            continue  # a filter of separators only matches no action: nothing to announce
+        ends = _parse_dt(ev.ends_at)
+        boosts.append({
+            "id": ev.id,
+            "name": ev.name,
+            "description": ev.description,
+            "multiplier": ev.multiplier,
+            "ends_at": ends.isoformat(timespec="seconds"),
+            "ends_local": to_local(ends, zone).replace(tzinfo=None).isoformat(timespec="seconds"),
+            "actions": actions or [],
+        })
+    return boosts
 
 
 async def list_events(db: AsyncSession) -> list[dict]:

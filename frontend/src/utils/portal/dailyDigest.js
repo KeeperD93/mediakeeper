@@ -1,11 +1,22 @@
-import { DIGEST_RELEASE_TEASER_SIZE, NEWS_TYPE, RELEASE_CATEGORY } from '@/constants/dailyDigest'
+import {
+  DIGEST_RELEASE_TEASER_SIZE,
+  DIGEST_ROW_KIND,
+  DIGEST_ROW_RANK,
+  NEWS_TYPE,
+  RELEASE_CATEGORY,
+} from '@/constants/dailyDigest'
 import { getLocale } from '@/i18n'
-import { localizedDate } from '@/utils/datetime'
+import { localizedDate, localizedDateTime } from '@/utils/datetime'
 import { localizedNumber } from '@/utils/localizedNumber'
 
 const NEWS_TYPES = Object.values(NEWS_TYPE)
 const RELEASE_CATEGORIES = Object.values(RELEASE_CATEGORY)
 const NEWS_BADGE_TONE = { [NEWS_TYPE.MAINTENANCE]: 'warn', [NEWS_TYPE.EVENT]: 'event' }
+// Types without a rank of their own go with the announcements.
+const NEWS_RANK = {
+  [NEWS_TYPE.MAINTENANCE]: DIGEST_ROW_RANK.MAINTENANCE,
+  [NEWS_TYPE.EVENT]: DIGEST_ROW_RANK.EVENT,
+}
 
 /** Paragraphs of a news text: split on blank lines, or on line breaks when it has none. */
 export function newsParagraphs(content) {
@@ -24,6 +35,7 @@ export function newsView(item) {
   const tone = NEWS_BADGE_TONE[type]
   return {
     id: item.id,
+    type,
     title: item.title,
     imageUrl: item.image_url || null,
     pinned: !!item.pinned,
@@ -70,6 +82,86 @@ export function releaseView(release) {
     rest,
     restLabel: localizedNumber(rest),
   }
+}
+
+/** Time left before `iso` in its largest whole unit: days, hours, then minutes (one at least). */
+export function timeLeft(iso, now = Date.now()) {
+  const seconds = Math.max(60, Math.trunc((new Date(iso).getTime() - now) / 1000))
+  if (seconds >= 86400) return { unit: 'days', n: Math.trunc(seconds / 86400) }
+  if (seconds >= 3600) return { unit: 'hours', n: Math.trunc(seconds / 3600) }
+  return { unit: 'minutes', n: Math.trunc(seconds / 60) }
+}
+
+/**
+ * A running XP boost as the digest draws it: « Reduced XP » under ×1, its multiplier and
+ * its end in the viewer's language, the time left, its text and the actions it is
+ * limited to (none: every action counts).
+ */
+export function boostView(boost, now = Date.now()) {
+  const left = timeLeft(boost.ends_at, now)
+  // The end on the server's clock, the same for every viewer: its wall time read as UTC.
+  const end = new Date(`${boost.ends_local}Z`)
+  return {
+    key: `${DIGEST_ROW_KIND.BOOST}-${boost.id}`,
+    name: boost.name,
+    reduced: boost.multiplier < 1,
+    multiplier: localizedNumber(boost.multiplier),
+    until: localizedDate(end, { day: 'numeric', month: 'short', timeZone: 'UTC' }),
+    ends: localizedDateTime(end, {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long',
+      hour: '2-digit',
+      minute: '2-digit',
+      timeZone: 'UTC',
+    }),
+    leftKey: `portal.dailyDigest.boost.left.${left.unit}`,
+    left: left.n,
+    leftLabel: localizedNumber(left.n),
+    paragraphs: newsParagraphs(boost.description),
+    actions: boost.actions.map(action => ({
+      key: `portal.dailyDigest.boost.actions.${action}`,
+      action,
+    })),
+  }
+}
+
+function newsRow(item) {
+  const view = newsView(item)
+  const rank = view.pinned
+    ? DIGEST_ROW_RANK.PINNED
+    : (NEWS_RANK[view.type] ?? DIGEST_ROW_RANK.ANNOUNCEMENT)
+  return { kind: DIGEST_ROW_KIND.NEWS, key: view.id, rank, view }
+}
+
+function boostRow(boost) {
+  const view = boostView(boost)
+  return { kind: DIGEST_ROW_KIND.BOOST, key: view.key, rank: DIGEST_ROW_RANK.BOOST, view }
+}
+
+/**
+ * The news block as both views lay it out: the first news item in the list's order
+ * gets the card, the other rows follow `DIGEST_ROW_RANK` and keep the server's order
+ * (newest news, first boost to end) within a rank. Drawn only when there is at least
+ * one news item.
+ */
+export function newsLayout(news, release, boosts = []) {
+  const rows = news.map(newsRow)
+  if (release) {
+    rows.push({
+      kind: DIGEST_ROW_KIND.RELEASE,
+      key: DIGEST_ROW_KIND.RELEASE,
+      rank: DIGEST_ROW_RANK.RELEASE,
+      view: releaseView(release),
+    })
+  }
+  rows.push(...boosts.map(boostRow))
+  rows.sort((a, b) => a.rank - b.rank)
+  const [main] = rows.splice(
+    rows.findIndex(row => row.kind === DIGEST_ROW_KIND.NEWS),
+    1,
+  )
+  return { main: main.view, rows }
 }
 
 /** First letter in capitals, for a date or a delay that opens a line. */

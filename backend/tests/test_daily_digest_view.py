@@ -21,7 +21,6 @@ VIEW_URL = "/api/portal/daily-digest/view"
 @pytest.fixture
 def quiet_sources():
     """The blocks older than the redesign show nothing, so each new one is judged alone."""
-    dd_svc._digest_cache.clear()
     quota = {"used": 0, "max_allowed": 0, "unlimited": False, "remaining": 0}
     stubs = [
         patch.object(sources, "recent_adds", AsyncMock(return_value=[])),
@@ -39,7 +38,6 @@ def quiet_sources():
     yield
     for stub in stubs:
         stub.stop()
-    dd_svc._digest_cache.clear()
 
 
 async def _sign_in(client, db, **profile):

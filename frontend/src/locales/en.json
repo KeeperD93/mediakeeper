@@ -3082,6 +3082,33 @@
         "showAllCompact": "See the change | See the {n} changes",
         "collapse": "Collapse what's new"
       },
+      "boost": {
+        "section": "Current XP boosts",
+        "badge": "XP boost",
+        "badgeReduced": "Reduced XP",
+        "line": "{name} · XP ×{multiplier}",
+        "until": "until {date}",
+        "counts": "Counts for: {actions}",
+        "ends": "Until {date} · {left}",
+        "left": {
+          "days": "{n} day left | {n} days left",
+          "hours": "{n} hour left | {n} hours left",
+          "minutes": "{n} minute left | {n} minutes left"
+        },
+        "actions": {
+          "achievement_unlocked": "Trophy unlocked",
+          "watch_movie": "Movie watched",
+          "watch_episode": "Episode watched",
+          "complete_series": "Series completed",
+          "daily_login": "Daily login",
+          "request_created": "Request created",
+          "request_approved": "Request approved",
+          "event_created": "Event created",
+          "event_joined": "Event joined",
+          "streak_7": "7-day streak",
+          "streak_30": "30-day streak"
+        }
+      },
       "expiry": {
         "title": "Your account expires on {date}, {when}.",
         "when": "today | tomorrow | in {n} days",
