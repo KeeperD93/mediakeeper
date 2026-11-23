@@ -8,6 +8,6 @@ pytest-cov==7.1.0
 pytest-randomly==5.1.0
 pytest-xdist==3.8.0
 aiosqlite==0.22.1
-ruff==0.17.4
+ruff==0.17.6
 # Time zone data for the tests on Windows; the image has the system package.
 tzdata==2026.6
